@@ -16,6 +16,7 @@ const {arcade}          = require('./arcade')
 const {mfm}             = require('./mfm')
 const {testArcadeRun}   = require('./testing')
 const {softlists}       = require('./softlists')
+const {synctool}        = require('./synctool')
 
 //tee output to console and to a logfile https://stackoverflow.com/a/30578473/3536094
 const logFile           = './mametool_logfile.txt'
@@ -42,7 +43,9 @@ program //cmd-line options as parsed by commander
     .option(`--mfm`)
     .option(`--testArcadeRun`)
     //messTool options
-    .option(`--softlists`)
+    .option(`--softlists [rompath]`)
+    //syncTool options
+    .option(`--synctool [rompath]`)
     .parse(process.argv)
 
 if (!process.argv.slice(2).length) {
@@ -60,6 +63,9 @@ if (!process.argv.slice(2).length) {
 )
   process.exit()
 }
+//bypass mametool stuff if synctool
+program.synctool      && synctool(program.synctool)
+//oops as it is we'll fall through to this lot
 
 //calculate these
 const outputDir         = program.outputDir
