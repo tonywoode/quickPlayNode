@@ -1,7 +1,7 @@
 const processInput = require('./processInput.js')
 const taggedSum = require("daggy").taggedSum
 const SyncState = taggedSum("SyncState", {
-  Move: ["bool"],
+  Move: ["remotePath"], //coz of course synctool is calulating this, does processInput check its there tho?
   NoMove: ["bool"],
   Resume: ["kb"],
   Error: ["errObj"],
@@ -9,7 +9,7 @@ const SyncState = taggedSum("SyncState", {
 
 
 const synctool = romPath => {
-  console.log(romPath)
+  processInput(romPath)
   process.exit() //else we'll fall through to the mametool stuff
 }
 module.exports = {synctool}
