@@ -1,9 +1,13 @@
-const Maybe = require('data.maybe')
+const { Maybe } = require('sanctuary')
 const { Just, Nothing } = Maybe
-
-const processInput = romPath => {
-  return romPath && Just(romPath) || Nothing() 
-  console.log(romPath)
+const { isEmpty } = require('Ramda')
+const checkEmpty = romPath => {
+  return romPath && Just(romPath) || Nothing 
 }
 
-module.exports = processInput
+const checkRootPaths = config => {
+ return isEmpty(config) && Nothing || Just(config)
+
+}
+
+module.exports = { checkEmpty, checkRootPaths }
