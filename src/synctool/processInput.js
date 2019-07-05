@@ -1,13 +1,19 @@
-const { Maybe } = require('sanctuary')
+const { isEmpty, compose, map, chain } = require('Ramda')
+const { Maybe, Either } = require('sanctuary')
 const { Just, Nothing } = Maybe
-const { isEmpty } = require('Ramda')
-const checkEmpty = romPath => {
-  return romPath && Just(romPath) || Nothing 
-}
+const { Left, Right } = Either
 
-const checkRootPaths = config => {
- return isEmpty(config) && Nothing || Just(config)
+// checkStrEmpty :: Path -> Maybe Path
+const checkStrEmpty = str => str && Just(str) || Nothing 
+// checkObjEmpty :: Object -> Maybe Object
+const checkObjEmpty = config => isEmpty(config) && Nothing || Just(config)
+// checkKey = Object => Either Object Error
+const checkKey = key => config => config.hasOwnProperty(key) && Right(config) || Left(`${key} is not set`)
 
-}
+const checkRemote = checkKey("remotePath")
+const checkLocal = checkKey("localPath")
 
-module.exports = { checkEmpty, checkRootPaths }
+// checkConfigKeys :: Object -> Either Object Error
+const checkConfigKeys = config => compose(chain(checkLocal), checkRemote)(config)
+
+module.exports = { checkStrEmpty, checkObjEmpty, checkKey, checkConfigKeys }
