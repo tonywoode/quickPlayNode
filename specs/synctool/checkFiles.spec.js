@@ -2,12 +2,12 @@ const mock = require("mock-fs")
 const path = require("path")
 const join = (...paths) => path.join(...paths)
 
-const { stat, isDir, isFile } = require("../../src/synctool/checkFiles.js")
+const { stat, isDir, isFile, isSubdir } = require("../../src/synctool/checkFiles.js")
 
 const newError = msg => {
   throw new Error(msg)
 }
-describe("checkFiles", () => {
+describe.only("checkFiles", () => {
   const root = "root/path/on/my/pc"
   const pathToSrcDir = join(root, `source`)
   const pathToTextFile = join(root, `source/textFile`)
@@ -64,6 +64,16 @@ describe("checkFiles", () => {
         _ => _,
         res => expect(res).to.be.true && done()
       )
+    })
+  })
+
+  describe("isSubdir", () => {
+    it("falsey if child is not a subpath of parent", done => {
+      expect( isSubdir("foo") ("bar")).to.be.false && done()
+    })
+
+    it("truthy if child is a subpath of parent", done => {
+      expect( isSubdir("foo/bar/baz") ("foo/bar")).to.be.true && done()
     })
   })
 })

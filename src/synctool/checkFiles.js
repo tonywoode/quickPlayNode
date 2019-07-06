@@ -1,4 +1,5 @@
 const fs = require("fs")
+const { relative, isAbsolute } = require("path")
 const Task = require("data.task")
 const { compose, map } = require("Ramda")
 //const { Maybe, Either } = require('sanctuary')
@@ -27,4 +28,15 @@ const isFile = compose(
   stat
 )
 
-module.exports = { stat, isDir, isFile }
+// isSubdir :: Path -> Path -> Boolean
+const isSubdir = child => parent => { //stackoverflow.com/a/45242825/3536094
+  const pathFromTo = relative(parent, child)
+  const result =  pathFromTo
+    && !pathFromTo.startsWith("..") 
+    && !isAbsolute(pathFromTo)
+    && relative(parent, child).length >= 0
+  //console.log(`is "${child}" a child of "${parent}": ${result}`)
+  return result
+}
+
+module.exports = { stat, isDir, isFile, isSubdir }
