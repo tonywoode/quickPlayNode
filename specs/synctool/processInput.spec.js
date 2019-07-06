@@ -9,7 +9,7 @@ const {
   checkConfigKeys
 } = require("../../src/synctool/processInput.js")
 
-describe.only("processInput", () => {
+describe("processInput", () => {
   describe("validityChecks", () => {
     describe("checkStrEmpty", () => {
       it("when not passed a rompath, will do nothing", () => {
@@ -53,7 +53,9 @@ describe.only("processInput", () => {
         const config = {
           localPath: "localPath"
         }
-        expect(checkConfigKeys(config)).to.deep.equal(Left("remotePath is not set"))
+        expect(checkConfigKeys(config)).to.deep.equal(
+          Left("remotePath is not set")
+        )
       })
       it("when passed a valid config object, gives us our paths back", () => {
         const config = {
@@ -64,4 +66,6 @@ describe.only("processInput", () => {
       })
     })
   })
+
+
 })
