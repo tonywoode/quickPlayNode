@@ -2,16 +2,24 @@ const mock = require("mock-fs")
 const path = require("path")
 const join = (...paths) => path.join(...paths)
 
-const { stat, isDir, isFile, isSubdir } = require("../../src/synctool/checkFiles.js")
+const {
+  stat,
+  isDir,
+  isFile,
+  getSize,
+  isSubdir
+} = require("../../src/synctool/checkFiles.js")
 
 const newError = msg => {
   throw new Error(msg)
 }
-describe.only("checkFiles", () => {
-  const root = "root/path/on/my/pc"
-  const pathToSrcDir = join(root, `source`)
-  const pathToTextFile = join(root, `source/textFile`)
 
+const root = "root/path/on/my/pc"
+const pathToSrcDir = join(root, `source`)
+const pathToTextFile = join(root, `source/textFile`)
+const sizeOfTextFile = 10
+
+describe("checkFiles", () => {
   beforeEach(() => {
     mock({
       [root]: {
@@ -45,13 +53,10 @@ describe.only("checkFiles", () => {
       )
     })
     it("says a dir is a dir", done => {
-      isDir(pathToSrcDir).fork(
-        _ => _,
-        res => expect(res).to.be.true && done()
-      )
+      isDir(pathToSrcDir).fork(_ => _, res => expect(res).to.be.true && done())
     })
-  })  
-  
+  })
+
   describe("isFile", () => {
     it("says a dir is not a file", done => {
       isFile(pathToSrcDir).fork(
@@ -67,13 +72,27 @@ describe.only("checkFiles", () => {
     })
   })
 
+  describe.only("getSize", () => {
+    it("errors if path isn't available", done => {
+      getSize("random").fork(
+        rej => expect(rej).to.match(/stat error/) && done(),
+        res => newError(`getSize should have failed: ${res}`)
+      )
+    })
+    it("returns filesize if file is available", done => {
+      getSize(pathToTextFile).fork(
+        rej => newError(`getSize should have succeded: ${rej}`),
+        res => expect(res).to.equal(sizeOfTextFile) && done()
+      )
+    })
+  })
   describe("isSubdir", () => {
     it("falsey if child is not a subpath of parent", done => {
-      expect( isSubdir("foo") ("bar")).to.be.false && done()
+      expect(isSubdir("foo")("bar")).to.be.false && done()
     })
 
     it("truthy if child is a subpath of parent", done => {
-      expect( isSubdir("foo/bar/baz") ("foo/bar")).to.be.true && done()
+      expect(isSubdir("foo/bar/baz")("foo/bar")).to.be.true && done()
     })
   })
 })

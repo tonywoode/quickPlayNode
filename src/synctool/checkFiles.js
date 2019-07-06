@@ -28,6 +28,12 @@ const isFile = compose(
   stat
 )
 
+// getSize :: Path -> Task Error String
+const getSize = compose(
+  map(statObj => statObj.size),
+  stat
+)
+
 // isSubdir :: Path -> Path -> Boolean
 const isSubdir = child => parent => { //stackoverflow.com/a/45242825/3536094
   const pathFromTo = relative(parent, child)
@@ -39,4 +45,4 @@ const isSubdir = child => parent => { //stackoverflow.com/a/45242825/3536094
   return result
 }
 
-module.exports = { stat, isDir, isFile, isSubdir }
+module.exports = { stat, isDir, isFile, getSize, isSubdir }
