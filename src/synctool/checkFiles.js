@@ -2,9 +2,9 @@ const fs = require("fs")
 const { relative, isAbsolute } = require("path")
 const Task = require("data.task")
 const { compose, map } = require("Ramda")
-//const { Maybe, Either } = require('sanctuary')
+const { Either } = require("sanctuary")
 //const { Just, Nothing } = Maybe
-//const { Left, Right } = Either
+const { Left, Right } = Either
 const { isFileInDir } = require("../synctool/checkFiles.js")
 
 // statPath :: Path -> Task Error String
@@ -41,17 +41,18 @@ const fileIs0KB = compose(
   stat
 )
 
-// isSubdir :: Path -> Path -> Boolean
-const isSubdir = child => parent => {
+// getSubDir :: Path -> Path -> Either Error RelativePath
+const getSubDir = child => parent => {
   //stackoverflow.com/a/45242825/3536094
   const pathFromTo = relative(parent, child)
   const result =
     pathFromTo &&
-    !pathFromTo.startsWith("..") &&
+    pathFromTo.length >= 0 &&
     !isAbsolute(pathFromTo) &&
-    relative(parent, child).length >= 0
-  //console.log(`is "${child}" a child of "${parent}": ${result}`)
-  return result
+    !pathFromTo.startsWith("..")
+  console.log(`[getSubDir] is "${child}" a child of "${parent}": ${result}`)
+  console.log(`[getSubDir] path from child to parent is ${pathFromTo}`)
+  return result? Right(pathFromTo): Left(`${child} is not in ${parent}`)
 }
 
-module.exports = { stat, isDir, isFile, getSize, fileIs0KB, isSubdir }
+module.exports = { stat, isDir, isFile, getSize, fileIs0KB, getSubDir }
