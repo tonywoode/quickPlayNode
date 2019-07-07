@@ -3,22 +3,22 @@ const { Maybe, Either } = require("sanctuary")
 const { Just, Nothing } = Maybe
 const { Left, Right } = Either
 const {
-  checkStrEmpty,
+  strEmpty,
   checkObjEmpty,
   checkKey,
   checkConfigKeys
 } = require("../../src/synctool/processInput.js")
 
 describe("synctool: processInput", () => {
-    describe("checkStrEmpty", () => {
-      it("when not passed a rompath, will do nothing", () => {
-        expect(checkStrEmpty()).to.deep.equal(Nothing)
-        expect(checkStrEmpty(null)).to.deep.equal(Nothing)
-        expect(checkStrEmpty(undefined)).to.deep.equal(Nothing)
-        expect(checkStrEmpty("")).to.deep.equal(Nothing)
+    describe("strEmpty", () => {
+      it("return false on empty String", () => {
+        expect(strEmpty()).to.be.true
+        expect(strEmpty(null)).to.be.true
+        expect(strEmpty(undefined)).to.be.true
+        expect(strEmpty("")).to.be.true
       })
-      it("when given a value, returns it", () => {
-        expect(checkStrEmpty("hello")).to.deep.equal(Just("hello"))
+      it("return false on non-empty string", () => {
+        expect(strEmpty("hello")).to.be.false
       })
     })
 
@@ -38,6 +38,7 @@ describe("synctool: processInput", () => {
         expect(checkObjEmpty(nonEmptyObj)).to.deep.equal(Just(nonEmptyObj))
       })
     })
+
     describe("checkKey", () => {
       it("when passed an invalid config object, error", () => {
         const key = "remotePath"
@@ -53,7 +54,8 @@ describe("synctool: processInput", () => {
         expect(checkKey(key)(config)).to.deep.equal(Right(config))
       })
     })
-    describe("checkConfigKeys", () => {
+
+     describe("checkConfigKeys", () => {
       it("when passed an invalid config object, errors", () => {
         const config = {
           localPath: "localPath"

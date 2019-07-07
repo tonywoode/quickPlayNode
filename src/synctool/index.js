@@ -3,7 +3,7 @@ const config = require("../../synctool_config.json")
 const { localPath, remotePath } = config
 const { isConfigValid } = require("./processInput.js")
 const { either } = require("sanctuary")
-const { compose } = require("Ramda")
+const { compose } = require("ramda")
 const SyncState = taggedSum("SyncState", {
   Move: ["remotePath"], //coz of course synctool is calulating this, does processInput check its there tho?
   NoMove: ["bool"],
@@ -11,15 +11,15 @@ const SyncState = taggedSum("SyncState", {
   Error: ["errObj"]
 })
 
-const quit = (code = 0) => process.exit() //TODO: else we'll fall through to the mametool stuff
-
+const quit = (code = 0) => process.exit(code) //TODO: else we'll fall through to the mametool stuff
+const errorAndQuit = err => {
+  console.log(`[synctool] error: ${err}`)
+  quit(1)
+}
 const synctool = romPath => {
   //if we couldn't read the config keys, quit
   compose(
-    either(err => {
-      console.log(`[synctool] error: ${err}`)
-      quit(1)
-    })(_ => _),
+    either(errorAndQuit)(_ => _),
     isConfigValid
   )(config)
 
