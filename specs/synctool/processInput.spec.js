@@ -10,7 +10,6 @@ const {
 } = require("../../src/synctool/processInput.js")
 
 describe("synctool: processInput", () => {
-  describe("validityChecks", () => {
     describe("checkStrEmpty", () => {
       it("when not passed a rompath, will do nothing", () => {
         expect(checkStrEmpty()).to.deep.equal(Nothing)
@@ -24,7 +23,13 @@ describe("synctool: processInput", () => {
     })
 
     describe("checkObjEmpty", () => {
-      it("when passed an empty config, warn", () => {
+      it("error when not passed a config oject", () => {
+        expect(checkObjEmpty()).to.deep.equal(Nothing)
+      })
+      it("error not passed a config object", () => {
+        expect(checkObjEmpty("")).to.deep.equal(Nothing)
+      })
+      it("error when passed an empty config oject", () => {
         expect(checkObjEmpty({})).to.deep.equal(Nothing)
       })
 
@@ -65,7 +70,6 @@ describe("synctool: processInput", () => {
         expect(checkConfigKeys(config)).to.deep.equal(Right(config))
       })
     })
-  })
 
 
 })
