@@ -1,5 +1,5 @@
 const { isEmpty, compose, map, chain } = require('Ramda')
-const { Maybe, Either } = require('sanctuary')
+const { Maybe, Either, maybeToEither } = require('sanctuary')
 const { Just, Nothing } = Maybe
 const { Left, Right } = Either
 
@@ -12,8 +12,10 @@ const checkKey = key => config => config.hasOwnProperty(key) && Right(config) ||
 
 const checkRemote = checkKey("remotePath")
 const checkLocal = checkKey("localPath")
-
 // checkConfigKeys :: Object -> Either Object Error
 const checkConfigKeys = config => compose(chain(checkLocal), checkRemote)(config)
 
-module.exports = { checkStrEmpty, checkObjEmpty, checkKey, checkConfigKeys }
+// isConfigValid :: Object -> Either Error Maybe Object 
+const isConfigValid = config => compose(chain(checkConfigKeys), maybeToEither("config object is empty"), checkObjEmpty)(config)
+
+module.exports = { checkStrEmpty, checkObjEmpty, checkKey, checkConfigKeys, isConfigValid }

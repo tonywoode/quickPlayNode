@@ -43,9 +43,9 @@ program //cmd-line options as parsed by commander
     .option(`--mfm`)
     .option(`--testArcadeRun`)
     //messTool options
-    .option(`--softlists [rompath]`)
+  .option(`--softlists [rompath]`) //todo, []=optional, <>=required, surely latter
     //syncTool options
-    .option(`--synctool [rompath]`)
+    .option(`--synctool <rompath>`)
     .parse(process.argv)
 
 if (!process.argv.slice(2).length) {

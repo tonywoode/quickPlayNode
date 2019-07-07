@@ -1,0 +1,5 @@
+{
+ "localPath" : "./test/localPath",
+ "remotePath": "./test/remotePath"
+
+}
