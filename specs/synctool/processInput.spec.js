@@ -9,7 +9,7 @@ const {
   checkConfigKeys
 } = require("../../src/synctool/processInput.js")
 
-describe("processInput", () => {
+describe("synctool: processInput", () => {
   describe("validityChecks", () => {
     describe("checkStrEmpty", () => {
       it("when not passed a rompath, will do nothing", () => {

@@ -34,15 +34,24 @@ const getSize = compose(
   stat
 )
 
+// fileIs0KB :: Path -> Task Error Boolean
+const fileIs0KB = compose(
+  map(size => size === 0), //folders have size 1
+  map(statObj => statObj.size),
+  stat
+)
+
 // isSubdir :: Path -> Path -> Boolean
-const isSubdir = child => parent => { //stackoverflow.com/a/45242825/3536094
+const isSubdir = child => parent => {
+  //stackoverflow.com/a/45242825/3536094
   const pathFromTo = relative(parent, child)
-  const result =  pathFromTo
-    && !pathFromTo.startsWith("..") 
-    && !isAbsolute(pathFromTo)
-    && relative(parent, child).length >= 0
+  const result =
+    pathFromTo &&
+    !pathFromTo.startsWith("..") &&
+    !isAbsolute(pathFromTo) &&
+    relative(parent, child).length >= 0
   //console.log(`is "${child}" a child of "${parent}": ${result}`)
   return result
 }
 
-module.exports = { stat, isDir, isFile, getSize, isSubdir }
+module.exports = { stat, isDir, isFile, getSize, fileIs0KB, isSubdir }

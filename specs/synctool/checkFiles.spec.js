@@ -7,6 +7,7 @@ const {
   isDir,
   isFile,
   getSize,
+  fileIs0KB,
   isSubdir
 } = require("../../src/synctool/checkFiles.js")
 
@@ -17,21 +18,25 @@ const newError = msg => {
 const root = "root/path/on/my/pc"
 const pathToSrcDir = join(root, `source`)
 const pathToTextFile = join(root, `source/textFile`)
+const pathToEmptyFile = join(root, `source/emptyFile`)
 const sizeOfTextFile = 10
 
-describe("checkFiles", () => {
+describe("synctool: checkFiles", () => {
+
   beforeEach(() => {
     mock({
       [root]: {
         source: {
-          textFile: "helloThere"
+          textFile: "helloThere",
+          emptyFile: ""
         },
         dest: {}
       }
     })
   })
+
   describe("stat", () => {
-    it("reports if path not available", done => {
+    it("errors if path is not available", done => {
       stat("invalid path").fork(
         rej => expect(rej).to.match(/stat error/) && done(),
         res => newError("stat should have failed")
@@ -72,7 +77,7 @@ describe("checkFiles", () => {
     })
   })
 
-  describe.only("getSize", () => {
+  describe("getSize", () => {
     it("errors if path isn't available", done => {
       getSize("random").fork(
         rej => expect(rej).to.match(/stat error/) && done(),
@@ -86,12 +91,40 @@ describe("checkFiles", () => {
       )
     })
   })
+
+  describe("fileIs0KB", () => {
+    it("errors if path isn't available", done => {
+      fileIs0KB("random").fork(
+        rej => expect(rej).to.match(/stat error/) && done(),
+        res => newError(`fileIs0KB should have failed: ${res}`)
+      )
+    })
+    it("returns false on a folder", done => {
+      fileIs0KB(pathToSrcDir).fork(
+        rej => newError(`fileIs0KB should have succeded: ${rej}`),
+        res => expect(res).to.be.false && done()
+      )
+    })
+    it("returns false on a non-empty file", done => {
+      fileIs0KB(pathToTextFile).fork(
+        rej => newError(`fileIs0KB should have succeded: ${rej}`),
+        res => expect(res).to.be.false && done()
+      )
+    })
+    it("returns true on an empty file", done => {
+      fileIs0KB(pathToEmptyFile).fork(
+        rej => newError(`fileIs0KB should have succeded: ${rej}`),
+        res => expect(res).to.be.true && done()
+      )
+    })
+  })
+
   describe("isSubdir", () => {
-    it("falsey if child is not a subpath of parent", done => {
+    it("false if child is not a subpath of parent", done => {
       expect(isSubdir("foo")("bar")).to.be.false && done()
     })
 
-    it("truthy if child is a subpath of parent", done => {
+    it("truth if child is a subpath of parent", done => {
       expect(isSubdir("foo/bar/baz")("foo/bar")).to.be.true && done()
     })
   })
