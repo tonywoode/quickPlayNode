@@ -22,12 +22,13 @@ const synctool = romPath => {
     either(errorAndQuit)(_ => _),
     isConfigValid
   )(config)
-
-  //TODO: the check for remotePath and localPath keys are short-circuiting, actualy i want to error if either OR both are not there
+  //TODO: the check for remotePath and localPath keys are short-circuiting, actually i want to error if either OR both are not there
   console.log(`[synctool] - using local root: ${localPath}`)
   console.log(`[synctool] - using remote root: ${remotePath}`)
   console.log(`[synctool] - checking ${romPath}`)
 
+  //commander checks and quits if path not provided
+  
   quit()
 }
 module.exports = { synctool }

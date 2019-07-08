@@ -28,7 +28,6 @@
   "dependencies": {
     "commander": "^2.11.0",
     "daggy": "^1.2.0",
-    "data.either": "^1.5.2",
     "data.maybe": "^1.2.3",
     "data.task": "^3.1.2",
     "fs-extra": "^4.0.2",

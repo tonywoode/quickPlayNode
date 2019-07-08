@@ -1,7 +1,5 @@
 const mock = require("mock-fs")
 const path = require("path")
-const { compose } = require("ramda")
-const { either } = require("sanctuary")
 const join = (...paths) => path.join(...paths)
 
 const {
@@ -9,8 +7,7 @@ const {
   isDir,
   isFile,
   getSize,
-  fileIs0KB,
-  getSubDir
+  fileIs0KB
 } = require("../../src/synctool/checkFiles.js")
 
 const newError = msg => {
@@ -116,24 +113,6 @@ describe("synctool: checkFiles", () => {
       fileIs0KB(pathToEmptyFile).fork(
         rej => newError(`fileIs0KB should have succeded: ${rej}`),
         res => expect(res).to.be.true && done()
-      )
-    })
-  })
-
-  describe("getSubDir", () => {
-    it("errors if child is not a subpath of parent", done => {
-      compose(
-        either(rej => expect(rej).to.match(/is not in/) && done())(res =>
-          newError(`isSubDir should have failed: ${res}`)
-        )(getSubDir("bar")("foo"))
-      )
-    })
-
-    it("returns relative path if child is a subpath of parent", done => {
-      compose(
-        either(rej => newError(`isSubDir should have succeded: ${rej}`))(
-          res => expect(res).to.equal("baz") && done()
-        )(getSubDir("foo/bar/baz")("foo/bar"))
       )
     })
   })
