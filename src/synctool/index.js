@@ -1,9 +1,10 @@
 const taggedSum = require("daggy").taggedSum
 const config = require("../../synctool_config.json")
 const { localPath, remotePath } = config
-const { isConfigValid } = require("./processInput.js")
+const { strEmpty, isConfigValid, getSubDir } = require("./processInput.js")
 const { either } = require("sanctuary")
 const { compose } = require("ramda")
+//TODO: type as soon as a decision is made
 const SyncState = taggedSum("SyncState", {
   Move: ["remotePath"], //coz of course synctool is calulating this, does processInput check its there tho?
   NoMove: ["bool"],
@@ -25,10 +26,22 @@ const synctool = romPath => {
   //TODO: the check for remotePath and localPath keys are short-circuiting, actually i want to error if either OR both are not there
   console.log(`[synctool] - using local root: ${localPath}`)
   console.log(`[synctool] - using remote root: ${remotePath}`)
-  console.log(`[synctool] - checking ${romPath}`)
+  console.log(`[synctool] - checking rom path: ${romPath}`)
 
-  //commander checks and quits if path not provided
-  
+  //commander already checks path provided, but check its valid
+  strEmpty(romPath) && errorAndQuit("rom path cannot be empty")
+
+  //so we have a valid string, before io, is it in the root path
+  compose(
+    either(rej =>
+      errorAndQuit(
+        `rom path "${romPath}" not in local sync folder "${localPath}"`
+      )
+    )(res =>
+      console.log(
+        "it's your lucky day pal, rom path is in the local sync folder"
+      )
+    ))(getSubDir(romPath)(localPath))
   quit()
 }
 module.exports = { synctool }

@@ -11,6 +11,10 @@ const {
   getSubDir
 } = require("../../src/synctool/processInput.js")
 
+const newError = msg => {
+  throw new Error(msg)
+}
+
 describe("synctool: processInput", () => {
   describe("strEmpty", () => {
     it("return false on empty String", () => {
@@ -83,12 +87,20 @@ describe("synctool: processInput", () => {
       )
     })
 
+    it("errors if child and parent paths are the same", done => {
+      const samePath = "foo/bar/" //TODO: really should display a different error for this situation
+      compose(
+        either(rej => expect(rej).to.match(/is not in/) && done())(res =>
+          newError(`isSubDir should have failed: ${res}`)
+        )(getSubDir(samePath)(samePath))
+      )
+    })
     it("returns relative path if child is a subpath of parent", done => {
       compose(
         either(rej => newError(`isSubDir should have succeded: ${rej}`))(
           res => expect(res).to.equal("baz") && done()
-        )(getSubDir("foo/bar/baz")("foo/bar"))
-      )
+        )
+      )(getSubDir("foo/bar/baz")("foo/bar"))
     })
   })
 })
