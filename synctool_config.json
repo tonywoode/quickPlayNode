@@ -1,5 +1,5 @@
 {
- "localPath" : "./test/localPath",
- "remotePath": "./test/remotePath"
+ "localPath" : "./specs/synctool/integration/localPath",
+ "remotePath": "./specs/synctool/integration/remotePath"
 
 }

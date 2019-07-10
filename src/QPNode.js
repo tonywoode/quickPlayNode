@@ -65,8 +65,8 @@ if (!process.argv.slice(2).length) {
 }
 //bypass mametool stuff if synctool
 program.synctool      && synctool(program.synctool)
-//oops as it is we'll fall through to this lot
-
+//TODO: oops as it is we'll fall through to this lot
+if (!program.synctool){
 //calculate these
 const outputDir         = program.outputDir
 !program.scan && (fs.existsSync(outputDir) || _throw(`output directory ${outputDir} doesn't exist, so Mametool can't output any romdatas`))
@@ -138,3 +138,4 @@ program.mfm           && mfm(settings, readMameJson, jsonOutPath, generateRomdat
 program.arcade        && arcade(settings, jsonOutPath, outputDir, readMameJson, generateRomdata)
 program.testArcadeRun && testArcadeRun(settings, readMameJson, jsonOutPath, outputDir)
 program.softlists     && softlists(settings, jsonOutPath, hashDir, outputDir, log)
+}

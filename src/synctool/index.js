@@ -2,6 +2,7 @@ const taggedSum = require("daggy").taggedSum
 const config = require("../../synctool_config.json")
 const { localPath, remotePath } = config
 const { strEmpty, isConfigValid, getSubDir } = require("./processInput.js")
+const { stat } = require("./checkFiles.js")
 const { either } = require("sanctuary")
 const { compose } = require("ramda")
 //TODO: type as soon as a decision is made
@@ -12,7 +13,8 @@ const SyncState = taggedSum("SyncState", {
   Error: ["errObj"]
 })
 
-const quit = (code = 0) => process.exit(code) //TODO: else we'll fall through to the mametool stuff
+const log = msg => console.log(`[synctool] - ${msg}`)
+const quit = (code = 0) => process.exit(code)
 const errorAndQuit = err => {
   console.log(`[synctool] error: ${err}`)
   quit(1)
@@ -24,24 +26,31 @@ const synctool = romPath => {
     isConfigValid
   )(config)
   //TODO: the check for remotePath and localPath keys are short-circuiting, actually i want to error if either OR both are not there
-  console.log(`[synctool] - using local root: ${localPath}`)
-  console.log(`[synctool] - using remote root: ${remotePath}`)
-  console.log(`[synctool] - checking rom path: ${romPath}`)
+  log(`using local root: ${localPath}`)
+  log(`using remote root: ${remotePath}`)
+  log(`checking rom path: ${romPath}`)
 
   //commander already checks path provided, but check its valid
   strEmpty(romPath) && errorAndQuit("rom path cannot be empty")
 
   //so we have a valid string, before io, is it in the root path
-  compose(
+  const relativePath = compose(
     either(rej =>
       errorAndQuit(
         `rom path "${romPath}" not in local sync folder "${localPath}"`
       )
-    )(res =>
-      console.log(
-        "it's your lucky day pal, rom path is in the local sync folder"
-      )
-    ))(getSubDir(romPath)(localPath))
-  quit()
+    )(res => res)
+  )(getSubDir(romPath)(localPath))
+
+  log(`rom lives under your local sync path: ${romPath}`)
+  //we can be sure relativePath is stated to live under the localroot, so now does it exist
+  const getStat = stat(romPath).fork(
+    _ => errorAndQuit(`rom path doesn't exist: ${romPath}`),
+    res => {
+      log(`rom path exists and here's its stat ${JSON.stringify(res, null, 2)}`)
+      return stat
+    }
+  )
+  //compose(getStat)()
 }
 module.exports = { synctool }
