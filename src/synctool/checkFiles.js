@@ -1,40 +1,34 @@
 const fs = require("fs")
 const Task = require("data.task")
 const { compose, map } = require('ramda')
+const { Maybe, Either, maybeToEither } = require('sanctuary')
+const { Just, Nothing } = Maybe
+const { Left, Right } = Either
 
-// statPath :: Path -> Task Error String
+const isObject = obj => obj === Object(obj) //https://stackoverflow.com/a/22482737/3536094
+
+// Path -> Task Error String
 const stat = file =>
   new Task((rej, res) =>
     fs.stat(
       file,
-      (err, stats) => (err ? rej(`stat error: ${err.message}`) : res(stats))
+      (err, stats) => (err ? rej(`couldn't access file: ${err.message}`) : res(stats))
     )
   )
 
-// isDir :: Path -> Task Error Boolean
+// Path -> Task Error Boolean
 const isDir = compose(
   map(statObj => statObj.isDirectory()),
   stat
 )
 
-// isFile :: Path -> Task Error Boolean
-const isFile = compose(
-  map(statObj => statObj.isFile()),
-  stat
-)
+// Path -> Object -> Maybe Boolean
+const isFile = stat => isObject(stat) ? Nothing : Just(stat.isFile)
 
-// getSize :: Path -> Task Error String
-const getSize = compose(
-  map(statObj => statObj.size),
-  stat
-)
+// Object -> Maybe Number
+const getSize = stat => isObject(stat) ? Nothing : Just(stat.size)
 
-// fileIs0KB :: Path -> Task Error Boolean
-const fileIs0KB = compose(
-  map(size => size === 0), //folders have size 1
-  map(statObj => statObj.size),
-  stat
-)
-
+// Object -> Object -> Maybe Boolean
+const fileIs0KB = stat => isObject(stat) ? Nothing : Just(stat.size === 0) //folders have size 1
 
 module.exports = { stat, isDir, isFile, getSize, fileIs0KB }
