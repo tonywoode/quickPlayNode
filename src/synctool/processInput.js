@@ -1,25 +1,25 @@
 const { isEmpty, isNil, compose, map, chain } = require('ramda')
 const { relative, isAbsolute } = require("path")
-const { Maybe, Either, maybeToEither } = require('sanctuary')
+const { Maybe, Either, maybeToEither } = require('../helpers/sanctuary.js')
 const { Just, Nothing } = Maybe
 const { Left, Right } = Either
 
-// strEmpty :: Object -> Boolean
+// Object -> Boolean
 const strEmpty = str => isNil(str) || str === ""
-// objEmpty :: Object -> Boolean
+// Object -> Boolean
 const objEmpty = obj => isNil(obj) || isEmpty(obj)
 
-// checkObjEmpty :: Object -> Maybe Object
+// Object -> Maybe Object
 const checkObjEmpty = obj => objEmpty(obj) && Nothing || Just(obj)
-// checkKey :: String -> Object -> Either Error Object
+// String -> Object -> Either Error Object
 const checkKey = key => config => ( config.hasOwnProperty(key) && !strEmpty(config[key]) ) && Right(config) || Left(`${key} is not set`)
 
-// checkConfigKeys :: Object -> Either Object Error
+// Object -> Either Object Error
 const checkConfigKeys = config => compose(chain(checkKey("localPath")), checkKey("remotePath"))(config)
-// isConfigValid :: Object -> Either Error Maybe Object 
+// Object -> Either Error Maybe Object 
 const isConfigValid = config => compose(chain(checkConfigKeys), maybeToEither("config file is empty"), checkObjEmpty)(config)
 
-// getSubDir :: Path -> Path -> Either Error RelativePath
+// Path -> Path -> Either Error RelativePath
 const getSubDir = child => parent => {
   //stackoverflow.com/a/45242825/3536094
   const pathFromTo = relative(parent, child)

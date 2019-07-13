@@ -3,15 +3,15 @@ const config = require("../../synctool_config.json")
 const { localPath, remotePath } = config
 const { strEmpty, isConfigValid, getSubDir } = require("./processInput.js")
 const { stat, getSize } = require("./checkFiles.js")
-const { either } = require("sanctuary")
+const { either } = require('../helpers/sanctuary.js')
 const { compose } = require("ramda")
-//TODO: type as soon as a decision is made
-const SyncState = taggedSum("SyncState", {
-  Move: ["remotePath"], //coz of course synctool is calulating this, does processInput check its there tho?
-  NoMove: ["bool"],
-  Resume: ["kb"],
-  Error: ["errObj"]
-})
+//TODO: type as soon as a decision is made, something like
+//const SyncState = taggedSum("SyncState", {
+//  Move: ["remotePath"], //coz of course synctool is calulating this, does processInput check its there tho?
+//  NoMove: ["bool"],
+//  Resume: ["kb"],
+//  Error: ["errObj"]
+//})
 
 const log = msg => console.log(`[synctool] - ${msg}`)
 const quit = (code = 0) => process.exit(code)
@@ -40,26 +40,16 @@ const synctool = romPath => {
         `rom path "${romPath}" not in local sync folder "${localPath}"`
       )
     )(res => {
-      log(`${res} rom lives under your local sync path: ${romPath}`)
+      log(`${res} is a subpath of your local sync path: ${localPath}`)
       return res
     })
   )(getSubDir(romPath)(localPath))
 
   //we can be sure relativePath is stated to live under the localroot, so now does it exist
-  const getStat = () => stat(romPath).fork(
-    rej => {
-      log(`rom path: "${romPath}" not found under your local sync path "${localPath}" - \n error was: ${rej}`) 
-      return false
-    },
-    res => {
-      log(`rom path exists and here's its stat ${JSON.stringify(res, null, 2)}`)
-      return stat
-    }
-  )
-  //compose(getStat)()
-  const size = stat(romPath).map(theStat =>{
-    console.log(theStat)
-    return("anything i like")
-  }).fork(rej => console.log("rej is " + rej), result => console.log("result is " + result))
-}
+  const size = stat(romPath)
+    .map(theStat =>{
+      console.log(theStat)
+      return("anything i like")
+    }).fork(rej => console.log(rej), result => console.log("result is " + result))
+  }
 module.exports = { synctool }

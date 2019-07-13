@@ -1,7 +1,7 @@
 const fs = require("fs")
 const Task = require("data.task")
 const { compose, map } = require('ramda')
-const { Maybe, Either, maybeToEither } = require('sanctuary')
+const { Maybe, Either, maybeToEither } = require('../helpers/sanctuary.js')
 const { Just, Nothing } = Maybe
 const { Left, Right } = Either
 
