@@ -1,5 +1,5 @@
 const taggedSum = require("daggy").taggedSum
-const { either, maybe, map } = require('../helpers/sanctuary.js')
+const { either } = require('../helpers/sanctuary.js')
 const { compose } = require("ramda")
 
 const config = require("../../synctool_config.json")
@@ -25,6 +25,8 @@ const synctool = romPath => {
   //commander already checks path provided, but check its valid
   strEmpty(romPath) && errorAndQuit("rom path cannot be empty")
   //if we couldn't read the config keys, quit
+  //    isConfigValid.getOrElse(errorAndQuit)(config)
+
   compose(
     either(errorAndQuit)(_ => _),
     isConfigValid
@@ -59,6 +61,9 @@ const synctool = romPath => {
     })
     .map(getSize) 
 
-  size.fork(rej => console.log(rej), result => console.log("result is " + JSON.stringify(result, null,2)))
-  }
+  size.run().listen({
+    onRejected: rej => console.log(rej), 
+    onResolved: result => console.log("result is " + JSON.stringify(result, null,2))
+  })
+}
 module.exports = { synctool }

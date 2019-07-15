@@ -1,8 +1,7 @@
-const { isEmpty, isNil, compose, map, chain } = require('ramda')
+const { isEmpty, isNil, compose, map, chain } = require("ramda")
 const { relative, isAbsolute } = require("path")
-const { Maybe, Either, maybeToEither } = require('../helpers/sanctuary.js')
-const { Just, Nothing } = Maybe
-const { Left, Right } = Either
+const Maybe = require("folktale/maybe")
+const Result = require("folktale/result")
 
 // Object -> Boolean
 const strEmpty = str => isNil(str) || str === ""
@@ -10,16 +9,29 @@ const strEmpty = str => isNil(str) || str === ""
 const objEmpty = obj => isNil(obj) || isEmpty(obj)
 
 // Object -> Maybe Object
-const checkObjEmpty = obj => objEmpty(obj) && Nothing || Just(obj)
-// String -> Object -> Either Error Object
-const checkKey = key => config => ( config.hasOwnProperty(key) && !strEmpty(config[key]) ) && Right(config) || Left(`${key} is not set`)
+const checkObjEmpty = obj =>
+  (objEmpty(obj) && Maybe.Nothing()) || Maybe.Just(obj)
+// String -> Object -> Result Error Object
+const checkKey = key => config =>
+  (config.hasOwnProperty(key) && !strEmpty(config[key]) && Result.Ok(config)) ||
+  Result.Error(`${key} is not set`)
 
-// Object -> Either Object Error
-const checkConfigKeys = config => compose(chain(checkKey("localPath")), checkKey("remotePath"))(config)
-// Object -> Either Error Maybe Object 
-const isConfigValid = config => compose(chain(checkConfigKeys), maybeToEither("config file is empty"), checkObjEmpty)(config)
+// Object -> Result Object Error
+const checkConfigKeys = config =>
+  compose(
+    chain(checkKey("localPath")),
+    checkKey("remotePath")
+  )(config)
 
-// Path -> Path -> Either Error RelativePath
+// Object -> Result Error Maybe Object
+const isConfigValid = config =>
+  compose(
+   chain(checkConfigKeys),
+   Result.fromMaybe,
+   checkObjEmpty
+  )(config)
+
+// Path -> Path -> Result Error RelativePath
 const getSubDir = child => parent => {
   //stackoverflow.com/a/45242825/3536094
   const pathFromTo = relative(parent, child)
@@ -30,8 +42,14 @@ const getSubDir = child => parent => {
     !pathFromTo.startsWith("..")
   //console.log(`[getSubDir] is "${child}" a child of "${parent}": ${result}`)
   //console.log(`[getSubDir] path from child to parent is ${pathFromTo}`)
-  return result? Right(pathFromTo): Left(`${child} is not in ${parent}`)
+  return result ? Result.Ok(pathFromTo) : Result.Error(`${child} is not in ${parent}`)
 }
 
-
-module.exports = { strEmpty, checkObjEmpty, checkKey, checkConfigKeys, isConfigValid, getSubDir }
+module.exports = {
+  strEmpty,
+  checkObjEmpty,
+  checkKey,
+  checkConfigKeys,
+  isConfigValid,
+  getSubDir
+}
