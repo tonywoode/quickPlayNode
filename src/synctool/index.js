@@ -1,10 +1,11 @@
 const taggedSum = require("daggy").taggedSum
+const { either, maybe, map } = require('../helpers/sanctuary.js')
+const { compose } = require("ramda")
+
 const config = require("../../synctool_config.json")
 const { localPath, remotePath } = config
 const { strEmpty, isConfigValid, getSubDir } = require("./processInput.js")
-const { stat, getSize } = require("./checkFiles.js")
-const { either } = require('../helpers/sanctuary.js')
-const { compose } = require("ramda")
+const { stat, isDir, isFile, getSize, fileIsNotEmpty } = require("./checkFiles.js")
 //TODO: type as soon as a decision is made, something like
 //const SyncState = taggedSum("SyncState", {
 //  Move: ["remotePath"], //coz of course synctool is calulating this, does processInput check its there tho?
@@ -46,10 +47,18 @@ const synctool = romPath => {
   )(getSubDir(romPath)(localPath))
 
   //we can be sure relativePath is stated to live under the localroot, so now does it exist
+  // first we need to know if you've passed a dir or a file, for now do nothing on dir
   const size = stat(romPath)
-    .map(theStat =>{
-      console.log(theStat)
-      return("anything i like")
-    }).fork(rej => console.log(rej), result => console.log("result is " + result))
+    .map(stat => { 
+      fileIsNotEmpty(stat)
+      return stat
+    })
+    .map(stat => {
+      isFile(stat)
+      return stat
+    })
+    .map(getSize) 
+
+  size.fork(rej => console.log(rej), result => console.log("result is " + JSON.stringify(result, null,2)))
   }
 module.exports = { synctool }

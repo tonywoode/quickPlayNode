@@ -5,7 +5,6 @@ const { Maybe, Either, maybeToEither } = require('../helpers/sanctuary.js')
 const { Just, Nothing } = Maybe
 const { Left, Right } = Either
 
-const isObject = obj => obj === Object(obj) //https://stackoverflow.com/a/22482737/3536094
 
 // Path -> Task Error String
 const stat = file =>
@@ -16,19 +15,21 @@ const stat = file =>
     )
   )
 
-// Path -> Task Error Boolean
-const isDir = compose(
-  map(statObj => statObj.isDirectory()),
-  stat
-)
+const isObject = obj => obj === Object(obj) //https://stackoverflow.com/a/22482737/3536094
+const validStat = stat => isObject(stat) ? Left("stat is invalid") : Right(stat)
 
-// Path -> Object -> Maybe Boolean
-const isFile = stat => isObject(stat) ? Nothing : Just(stat.isFile)
+// Object -> Error Boolean
+// we need to map over this maybe - there's two maybes here - firstly do we have a valid stat, secondly is the stat a directory, the first needs to be made into its own fn
+const isDir = stat =>  compose(map(stat => stat.isDirectory()), validStat)(stat)
+//const isDir = stat => isObject(stat) ? statObj.isDirectory() : Nothing
+
+// Object -> Maybe Boolean
+const isFile = stat => isObject(stat) ? Just(stat.isFile()) : Nothing
 
 // Object -> Maybe Number
-const getSize = stat => isObject(stat) ? Nothing : Just(stat.size)
+const getSize = stat => isObject(stat) ? Just(stat.size) : Nothing
 
 // Object -> Object -> Maybe Boolean
-const fileIs0KB = stat => isObject(stat) ? Nothing : Just(stat.size === 0) //folders have size 1
+const fileIsNotEmpty = stat => isObject(stat) ? Just(stat.size === 0) : Nothing //folders have size 1
 
-module.exports = { stat, isDir, isFile, getSize, fileIs0KB }
+module.exports = { stat, isDir, isFile, getSize, fileIsNotEmpty }
