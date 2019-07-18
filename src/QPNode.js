@@ -33,8 +33,8 @@ console.error = (...args) => {
   process.stderr.write(text)
 }
 
-
-program //cmd-line options as parsed by commander
+let synctoolInvoked = false
+program //TODO: these options need prepending by the command 'mametool'
     .option('--output-dir [path]')
     .option(`--scan`)
     .option(`--dev`)
@@ -43,10 +43,16 @@ program //cmd-line options as parsed by commander
     .option(`--mfm`)
     .option(`--testArcadeRun`)
     //messTool options
-  .option(`--softlists [rompath]`) //todo, []=optional, <>=required, surely latter
-    //syncTool options
-    .option(`--synctool <rompath>`)
-    .parse(process.argv)
+    .option(`--softlists [rompath]`) //todo, []=optional, <>=required, surely latter
+
+program.command(`synctool [rompath]`)
+  .action( romPath => { 
+    synctoolInvoked = true 
+    synctool(romPath)
+  })
+
+   program.parse(process.argv)
+
 
 if (!process.argv.slice(2).length) {
   console.log( 
@@ -64,9 +70,9 @@ if (!process.argv.slice(2).length) {
   process.exit()
 }
 //bypass mametool stuff if synctool
-program.synctool      && synctool(program.synctool)
-//TODO: oops as it is we'll fall through to this lot
-if (!program.synctool){
+//program.synctool      && synctool(program.synctool)
+//TODO: oops as it is we'll fall through to this lot, also empty string falls thorugh
+if (!synctoolInvoked){
 //calculate these
 const outputDir         = program.outputDir
 !program.scan && (fs.existsSync(outputDir) || _throw(`output directory ${outputDir} doesn't exist, so Mametool can't output any romdatas`))

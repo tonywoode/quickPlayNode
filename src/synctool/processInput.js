@@ -3,7 +3,7 @@ const { relative, isAbsolute } = require("path")
 const Maybe = require("folktale/maybe")
 const Result = require("folktale/result")
 
-// Object -> Boolean
+const isString = str => typeof str === 'string' || str instanceof String
 const strEmpty = str => isNil(str) || str === ""
 // Object -> Boolean
 const objEmpty = obj => isNil(obj) || isEmpty(obj)
@@ -46,6 +46,7 @@ const getSubDir = child => parent => {
 }
 
 module.exports = {
+  isString,
   strEmpty,
   checkObjEmpty,
   checkKey,

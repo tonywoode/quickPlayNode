@@ -1,18 +1,12 @@
 const taggedSum = require("daggy").taggedSum
 const { either } = require('../helpers/sanctuary.js')
 const { compose } = require("ramda")
+const Result = require("folktale/result")
 
 const config = require("../../synctool_config.json")
 const { localPath, remotePath } = config
-const { strEmpty, isConfigValid, getSubDir } = require("./processInput.js")
+const { isString, strEmpty, isConfigValid, getSubDir } = require("./processInput.js")
 const { stat, isDir, isFile, getSize, fileIsNotEmpty } = require("./checkFiles.js")
-//TODO: type as soon as a decision is made, something like
-//const SyncState = taggedSum("SyncState", {
-//  Move: ["remotePath"], //coz of course synctool is calulating this, does processInput check its there tho?
-//  NoMove: ["bool"],
-//  Resume: ["kb"],
-//  Error: ["errObj"]
-//})
 
 const log = msg => console.log(`[synctool] - ${msg}`)
 const quit = (code = 0) => process.exit(code)
@@ -20,17 +14,31 @@ const errorAndQuit = err => {
   console.log(`[synctool] error: ${err}`)
   quit(1)
 }
+
+const Ends = taggedSum('EndStates', {
+  NoFileGiven: [],
+  InvalidConfig: ['config'],
+  FileOutsideSyncPaths: ['filePath', 'filePath'],
+  FileNotFound: ['filePath'],
+  LocalAndRemoteMatch: ['filePath', 'filePath'],
+  Synced: ['filePath', 'filePath'],
+  NotAFile: ['filePath', 'errObj'],
+  ServerError: ['errObj']
+})
+
+const end = state =>
+  state.cata({
+    NoFileGiven: _ => errorAndQuit(`you must supply a filepath to sync`),
+    InvalidConfig: config => errorAndQuit(`config invalid: ${JSON.stringify(config, null, 2)}`)
+
+  })
+
+
+
 const synctool = romPath => {
+  (!isString(romPath) || strEmpty(romPath) ) && end(Ends.NoFileGiven)  //if we couldn't read the config keys, quit
+  isConfigValid(config).orElse(_ => end(Ends.InvalidConfig(config)))
 
-  //commander already checks path provided, but check its valid
-  strEmpty(romPath) && errorAndQuit("rom path cannot be empty")
-  //if we couldn't read the config keys, quit
-  //    isConfigValid.getOrElse(errorAndQuit)(config)
-
-  compose(
-    either(errorAndQuit)(_ => _),
-    isConfigValid
-  )(config)
   //TODO: the check for remotePath and localPath keys are short-circuiting, actually i want to error if either OR both are not there
   log(`using local root: ${localPath}`)
   log(`using remote root: ${remotePath}`)
