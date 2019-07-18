@@ -9,6 +9,7 @@ const { isString, strEmpty, isConfigValid, getSubDir } = require("./processInput
 const { stat, isDir, isFile, getSize, fileIsNotEmpty } = require("./checkFiles.js")
 
 const log = msg => console.log(`[synctool] - ${msg}`)
+const objPrint = obj => JSON.stringify(obj, null,2)
 const quit = (code = 0) => process.exit(code)
 const errorAndQuit = err => {
   console.log(`[synctool] error: ${err}`)
@@ -29,7 +30,8 @@ const Ends = taggedSum('EndStates', {
 const end = state =>
   state.cata({
     NoFileGiven: _ => errorAndQuit(`you must supply a filepath to sync`),
-    InvalidConfig: config => errorAndQuit(`config invalid: ${JSON.stringify(config, null, 2)}`)
+    InvalidConfig: config => errorAndQuit(`config invalid: ${objPrint(config)}`),
+    FileOutsideSyncPaths: (filePath, localPath) => errorAndQuit(`${filePath} is not in local sync folder ${localPath}`)
 
   })
 
@@ -45,17 +47,8 @@ const synctool = romPath => {
   log(`checking rom path: ${romPath}`)
 
   //so we have a valid string, before io, is it in the root path
-  const relativePath = compose(
-    either(rej =>
-      errorAndQuit(
-        `rom path "${romPath}" not in local sync folder "${localPath}"`
-      )
-    )(res => {
-      log(`${res} is a subpath of your local sync path: ${localPath}`)
-      return res
-    })
-  )(getSubDir(romPath)(localPath))
-
+  getSubDir(romPath)(localPath).orElse( _ => end(Ends.FileOutsideSyncPaths(romPath, localPath) ))
+  
   //we can be sure relativePath is stated to live under the localroot, so now does it exist
   // first we need to know if you've passed a dir or a file, for now do nothing on dir
   const size = stat(romPath)
@@ -71,7 +64,7 @@ const synctool = romPath => {
 
   size.run().listen({
     onRejected: rej => console.log(rej), 
-    onResolved: result => console.log("result is " + JSON.stringify(result, null,2))
+    onResolved: result => console.log(`result is ${objPrint(result)}`)
   })
 }
 module.exports = { synctool }
