@@ -20,22 +20,19 @@ const Ends = taggedSum('EndStates', {
   NoFileGiven: [],
   InvalidConfig: ['config'],
   FileOutsideSyncPaths: ['filePath', 'filePath'],
-  FileNotFound: ['filePath'],
+  FileNotFound: ['msg'],
   LocalAndRemoteMatch: ['filePath', 'filePath'],
   Synced: ['filePath', 'filePath'],
   NotAFile: ['filePath', 'errObj'],
   ServerError: ['errObj']
 })
-
 const end = state =>
   state.cata({
     NoFileGiven: _ => errorAndQuit(`you must supply a filepath to sync`),
     InvalidConfig: config => errorAndQuit(`config invalid: ${objPrint(config)}`),
-    FileOutsideSyncPaths: (filePath, localPath) => errorAndQuit(`${filePath} is not in local sync folder ${localPath}`)
-
+    FileOutsideSyncPaths: (filePath, localPath) => errorAndQuit(`${filePath} is not in local sync folder ${localPath}`),
+    FileNotFound: msg => errorAndQuit(msg)
   })
-
-
 
 const synctool = romPath => {
   (!isString(romPath) || strEmpty(romPath) ) && end(Ends.NoFileGiven)  //if we couldn't read the config keys, quit
@@ -52,10 +49,6 @@ const synctool = romPath => {
   //we can be sure relativePath is stated to live under the localroot, so now does it exist
   // first we need to know if you've passed a dir or a file, for now do nothing on dir
   const size = stat(romPath)
-    .map(stat => { 
-      fileIsNotEmpty(stat)
-      return stat
-    })
     .map(stat => {
       isFile(stat)
       return stat
@@ -63,7 +56,7 @@ const synctool = romPath => {
     .map(getSize) 
 
   size.run().listen({
-    onRejected: rej => console.log(rej), 
+    onRejected: rej => end(Ends.FileNotFound(rej)), 
     onResolved: result => console.log(`result is ${objPrint(result)}`)
   })
 }
