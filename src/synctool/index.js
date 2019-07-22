@@ -5,7 +5,7 @@ const Result = require("folktale/result")
 
 const config = require("../../synctool_config.json")
 const { localPath, remotePath } = config
-const { isString, strEmpty, isConfigValid, getSubDir } = require("./processInput.js")
+const { inputEmpty, isConfigValid, getSubDir } = require("./processInput.js")
 const { stat, isDir, isFile, getSize, fileIsNotEmpty } = require("./checkFiles.js")
 
 const log = msg => console.log(`[synctool] - ${msg}`)
@@ -28,14 +28,14 @@ const Ends = taggedSum('EndStates', {
 })
 const end = state =>
   state.cata({
-    NoFileGiven: _ => errorAndQuit(`you must supply a filepath to sync`),
+    NoFileGiven: _ => errorAndQuit(`you must supply a filepath arg that you want to sync`),
     InvalidConfig: config => errorAndQuit(`config invalid: ${objPrint(config)}`),
     FileOutsideSyncPaths: (filePath, localPath) => errorAndQuit(`${filePath} is not in local sync folder ${localPath}`),
     FileNotFound: msg => errorAndQuit(msg)
   })
 
 const synctool = romPath => {
-  (!isString(romPath) || strEmpty(romPath) ) && end(Ends.NoFileGiven)  //if we couldn't read the config keys, quit
+  inputEmpty(romPath) && end(Ends.NoFileGiven)  //if we couldn't read the config keys, quit
   isConfigValid(config).orElse(_ => end(Ends.InvalidConfig(config)))
 
   //TODO: the check for remotePath and localPath keys are short-circuiting, actually i want to error if either OR both are not there

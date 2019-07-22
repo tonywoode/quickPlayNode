@@ -5,7 +5,7 @@ const Result = require("folktale/result")
 
 const isString = str => typeof str === 'string' || str instanceof String
 const strEmpty = str => isNil(str) || str === ""
-// Object -> Boolean
+const inputEmpty = str => !isString(str) || strEmpty(str)
 const objEmpty = obj => isNil(obj) || isEmpty(obj)
 
 // Object -> Maybe Object
@@ -46,8 +46,7 @@ const getSubDir = child => parent => {
 }
 
 module.exports = {
-  isString,
-  strEmpty,
+  inputEmpty,
   checkObjEmpty,
   checkKey,
   checkConfigKeys,
