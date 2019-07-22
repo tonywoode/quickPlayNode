@@ -1,6 +1,6 @@
 const taggedSum = require("daggy").taggedSum
 const configFileName = "synctool_config.json"
-const { inputEmpty, isConfigValid, getSubDir } = require("./processInput.js")
+const { inputEmpty, isConfigValid, getSubDir, checkRequire } = require("./processInput.js")
 const { stat, isFile, getSize } = require("./checkFiles.js")
 
 const log = msg => console.log(`[synctool] - ${msg}`)
@@ -14,6 +14,7 @@ const errorAndQuit = err => {
 const Ends = taggedSum("EndStates", {
   NoFileGiven: [],
   NoConfigFile: ["filePath"],
+  InvalidJson: ["errObj"],
   InvalidConfig: ["config"],
   FileOutsideSyncPaths: ["filePath", "filePath"],
   FileNotFound: ["msg"],
@@ -22,11 +23,15 @@ const Ends = taggedSum("EndStates", {
   NotAFile: ["filePath", "errObj"],
   ServerError: ["errObj"]
 })
+
 const end = state =>
   state.cata({
     NoFileGiven: _ =>
-    errorAndQuit(`you must supply a filepath arg that you want to sync`),
-    NoConfigFile: filePath => errorAndQuit(`config file not found in root: ${filePath}`),
+      errorAndQuit(`you must supply a filepath arg that you want to sync`),
+    NoConfigFile: filePath =>
+      errorAndQuit(`config file not found in root: ${filePath}`),
+    InvalidJson: err => 
+      errorAndQuit(`config file isn't valid json: ${err}`),
     InvalidConfig: config =>
       errorAndQuit(`config invalid: ${objPrint(config)}`),
     FileOutsideSyncPaths: (filePath, localPath) =>
@@ -35,12 +40,16 @@ const end = state =>
   })
 
 const synctool = romPath => {
-  const checkFiles = stat(configFileName)
+  //check you passed me an input path
+  inputEmpty(romPath) && end(Ends.NoFileGiven)
+  //check + load config
+  const checkFiles = stat(configFileName) 
     .orElse(_ => end(Ends.NoConfigFile(configFileName)))
     .map(_ => {
-      const config = require(`../../${configFileName}`)
+      const config = checkRequire(`../../${configFileName}`)
+        .orElse( err => end(Ends.InvalidJson(err)))
+        .chain( config => {
       const { localPath, remotePath } = config
-      inputEmpty(romPath) && end(Ends.NoFileGiven)
       isConfigValid(config).orElse(_ => end(Ends.InvalidConfig(config)))
 
       log(`using local root: ${localPath}`)
@@ -51,6 +60,7 @@ const synctool = romPath => {
       getSubDir(romPath)(localPath).orElse(_ =>
         end(Ends.FileOutsideSyncPaths(romPath, localPath))
       )
+        })
     })
     //we can be sure relativePath is stated to live under the localroot, so now does it exist?
     // first need to know if you've passed a dir or a file (for now do nothing on dir)
