@@ -13,6 +13,7 @@ const errorAndQuit = err => {
 
 const Ends = taggedSum("EndStates", {
   NoFileGiven: [],
+  NoConfigFile: ["filePath"],
   InvalidConfig: ["config"],
   FileOutsideSyncPaths: ["filePath", "filePath"],
   FileNotFound: ["msg"],
@@ -24,7 +25,8 @@ const Ends = taggedSum("EndStates", {
 const end = state =>
   state.cata({
     NoFileGiven: _ =>
-      errorAndQuit(`you must supply a filepath arg that you want to sync`),
+    errorAndQuit(`you must supply a filepath arg that you want to sync`),
+    NoConfigFile: filePath => errorAndQuit(`config file not found in root: ${filePath}`),
     InvalidConfig: config =>
       errorAndQuit(`config invalid: ${objPrint(config)}`),
     FileOutsideSyncPaths: (filePath, localPath) =>
@@ -33,39 +35,35 @@ const end = state =>
   })
 
 const synctool = romPath => {
-  stat(configFileName).run().listen({
-      onRejected: _ =>
-        end(Ends.FileNotFound(`config file note found in root: ${configFileName}`)),
-      onResolved: _ => {
-        const config = require(`../../${configFileName}`)
-        const { localPath, remotePath } = config
+  const checkFiles = stat(configFileName)
+    .orElse(_ => end(Ends.NoConfigFile(configFileName)))
+    .map(_ => {
+      const config = require(`../../${configFileName}`)
+      const { localPath, remotePath } = config
+      inputEmpty(romPath) && end(Ends.NoFileGiven)
+      isConfigValid(config).orElse(_ => end(Ends.InvalidConfig(config)))
 
-        inputEmpty(romPath) && end(Ends.NoFileGiven) 
-        isConfigValid(config).orElse(_ => end(Ends.InvalidConfig(config)))
+      log(`using local root: ${localPath}`)
+      log(`using remote root: ${remotePath}`)
+      log(`checking rom path: ${romPath}`)
 
-        log(`using local root: ${localPath}`)
-        log(`using remote root: ${remotePath}`)
-        log(`checking rom path: ${romPath}`)
-
-        //so we have a valid string, before io, is it in the root path
-        getSubDir(romPath)(localPath).orElse(_ =>
-          end(Ends.FileOutsideSyncPaths(romPath, localPath))
-        )
-
-        //we can be sure relativePath is stated to live under the localroot, so now does it exist?
-        // first need to know if you've passed a dir or a file (for now do nothing on dir)
-        const size = stat(romPath)
-          .map(stat => {
-            isFile(stat)
-            return stat
-          })
-          .map(getSize)
-
-        size.run().listen({
-          onRejected: rej => end(Ends.FileNotFound(rej)),
-          onResolved: result => console.log(`result is ${objPrint(result)}`)
-        })
-      }
+      //so we have a valid string, before io, is it in the root path
+      getSubDir(romPath)(localPath).orElse(_ =>
+        end(Ends.FileOutsideSyncPaths(romPath, localPath))
+      )
     })
+    //we can be sure relativePath is stated to live under the localroot, so now does it exist?
+    // first need to know if you've passed a dir or a file (for now do nothing on dir)
+    .chain(_ => stat(romPath))
+    .map(stat => {
+      isFile(stat)
+      return stat
+    })
+    .map(getSize)
+
+  checkFiles.run().listen({
+    onRejected: rej => end(Ends.FileNotFound(rej)),
+    onResolved: result => console.log(`result is ${objPrint(result)}`)
+  })
 }
 module.exports = { synctool }
