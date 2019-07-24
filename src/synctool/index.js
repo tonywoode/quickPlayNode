@@ -23,9 +23,10 @@ const Ends = taggedSum("EndStates", {
   InvalidConfig: ["config"],
   FileOutsideSyncPaths: ["filePath", "filePath"],
   FileNotFound: ["msg"],
+  InvalidStat: ["filePath"],
+  NotAFile: ["filePath"], //TODO: what do we do on symbolic links?
   LocalAndRemoteMatch: ["filePath", "filePath"],
   Synced: ["filePath", "filePath"],
-  NotAFile: ["filePath", "errObj"],
   ServerError: ["errObj"]
 })
 
@@ -39,8 +40,10 @@ const end = state =>
     InvalidConfig: config =>
       errorAndQuit(`config invalid: ${objPrint(config)}`),
     FileOutsideSyncPaths: (filePath, localPath) =>
-      errorAndQuit(`${filePath} is not in local sync folder ${localPath}`),
-    FileNotFound: msg => errorAndQuit(msg)
+      errorAndQuit(`${filePath} is not a subpath of local sync folder ${localPath}`),
+    InvalidStat: filePath => errorAndQuit(`file details are invalid for ${filePath}`),
+    FileNotFound: msg => errorAndQuit(msg),
+    NotAFile: filePath => errorAndQuit(`we don't support syncing anything but files, not a file: ${filePath}`)
   })
 
 const checkRomPath = romPath => {
@@ -72,10 +75,11 @@ const synctool = romPath => {
         end(Ends.FileOutsideSyncPaths(romPath, localPath))
       )
     }) //we can be sure relativePath is stated to live under the localroot, so now does it exist?
-    // first need to know if you've passed a dir or a file (for now do nothing on dir)
     .chain(_ => stat(romPath))
     .map(stat => {
-      isFile(stat)
+      //check the stat confirms its a file (for now do nothing on dir)
+      const itsAFile = isFile(stat).getOrElse(Ends.InvalidStat(romPath))
+      itsAFile || end(Ends.NotAFile(romPath))
       return stat
     })
     .map(getSize)
