@@ -25,6 +25,7 @@ const Ends = taggedSum("EndStates", {
   FileNotFound: ["msg"],
   InvalidStat: ["filePath"],
   NotAFile: ["filePath"], //TODO: what do we do on symbolic links?
+  RootDirNotFound: ["rootDir"],
   LocalAndRemoteMatch: ["filePath", "filePath"],
   Synced: ["filePath", "filePath"],
   ServerError: ["errObj"]
@@ -47,9 +48,9 @@ const end = state =>
       errorAndQuit(`file details are invalid for ${filePath}`),
     FileNotFound: msg => errorAndQuit(msg),
     NotAFile: filePath =>
-      errorAndQuit(
-        `we don't support syncing anything but files, not a file: ${filePath}`
-      )
+      errorAndQuit(`not a file - only files can be synced: ${filePath}`),
+    RootDirNotFound: rootDir =>
+      errorAndQuit(`sync path can't be accessed: ${rootDir}`)
   })
 
 const checkRomPath = romPath => {
@@ -58,11 +59,10 @@ const checkRomPath = romPath => {
 }
 
 const getConfig = configFileName =>
-  checkRequire(`../../${configFileName}`) //check config file is actually json
-    //deal with both Result cases
+  checkRequire(`../../${configFileName}`) //check config file is json
     .orElse(err => end(Ends.InvalidJson(err)))
     .chain(config => {
-      //we know we have json, check key names are as expected
+      //ok we have json, check key names are as expected
       isConfigValid(config).orElse(_ => end(Ends.InvalidConfig(config)))
       const { localPath, remotePath } = config
       log(`using local root: ${localPath}`)
@@ -73,7 +73,8 @@ const getConfig = configFileName =>
 //check the stat confirms its a file (for now do nothing on dir)
 const checkItsAFile = romPath =>
   stat(romPath).map(stat => {
-    isFile(stat).getOrElse(Ends.InvalidStat(romPath)) || end(Ends.NotAFile(romPath))
+    isFile(stat).getOrElse(Ends.InvalidStat(romPath)) ||
+      end(Ends.NotAFile(romPath))
     return stat
   })
 
@@ -82,12 +83,21 @@ const synctool = romPath => {
   const checkFiles = stat(configFileName) //check + load config
     .orElse(_ => end(Ends.NoConfigFile(configFileName)))
     .map(_ => getConfig(configFileName))
-    //so we have a valid string, before io, is it in the root path
+    //so we have a valid string, is it in the root path
     .map(({ localPath, remotePath }) => {
       getSubDir(romPath)(localPath).orElse(_ =>
         end(Ends.FileOutsideSyncPaths(romPath, localPath))
       )
-    }) //we can be sure relativePath is stated to live under the localroot, so now does it exist?
+      return { localPath, remotePath }
+    }) //ok relativePath is stated to live under localPath
+    //but localPath and remotePath need to exist
+    .chain(({ localPath, remotePath }) => {
+      log(`checking roots exist: \n ${localPath} \n ${remotePath}`)
+      return stat(localPath)
+        .orElse(_ => end(Ends.RootDirNotFound(localPath)))
+        .chain(_ => stat(remotePath))
+        .orElse(_ => end(Ends.RootDirNotFound(remotePath)))
+    })
     .chain(_ => checkItsAFile(romPath))
     .map(getSize)
 
