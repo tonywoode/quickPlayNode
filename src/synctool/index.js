@@ -43,27 +43,27 @@ const end = state =>
     FileNotFound: msg => errorAndQuit(msg)
   })
 
-const getConfig = configFileName => {
-  //check our config file is actually json
-  const result = checkRequire(`../../${configFileName}`)
-  //go into the Result of checking the json, and deal with both cases
-  result.orElse(err => end(Ends.InvalidJson(err)))
-  return result.chain(config => {
-    //we know we have a json object, check get the keys out if they are the keys we expect
-    isConfigValid(config).orElse(_ => end(Ends.InvalidConfig(config)))
-    const { localPath, remotePath } = config
-    log(`using local root: ${localPath}`)
-    log(`using remote root: ${remotePath}`)
-    return config
-  })
-}
-
-const synctool = romPath => {
-  //check you passed me an input path
+const checkRomPath = romPath => {
   inputEmpty(romPath) && end(Ends.NoFileGiven)
   log(`checking rom path: ${romPath}`)
-  //check + load config
-  const checkFiles = stat(configFileName)
+}
+
+const getConfig = configFileName =>
+  checkRequire(`../../${configFileName}`) //check config file is actually json
+    //deal with both Result cases
+    .orElse(err => end(Ends.InvalidJson(err)))
+    .chain(config => {
+      //we know we have json, check key names are as expected
+      isConfigValid(config).orElse(_ => end(Ends.InvalidConfig(config)))
+      const { localPath, remotePath } = config
+      log(`using local root: ${localPath}`)
+      log(`using remote root: ${remotePath}`)
+      return config
+    })
+
+const synctool = romPath => {
+  checkRomPath(romPath) //check you passed me an input path
+  const checkFiles = stat(configFileName) //check + load config
     .orElse(_ => end(Ends.NoConfigFile(configFileName)))
     .map(_ => getConfig(configFileName))
     //so we have a valid string, before io, is it in the root path
@@ -71,8 +71,7 @@ const synctool = romPath => {
       getSubDir(romPath)(localPath).orElse(_ =>
         end(Ends.FileOutsideSyncPaths(romPath, localPath))
       )
-    })
-    //we can be sure relativePath is stated to live under the localroot, so now does it exist?
+    }) //we can be sure relativePath is stated to live under the localroot, so now does it exist?
     // first need to know if you've passed a dir or a file (for now do nothing on dir)
     .chain(_ => stat(romPath))
     .map(stat => {
