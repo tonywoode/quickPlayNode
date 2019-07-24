@@ -40,10 +40,16 @@ const end = state =>
     InvalidConfig: config =>
       errorAndQuit(`config invalid: ${objPrint(config)}`),
     FileOutsideSyncPaths: (filePath, localPath) =>
-      errorAndQuit(`${filePath} is not a subpath of local sync folder ${localPath}`),
-    InvalidStat: filePath => errorAndQuit(`file details are invalid for ${filePath}`),
+      errorAndQuit(
+        `${filePath} is not a subpath of local sync folder ${localPath}`
+      ),
+    InvalidStat: filePath =>
+      errorAndQuit(`file details are invalid for ${filePath}`),
     FileNotFound: msg => errorAndQuit(msg),
-    NotAFile: filePath => errorAndQuit(`we don't support syncing anything but files, not a file: ${filePath}`)
+    NotAFile: filePath =>
+      errorAndQuit(
+        `we don't support syncing anything but files, not a file: ${filePath}`
+      )
   })
 
 const checkRomPath = romPath => {
@@ -64,6 +70,13 @@ const getConfig = configFileName =>
       return config
     })
 
+//check the stat confirms its a file (for now do nothing on dir)
+const checkItsAFile = romPath =>
+  stat(romPath).map(stat => {
+    isFile(stat).getOrElse(Ends.InvalidStat(romPath)) || end(Ends.NotAFile(romPath))
+    return stat
+  })
+
 const synctool = romPath => {
   checkRomPath(romPath) //check you passed me an input path
   const checkFiles = stat(configFileName) //check + load config
@@ -75,13 +88,7 @@ const synctool = romPath => {
         end(Ends.FileOutsideSyncPaths(romPath, localPath))
       )
     }) //we can be sure relativePath is stated to live under the localroot, so now does it exist?
-    .chain(_ => stat(romPath))
-    .map(stat => {
-      //check the stat confirms its a file (for now do nothing on dir)
-      const itsAFile = isFile(stat).getOrElse(Ends.InvalidStat(romPath))
-      itsAFile || end(Ends.NotAFile(romPath))
-      return stat
-    })
+    .chain(_ => checkItsAFile(romPath))
     .map(getSize)
 
   checkFiles.run().listen({
