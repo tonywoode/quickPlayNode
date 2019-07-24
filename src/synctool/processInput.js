@@ -7,8 +7,9 @@ const isString = str => typeof str === "string" || str instanceof String
 const strEmpty = str => isNil(str) || str === ""
 const inputEmpty = str => !isString(str) || strEmpty(str)
 const objEmpty = obj => isNil(obj) || isEmpty(obj)
+// string -> Result Error cjsModule
 const checkRequire = module => {
-  try {
+  try { //stackoverflow.com/a/13214660/3536094
     const mod = require(module)
     return Result.Ok(mod)
   } catch (e) {
