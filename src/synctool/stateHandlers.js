@@ -1,5 +1,10 @@
 const { Ends, end } = require("./states.js")
-const { inputEmpty, isConfigValid, getSubDir, checkRequire } = require("./processInput.js")
+const {
+  inputEmpty,
+  checkRequire,
+  isConfigValid,
+  getSubDir
+} = require("./processInput.js")
 const { stat, isFile, getSize } = require("./checkFiles.js")
 const log = msg => console.log(`[synctool] - ${msg}`)
 
@@ -39,7 +44,7 @@ const doRootPathsExist = ({ localPath, remotePath }) => {
     .orElse(_ => end(Ends.RootDirNotFound(remotePath)))
 }
 
-//check file exists, and that stat confirms its a file 
+//check file exists, and that stat confirms its a file
 //  (for now do nothing on dir)
 const checkFile = romPath => {
   return stat(romPath)

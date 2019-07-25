@@ -9,7 +9,8 @@ const inputEmpty = str => !isString(str) || strEmpty(str)
 const objEmpty = obj => isNil(obj) || isEmpty(obj)
 // string -> Result Error cjsModule
 const checkRequire = module => {
-  try { //stackoverflow.com/a/13214660/3536094
+  try {
+    //stackoverflow.com/a/13214660/3536094
     const mod = require(module)
     return Result.Ok(mod)
   } catch (e) {
@@ -43,11 +44,11 @@ const isConfigValid = config =>
 const getSubDir = child => parent => {
   //stackoverflow.com/a/45242825/3536094
   const pathFromTo = relative(parent, child)
+  if (!pathFromTo) {
+    return Result.Error(`${child} and ${parent} are the same path`)
+  }
   const result =
-    pathFromTo &&
-    pathFromTo.length >= 0 &&
-    !isAbsolute(pathFromTo) &&
-    !pathFromTo.startsWith("..")
+    !isAbsolute(pathFromTo) && !pathFromTo.startsWith("..")
   //console.log(`[getSubDir] is "${child}" a child of "${parent}": ${result}`)
   //console.log(`[getSubDir] path from child to parent is ${pathFromTo}`)
   return result
@@ -57,10 +58,7 @@ const getSubDir = child => parent => {
 
 module.exports = {
   inputEmpty,
-  checkObjEmpty,
   checkRequire,
-  checkKey,
-  checkConfigKeys,
   isConfigValid,
   getSubDir
 }
