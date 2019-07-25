@@ -58,18 +58,22 @@ const checkRomPath = romPath => {
   log(`checking rom path: ${romPath}`)
 }
 
-const loadConfig = configFileName => stat(configFileName)
+const loadConfig = configFileName =>
+  stat(configFileName)
     .orElse(_ => end(Ends.NoConfigFile(configFileName)))
-    .map(_ => checkRequire(`../../${configFileName}`) //check config file importable as json
-    .orElse(err => end(Ends.InvalidJson(err)))
-    .chain(config => {
-      //ok we have json, check key names are as expected
-      isConfigValid(config).orElse(_ => end(Ends.InvalidConfig(config)))
-      const { localPath, remotePath } = config
-      log(`using local root: ${localPath}`)
-      log(`using remote root: ${remotePath}`)
-      return config
-    }))
+    .map(_ =>
+      checkRequire(`../../${configFileName}`) //check config file importable as json
+        .orElse(err => end(Ends.InvalidJson(err)))
+        .chain(config => {
+          //ok we have json, check key names are as expected
+          isConfigValid(config).orElse(_ => end(Ends.InvalidConfig(config)))
+          const { localPath, remotePath } = config
+          log(`using local root: ${localPath}`)
+          log(`using remote root: ${remotePath}`)
+          return config
+        })
+    )
+
 const isRomPathInRootPath = ({ localPath, remotePath }, romPath) => {
   getSubDir(romPath)(localPath).orElse(_ =>
     end(Ends.FileOutsideSyncPaths(romPath, localPath))
@@ -93,13 +97,12 @@ const checkItsAFile = romPath =>
     return stat
   })
 
-
 const synctool = romPath => {
   checkRomPath(romPath) //check you passed me an input path
-  const checkFiles = loadConfig(configFileName)
-    //so we have a valid string, is it in the root path
-    .map(config => isRomPathInRootPath(config, romPath)) //ok relativePath is stated to live under localPath
-    //but localPath and remotePath need to exist
+  const checkFiles = loadConfig(configFileName) //starts a Task
+    //so we have a valid path and a root path, is path in root path
+    .map(config => isRomPathInRootPath(config, romPath)) 
+    //ok relativePath is stated to live under localPath, but localPath and remotePath need to exist
     .chain(config => doRootPathsExist(config))
     .chain(_ => checkItsAFile(romPath))
     .map(getSize)

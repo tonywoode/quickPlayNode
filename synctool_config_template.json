@@ -1,0 +1,4 @@
+{
+ "localPath" : "/some/valid/path",
+ "remotePath": "/some/other/valid/path"
+}
