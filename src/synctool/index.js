@@ -70,6 +70,21 @@ const getConfig = configFileName =>
       return config
     })
 
+const isRomPathInRootPath = ({ localPath, remotePath }, romPath) => {
+  getSubDir(romPath)(localPath).orElse(_ =>
+    end(Ends.FileOutsideSyncPaths(romPath, localPath))
+  )
+  return { localPath, remotePath }
+}
+
+const doRootPathsExist = ({ localPath, remotePath }) => {
+  log(`checking roots exist: \n ${localPath} \n ${remotePath}`)
+  return stat(localPath)
+    .orElse(_ => end(Ends.RootDirNotFound(localPath)))
+    .chain(_ => stat(remotePath))
+    .orElse(_ => end(Ends.RootDirNotFound(remotePath)))
+}
+//
 //check the stat confirms its a file (for now do nothing on dir)
 const checkItsAFile = romPath =>
   stat(romPath).map(stat => {
@@ -84,20 +99,9 @@ const synctool = romPath => {
     .orElse(_ => end(Ends.NoConfigFile(configFileName)))
     .map(_ => getConfig(configFileName))
     //so we have a valid string, is it in the root path
-    .map(({ localPath, remotePath }) => {
-      getSubDir(romPath)(localPath).orElse(_ =>
-        end(Ends.FileOutsideSyncPaths(romPath, localPath))
-      )
-      return { localPath, remotePath }
-    }) //ok relativePath is stated to live under localPath
+    .map(config => isRomPathInRootPath(config, romPath)) //ok relativePath is stated to live under localPath
     //but localPath and remotePath need to exist
-    .chain(({ localPath, remotePath }) => {
-      log(`checking roots exist: \n ${localPath} \n ${remotePath}`)
-      return stat(localPath)
-        .orElse(_ => end(Ends.RootDirNotFound(localPath)))
-        .chain(_ => stat(remotePath))
-        .orElse(_ => end(Ends.RootDirNotFound(remotePath)))
-    })
+    .chain(config => doRootPathsExist(config))
     .chain(_ => checkItsAFile(romPath))
     .map(getSize)
 
