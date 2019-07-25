@@ -78,25 +78,33 @@ describe("synctool: processInput", () => {
   //      expect(checkConfigKeys(config)).to.deep.equal(Right(config))
   //    })
   //  })
-  describe.only("getSubDir", () => {
+  describe("getSubDir", () => {
     it("errors if child is not a subpath of parent", () => {
-      expect(
-        getSubDir("foo/bar")("foo").merge(),
-        "should have failed"
-      ).to.match(/is not in/)
+      expect(getSubDir("bar")("foo").merge(), "should have failed").to.match(
+        /is not in/
+      )
     })
 
     it("errors if child and parent paths are the same", () => {
-      const samePath = "foo/bar/" 
-      expect(getSubDir(samePath)(samePath).merge(), "should have failed").to.match(/are the same path/)
+      const samePath = "foo/bar/"
+      expect(
+        getSubDir(samePath)(samePath).merge(),
+        "should have failed"
+      ).to.match(/are the same path/)
     })
 
-    it("returns relative path if child is a subpath of parent", done => {
-      compose(
-        either(rej => newError(`isSubDir should have succeded: ${rej}`))(
-          res => expect(res).to.equal("baz") && done()
-        )
-      )(getSubDir("foo/bar/baz")("foo/bar"))
+    it("returns relative path if child is a subpath of parent", () => {
+      expect(
+        getSubDir("foo/bar/baz")("foo/bar").merge(),
+        "should have succeeded"
+      ).to.equal("baz")
+    })
+
+    it("node's path module lets paths use leading dots/trailing slashes", () => {
+      expect(
+        getSubDir("foo/bar/baz/")("././foo/bar/baz").merge(),
+        "should say paths are the same"
+      ).to.match(/are the same path/)
     })
   })
 })
