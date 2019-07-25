@@ -58,8 +58,9 @@ const checkRomPath = romPath => {
   log(`checking rom path: ${romPath}`)
 }
 
-const getConfig = configFileName =>
-  checkRequire(`../../${configFileName}`) //check config file is json
+const loadConfig = configFileName => stat(configFileName)
+    .orElse(_ => end(Ends.NoConfigFile(configFileName)))
+    .map(_ => checkRequire(`../../${configFileName}`) //check config file importable as json
     .orElse(err => end(Ends.InvalidJson(err)))
     .chain(config => {
       //ok we have json, check key names are as expected
@@ -68,8 +69,7 @@ const getConfig = configFileName =>
       log(`using local root: ${localPath}`)
       log(`using remote root: ${remotePath}`)
       return config
-    })
-
+    }))
 const isRomPathInRootPath = ({ localPath, remotePath }, romPath) => {
   getSubDir(romPath)(localPath).orElse(_ =>
     end(Ends.FileOutsideSyncPaths(romPath, localPath))
@@ -84,7 +84,7 @@ const doRootPathsExist = ({ localPath, remotePath }) => {
     .chain(_ => stat(remotePath))
     .orElse(_ => end(Ends.RootDirNotFound(remotePath)))
 }
-//
+
 //check the stat confirms its a file (for now do nothing on dir)
 const checkItsAFile = romPath =>
   stat(romPath).map(stat => {
@@ -93,11 +93,10 @@ const checkItsAFile = romPath =>
     return stat
   })
 
+
 const synctool = romPath => {
   checkRomPath(romPath) //check you passed me an input path
-  const checkFiles = stat(configFileName) //check + load config
-    .orElse(_ => end(Ends.NoConfigFile(configFileName)))
-    .map(_ => getConfig(configFileName))
+  const checkFiles = loadConfig(configFileName)
     //so we have a valid string, is it in the root path
     .map(config => isRomPathInRootPath(config, romPath)) //ok relativePath is stated to live under localPath
     //but localPath and remotePath need to exist
