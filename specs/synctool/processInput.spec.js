@@ -4,10 +4,9 @@ const { either } = require("sanctuary")
 const { Just, Nothing } = Maybe
 const { Left, Right } = Either
 const {
-  strEmpty,
-  checkObjEmpty,
-  checkKey,
-  checkConfigKeys,
+   inputEmpty,
+  checkRequire,
+  isConfigValid,
   getSubDir
 } = require("../../src/synctool/processInput.js")
 
@@ -16,18 +15,18 @@ const newError = msg => {
 }
 
 describe("synctool: processInput", () => {
-  //  describe("strEmpty", () => {
-  //    it("return false on empty String", () => {
-  //      expect(strEmpty()).to.be.true
-  //      expect(strEmpty(null)).to.be.true
-  //      expect(strEmpty(undefined)).to.be.true
-  //      expect(strEmpty("")).to.be.true
-  //    })
-  //    it("return false on non-empty string", () => {
-  //      expect(strEmpty("hello")).to.be.false
-  //    })
-  //  })
-  //
+    describe("inputEmpty", () => {
+      it("return true on empty String", () => {
+        expect(inputEmpty()).to.be.true
+        expect(inputEmpty(null)).to.be.true
+        expect(inputEmpty(undefined)).to.be.true
+        expect(inputEmpty("")).to.be.true
+      })
+      it("return false on non-empty string", () => {
+        expect(inputEmpty("hello")).to.be.false
+      })
+    })
+  
   //  describe("checkObjEmpty", () => {
   //    it("error when not passed a config oject", () => {
   //      expect(checkObjEmpty()).to.deep.equal(Nothing)
@@ -78,6 +77,18 @@ describe("synctool: processInput", () => {
   //      expect(checkConfigKeys(config)).to.deep.equal(Right(config))
   //    })
   //  })
+  //
+
+  describe("checkRequire", () => {
+    it("should load a native module", () => {
+      expect(checkRequire("fs").merge()).to.have.property("appendFile")
+    })
+
+    it("should not load a non-existent module", () => {
+      expect(checkRequire("f").merge()).to.match(/Cannot find module/)
+    })
+  })
+
   describe("getSubDir", () => {
     it("errors if child is not a subpath of parent", () => {
       expect(getSubDir("bar")("foo").merge(), "should have failed").to.match(
