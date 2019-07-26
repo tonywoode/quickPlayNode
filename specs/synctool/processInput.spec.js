@@ -1,8 +1,4 @@
 const { compose } = require("ramda")
-const { Maybe, Either } = require("sanctuary")
-const { either } = require("sanctuary")
-const { Just, Nothing } = Maybe
-const { Left, Right } = Either
 const {
    inputEmpty,
   checkRequire,
@@ -10,6 +6,7 @@ const {
   getSubDir
 } = require("../../src/synctool/processInput.js")
 
+const Result = require("folktale/result")
 const newError = msg => {
   throw new Error(msg)
 }
@@ -27,20 +24,31 @@ describe("synctool: processInput", () => {
       })
     })
   
-  //  describe("checkObjEmpty", () => {
-  //    it("error when not passed a config oject", () => {
-  //      expect(checkObjEmpty()).to.deep.equal(Nothing)
-  //    })
-  //    it("error not passed a config object", () => {
-  //      expect(checkObjEmpty("")).to.deep.equal(Nothing)
-  //    })
-  //    it("error when passed an empty config oject", () => {
-  //      expect(checkObjEmpty({})).to.deep.equal(Nothing)
-  //    })
+    describe("isConfigValid", () => {
+      it("errors when not passed a config oject", () => {
+        isConfigValid().matchWith({
+          Ok: _ => newError("should not get an OK"),
+          Error: ({ value }) => expect(value).to.be.undefined
+        })
+
+      })
+      it("errors when passed a string instead of a config object", () => {
+        isConfigValid("here's a string").matchWith({
+          Ok: _ => newError("should not get an OK"),
+          Error: ({ value }) => expect(value).to.be.undefined
+        })
+      })
+  
+      it("error when passed an empty config oject", () => {
+        isConfigValid({}).matchWith({
+          Ok: _ => newError("should not get an OK"),
+          Error: ({ value }) => expect(value).to.be.undefined
+        })
+      })
   //
   //    it("when passed a non-empty config, return it", () => {
   //      const nonEmptyObj = { notEmpty: "notEmpty" }
-  //      expect(checkObjEmpty(nonEmptyObj)).to.deep.equal(Just(nonEmptyObj))
+  //      expect(isConfigValid(nonEmptyObj)).to.deep.equal(Just(nonEmptyObj))
   //    })
   //  })
   //
@@ -78,7 +86,7 @@ describe("synctool: processInput", () => {
   //    })
   //  })
   //
-
+    })
   describe("checkRequire", () => {
     it("should load a native module", () => {
       expect(checkRequire("fs").merge()).to.have.property("appendFile")

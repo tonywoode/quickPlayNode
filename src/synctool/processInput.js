@@ -6,6 +6,7 @@ const Result = require("folktale/result")
 const isString = str => typeof str === "string" || str instanceof String
 const strEmpty = str => isNil(str) || str === ""
 const inputEmpty = str => !isString(str) || strEmpty(str)
+const isObj = obj => typeof obj === 'object' //null is object tho
 const objEmpty = obj => isNil(obj) || isEmpty(obj)
 // string -> Result Error cjsModule
 const checkRequire = module => {
@@ -19,7 +20,7 @@ const checkRequire = module => {
 }
 // Object -> Maybe Object
 const checkObjEmpty = obj =>
-  (objEmpty(obj) && Maybe.Nothing()) || Maybe.Just(obj)
+  ( (!isObj(obj) || objEmpty(obj)) && Maybe.Nothing()) || Maybe.Just(obj)
 // String -> Object -> Result Error Object
 const checkKey = key => config =>
   (config.hasOwnProperty(key) && !strEmpty(config[key]) && Result.Ok(config)) ||
