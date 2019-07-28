@@ -6,7 +6,7 @@ const Result = require("folktale/result")
 const isString = str => typeof str === "string" || str instanceof String
 const strEmpty = str => isNil(str) || str === ""
 const inputEmpty = str => !isString(str) || strEmpty(str)
-const isObj = obj => typeof obj === 'object' //null is object tho
+const isObj = obj => typeof obj === "object" //null is object tho
 const objEmpty = obj => isNil(obj) || isEmpty(obj)
 // string -> Result Error cjsModule
 const checkRequire = module => {
@@ -20,18 +20,23 @@ const checkRequire = module => {
 }
 // Object -> Maybe Object
 const checkObjEmpty = obj =>
-  ( (!isObj(obj) || objEmpty(obj)) && Maybe.Nothing()) || Maybe.Just(obj)
+  ((!isObj(obj) || objEmpty(obj)) && Maybe.Nothing()) || Maybe.Just(obj)
 // String -> Object -> Result Error Object
 const checkKey = key => config =>
-  (config.hasOwnProperty(key) && !strEmpty(config[key]) && Result.Ok(config)) ||
-  Result.Error(`${key} is not set`)
+  config.hasOwnProperty(key) && !strEmpty(config[key])
 
 // Object -> Result Object Error
-const checkConfigKeys = config =>
-  compose(
-    chain(checkKey("localPath")),
-    checkKey("remotePath")
-  )(config)
+// TODO: declarative
+const checkConfigKeys = config => {
+  const r = "remotePath"
+  const l = "localPath"
+  const remote = checkKey(r)(config)
+  const local = checkKey(l)(config)
+  if (!remote && !local) return Result.Error(`both ${r} and ${l} need to exist in config`)
+  if (!remote) return Result.Error(`${r} needs to exist in config`)
+  if (!local) return Result.Error(`${l} needs to exist in config`)
+  return Result.Ok(config)
+}
 
 // Object -> Result Error Maybe Object
 const isConfigValid = config =>
@@ -48,8 +53,7 @@ const getSubDir = child => parent => {
   if (!pathFromTo) {
     return Result.Error(`${child} and ${parent} are the same path`)
   }
-  const result =
-    !isAbsolute(pathFromTo) && !pathFromTo.startsWith("..")
+  const result = !isAbsolute(pathFromTo) && !pathFromTo.startsWith("..")
   //console.log(`[getSubDir] is "${child}" a child of "${parent}": ${result}`)
   //console.log(`[getSubDir] path from child to parent is ${pathFromTo}`)
   return result

@@ -45,12 +45,11 @@ describe("synctool: processInput", () => {
           Error: ({ value }) => expect(value).to.be.undefined
         })
       })
-  //
-  //    it("when passed a non-empty config, return it", () => {
-  //      const nonEmptyObj = { notEmpty: "notEmpty" }
-  //      expect(isConfigValid(nonEmptyObj)).to.deep.equal(Just(nonEmptyObj))
-  //    })
-  //  })
+  
+      it.only("when passed a non-empty config, return it", () => {
+        const nonEmptyObj = { notEmpty: "notEmpty" }
+        console.log(isConfigValid(nonEmptyObj))
+      })
   //
   //  describe("checkKey", () => {
   //    it("when passed an invalid config object, error", () => {
