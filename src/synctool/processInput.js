@@ -23,19 +23,22 @@ const checkObjEmpty = obj =>
   ((!isObj(obj) || objEmpty(obj)) && Maybe.Nothing()) || Maybe.Just(obj)
 // String -> Object -> Result Error Object
 const checkKey = key => config =>
-  config.hasOwnProperty(key) && !strEmpty(config[key])
+  (config.hasOwnProperty(key) && !strEmpty(config[key]) && Result.Ok(config)) ||
+  Result.Error(`${key} is not set`)
 
 // Object -> Result Object Error
 const checkConfigKeys = config => {
-  const local = checkKey("localPath")(config)
   const remote = checkKey("remotePath")(config)
-  return local.orElse(noLocal => {
-    return remote.orElse(noRemote =>
-      Result.Error(`Problems with config:\n ${noRemote} \n ${noLocal}`)
+  const local = checkKey("localPath")(config)
+  return local
+    .orElse(noLocal =>
+      remote
+        .orElse(noRemote =>
+          Result.Error(`Problems with config:\n ${noRemote} \n ${noLocal}`)
+        )
+      .chain(_ => Result.Error(noLocal)) //there was a remote, but there still is no local
     )
-      .chain(_ => Result.Error("local path isn't set"))
-  })
-    .chain(_ => remote)
+    .chain(_ => remote) //there is a local, but there still may be no remote
 }
 
 // Object -> Result Error Maybe Object
