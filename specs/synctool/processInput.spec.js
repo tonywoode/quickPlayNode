@@ -47,9 +47,11 @@ describe("synctool: processInput", () => {
       })
   
       it.only("when passed a non-empty config, return it", () => {
-        const nonEmptyObj = { notEmpty: "notEmpty" }
+        const nonEmptyObj = { localPath: "notEmpty", remotePath: "notEmpty" }
+        //  expect(isConfigValid(nonEmptyObj)).to.deep.equal("hello")
         console.log(isConfigValid(nonEmptyObj))
       })
+      //  })
   //
   //  describe("checkKey", () => {
   //    it("when passed an invalid config object, error", () => {

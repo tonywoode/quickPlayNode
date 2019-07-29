@@ -26,16 +26,16 @@ const checkKey = key => config =>
   config.hasOwnProperty(key) && !strEmpty(config[key])
 
 // Object -> Result Object Error
-// TODO: declarative
 const checkConfigKeys = config => {
-  const r = "remotePath"
-  const l = "localPath"
-  const remote = checkKey(r)(config)
-  const local = checkKey(l)(config)
-  if (!remote && !local) return Result.Error(`both ${r} and ${l} need to exist in config`)
-  if (!remote) return Result.Error(`${r} needs to exist in config`)
-  if (!local) return Result.Error(`${l} needs to exist in config`)
-  return Result.Ok(config)
+  const local = checkKey("localPath")(config)
+  const remote = checkKey("remotePath")(config)
+  return local.orElse(noLocal => {
+    return remote.orElse(noRemote =>
+      Result.Error(`Problems with config:\n ${noRemote} \n ${noLocal}`)
+    )
+      .chain(_ => Result.Error("local path isn't set"))
+  })
+    .chain(_ => remote)
 }
 
 // Object -> Result Error Maybe Object
