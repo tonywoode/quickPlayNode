@@ -20,7 +20,7 @@ const synctool = romPath => {
     .map(getSize)
 
   checkFiles.run().listen({
-    onRejected: rej => console.log(`unexpected error: ${rej}`),
+    onRejected: rej => console.log(`[synctool] unexpected error: ${rej}`),
     onResolved: result => console.log(`result is ${objPrint(result)}`)
   })
 }

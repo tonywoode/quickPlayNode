@@ -19,8 +19,14 @@ const checkRequire = module => {
   }
 }
 // Object -> Result Error Object
+const checkParamPassed = param =>
+  param && Result.Ok(param) || Result.Error(`nothing was passed to me`)
+// Object -> Result Error Object
+const checkObjType = obj =>
+  (!isObj(obj) && Result.Error(`not an object`)) || Result.Ok(obj)
+// Object -> Result Error Object
 const checkObjEmpty = obj =>
-  ((!isObj(obj) || objEmpty(obj)) && Result.Error(`object is empty`)) || Result.Ok(obj)
+  (objEmpty(obj) && Result.Error(`object is empty`)) || Result.Ok(obj)
 // String -> Object -> Result Error Object
 const checkKey = key => config =>
   (config.hasOwnProperty(key) && !strEmpty(config[key]) && Result.Ok(config)) ||
@@ -45,7 +51,9 @@ const checkConfigKeys = config => {
 const isConfigValid = config =>
   compose(
     chain(checkConfigKeys),
-    checkObjEmpty
+    chain(checkObjEmpty),
+    chain(checkObjType),
+    checkParamPassed
   )(config)
 
 // Path -> Path -> Result Error RelativePath
