@@ -18,15 +18,15 @@ const checkRequire = module => {
     return Result.Error(e)
   }
 }
-// Object -> Maybe Object
+// Object -> Result Error Object
 const checkObjEmpty = obj =>
-  ((!isObj(obj) || objEmpty(obj)) && Maybe.Nothing()) || Maybe.Just(obj)
+  ((!isObj(obj) || objEmpty(obj)) && Result.Error(`object is empty`)) || Result.Ok(obj)
 // String -> Object -> Result Error Object
 const checkKey = key => config =>
   (config.hasOwnProperty(key) && !strEmpty(config[key]) && Result.Ok(config)) ||
   Result.Error(`${key} is not set`)
 
-// Object -> Result Object Error
+// Object -> Result Error Object 
 const checkConfigKeys = config => {
   const remote = checkKey("remotePath")(config)
   const local = checkKey("localPath")(config)
@@ -45,7 +45,6 @@ const checkConfigKeys = config => {
 const isConfigValid = config =>
   compose(
     chain(checkConfigKeys),
-    Result.fromMaybe,
     checkObjEmpty
   )(config)
 

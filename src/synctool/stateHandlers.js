@@ -21,7 +21,7 @@ const loadConfig = configFileName =>
         .orElse(err => end(Ends.InvalidJson(err)))
         .chain(config => {
           //ok we have json, check key names are as expected
-          isConfigValid(config).orElse(_ => end(Ends.InvalidConfig(config)))
+          isConfigValid(config).orElse( err => end(Ends.InvalidConfig(err)))
           const { localPath, remotePath } = config
           log(`using local root: ${localPath}`)
           log(`using remote root: ${remotePath}`)

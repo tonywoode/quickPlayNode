@@ -47,7 +47,7 @@ describe("synctool: processInput", () => {
       })
   
       it.only("when passed a non-empty config, return it", () => {
-        const nonEmptyObj = { localPath: "notEmpty", remotePath: "notEmpty" }
+        const nonEmptyObj = {  }
         //  expect(isConfigValid(nonEmptyObj)).to.deep.equal("hello")
         console.log(isConfigValid(nonEmptyObj))
       })
