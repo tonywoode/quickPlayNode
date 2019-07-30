@@ -35,85 +35,109 @@ describe("synctool: checkFiles", () => {
 
   describe("stat", () => {
     it("errors if path is not available", done => {
-      stat("invalid path").fork(
-        rej => expect(rej).to.match(/stat error/) && done(),
-        res => newError("stat should have failed")
-      )
+      stat("invalid path")
+        .run()
+        .listen({
+          onRejected: rej => expect(rej).to.match(/no such file/) && done(),
+          onResolved: res => newError("stat should have failed")
+        })
     })
+
     it("produces stat if path is available", done => {
-      stat(pathToTextFile).fork(
-        _ => newError("stat should have succeeded"),
-        res => expect(res).to.have.property("nlink") && done()
-      )
+      stat(pathToTextFile)
+        .run()
+        .listen({
+          onRejected: _ => newError("stat should have succeeded"),
+          onResolved: res => expect(res).to.have.property("nlink") && done()
+        })
     })
   })
 
   describe("isDir", () => {
     it("says a file is not a dir", done => {
-      isDir(pathToTextFile).fork(
-        _ => _,
-        res => expect(res).to.be.false && done()
-      )
+      stat(pathToTextFile)
+        .run()
+        .listen({
+          onRejected: _ => newError("stat should have succeeded"),
+          onResolved: res =>
+            expect(isDir(res).getOrElse()).to.be.false && done()
+        })
     })
     it("says a dir is a dir", done => {
-      isDir(pathToSrcDir).fork(_ => _, res => expect(res).to.be.true && done())
+      stat(pathToSrcDir)
+        .run()
+        .listen({
+          onRejected: _ => newError("stat should have succeeded"),
+          onResolved: res => expect(isDir(res).getOrElse()).to.be.true && done()
+        })
     })
   })
 
   describe("isFile", () => {
     it("says a dir is not a file", done => {
-      isFile(pathToSrcDir).fork(
-        _ => _,
-        res => expect(res).to.be.false && done()
-      )
+      stat(pathToSrcDir)
+        .run()
+        .listen({
+          onRejected: _ => newError("stat should have succeeded"),
+          onResolved: res =>
+            expect(isFile(res).getOrElse()).to.be.false && done()
+        })
     })
     it("says a file is a file", done => {
-      isFile(pathToTextFile).fork(
-        _ => _,
-        res => expect(res).to.be.true && done()
-      )
+      stat(pathToTextFile)
+        .run()
+        .listen({
+          onRejected: _ => newError("stat should have succeeded"),
+          onResolved: res =>
+            expect(isFile(res).getOrElse()).to.be.true && done()
+        })
     })
   })
 
   describe("getSize", () => {
     it("errors if path isn't available", done => {
-      getSize("random").fork(
-        rej => expect(rej).to.match(/stat error/) && done(),
-        res => newError(`getSize should have failed: ${res}`)
-      )
+      getSize("not a real path")
+        .map(_ => newError("getSize should have failed"))
+        .getOrElse(expect(true)) && done()
     })
+
     it("returns filesize if file is available", done => {
-      getSize(pathToTextFile).fork(
-        rej => newError(`getSize should have succeded: ${rej}`),
-        res => expect(res).to.equal(sizeOfTextFile) && done()
-      )
+      const expectedSizeOfTextFile = 10
+      stat(pathToTextFile)
+        .run()
+        .listen({
+          onRejected: _ => newError("stat should have succeeded"),
+          onResolved: res =>
+            expect(getSize(res).getOrElse()).to.equal(expectedSizeOfTextFile) &&
+            done()
+        })
     })
   })
 
-  describe("fileIs0KB", () => {
-    it("errors if path isn't available", done => {
-      fileIs0KB("random").fork(
-        rej => expect(rej).to.match(/stat error/) && done(),
-        res => newError(`fileIs0KB should have failed: ${res}`)
-      )
-    })
-    it("returns false on a folder", done => {
-      fileIs0KB(pathToSrcDir).fork(
-        rej => newError(`fileIs0KB should have succeded: ${rej}`),
-        res => expect(res).to.be.false && done()
-      )
-    })
-    it("returns false on a non-empty file", done => {
-      fileIs0KB(pathToTextFile).fork(
-        rej => newError(`fileIs0KB should have succeded: ${rej}`),
-        res => expect(res).to.be.false && done()
-      )
-    })
-    it("returns true on an empty file", done => {
-      fileIs0KB(pathToEmptyFile).fork(
-        rej => newError(`fileIs0KB should have succeded: ${rej}`),
-        res => expect(res).to.be.true && done()
-      )
-    })
-  })
+  //  describe("fileIs0KB", () => {
+  //    it("errors if path isn't available", done => {
+  //      fileIs0KB("random").fork(
+  //        rej => expect(rej).to.match(/stat error/) && done(),
+  //        res => newError(`fileIs0KB should have failed: ${res}`)
+  //      )
+  //    })
+  //    it("returns false on a folder", done => {
+  //      fileIs0KB(pathToSrcDir).fork(
+  //        rej => newError(`fileIs0KB should have succeded: ${rej}`),
+  //        res => expect(res).to.be.false && done()
+  //      )
+  //    })
+  //    it("returns false on a non-empty file", done => {
+  //      fileIs0KB(pathToTextFile).fork(
+  //        rej => newError(`fileIs0KB should have succeded: ${rej}`),
+  //        res => expect(res).to.be.false && done()
+  //      )
+  //    })
+  //    it("returns true on an empty file", done => {
+  //      fileIs0KB(pathToEmptyFile).fork(
+  //        rej => newError(`fileIs0KB should have succeded: ${rej}`),
+  //        res => expect(res).to.be.true && done()
+  //      )
+  //    })
+  //  })
 })
