@@ -1,4 +1,4 @@
 {
- "localPath" : "./specs/synctool/integration/localPath",
- "remotePath": "./specs/synctool/integration/remotePath"
+ "localRoot" : "./specs/synctool/integration/localRoot",
+ "remoteRoot": "./specs/synctool/integration/remoteRoot"
 }

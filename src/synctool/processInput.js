@@ -31,8 +31,8 @@ const checkKey = key => config =>
 
 // Object -> Result Error Object
 const checkConfigKeys = config => {
-  const remote = checkKey('remotePath')(config)
-  const local = checkKey('localPath')(config)
+  const remote = checkKey('remoteRoot')(config)
+  const local = checkKey('localRoot')(config)
   return local
     .orElse(
       noLocal =>

@@ -16,16 +16,16 @@ const synctool = romPath => {
   const checkFiles = loadConfig(configFileName) // starts a Task
     // so we have a valid path and a root path, is path in root path
     .map(config => isRomPathInRootPath(config, romPath))
-    // ok relativePath is stated to live under localPath, but localPath and remotePath need to exist
+    // ok relativePath is stated to live under localRoot, but localRoot and remoteRoot need to exist
     .chain(config => {
       return doRootPathsExist(config)
         .chain(_ => checkFile(romPath)) // check its not a dir
         .map(getSize)
         .map(localSize => {
-          return getSubDir(romPath)(config.localPath)  
+          return getSubDir(romPath)(config.localRoot)  
           // first work out the relative path we'd have on remote
           //   we know the path.join is safe because we've shown both consituents are safe
-            .map(relativePath => path.join(config.remotePath, relativePath))
+            .map(relativePath => path.join(config.remoteRoot, relativePath))
         })
     })
 

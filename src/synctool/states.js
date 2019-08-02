@@ -30,9 +30,9 @@ const end = state =>
     InvalidJson: err => errorAndQuit(`config file isn't valid json: ${err}`),
     InvalidConfig: config =>
       errorAndQuit(`config invalid: ${objPrint(config)}`),
-    FileOutsideSyncPaths: (filePath, localPath) =>
+    FileOutsideSyncPaths: (filePath, localRoot) =>
       errorAndQuit(
-        `${filePath} is not a subpath of local sync folder ${localPath}`
+        `${filePath} is not a subpath of local sync folder ${localRoot}`
       ),
     InvalidStat: filePath =>
       errorAndQuit(`file details are invalid for ${filePath}`),

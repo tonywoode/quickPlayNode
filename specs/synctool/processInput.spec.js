@@ -58,8 +58,8 @@ describe('synctool: processInput', () => {
       isConfigValid(nonEmptyObj).matchWith({
         Ok: _ => newError('should not get an OK'),
         Error: ({ value }) => {
-          expect(value).to.match(/remotePath is not set/)
-          expect(value).to.match(/localPath is not set/)
+          expect(value).to.match(/remoteRoot is not set/)
+          expect(value).to.match(/localRoot is not set/)
         }
       })
     })

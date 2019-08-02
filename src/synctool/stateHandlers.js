@@ -17,24 +17,24 @@ const loadConfig = configFileName =>
         .chain(config => {
           // ok we have json, check key names are as expected
           isConfigValid(config).orElse(err => end(Ends.InvalidConfig(err)))
-          const { localPath, remotePath } = config
-          log(`using local root: ${localPath}`)
-          log(`using remote root: ${remotePath}`)
+          const { localRoot, remoteRoot } = config
+          log(`using local root: ${localRoot}`)
+          log(`using remote root: ${remoteRoot}`)
           return config
         })
     )
 
-const isRomPathInRootPath = ({ localPath, remotePath }, romPath) => {
-  getSubDir(romPath)(localPath).orElse(_ => end(Ends.FileOutsideSyncPaths(romPath, localPath)))
-  return { localPath, remotePath }
+const isRomPathInRootPath = ({ localRoot, remoteRoot }, romPath) => {
+  getSubDir(romPath)(localRoot).orElse(_ => end(Ends.FileOutsideSyncPaths(romPath, localRoot)))
+  return { localRoot, remoteRoot }
 }
 
-const doRootPathsExist = ({ localPath, remotePath }) => {
-  log(`checking roots exist: \n ${localPath} \n ${remotePath}`)
-  return stat(localPath)
-    .orElse(_ => end(Ends.RootDirNotFound(localPath)))
-    .chain(_ => stat(remotePath))
-    .orElse(_ => end(Ends.RootDirNotFound(remotePath)))
+const doRootPathsExist = ({ localRoot, remoteRoot }) => {
+  log(`checking roots exist: \n ${localRoot} \n ${remoteRoot}`)
+  return stat(localRoot)
+    .orElse(_ => end(Ends.RootDirNotFound(localRoot)))
+    .chain(_ => stat(remoteRoot))
+    .orElse(_ => end(Ends.RootDirNotFound(remoteRoot)))
 }
 
 // check file exists, and that stat confirms its a file
