@@ -17,17 +17,26 @@ const synctool = romPath => {
     // so we have a valid path and a root path, is path in root path
     .map(config => isRomPathInRootPath(config, romPath))
     // ok relativePath is stated to live under localRoot, but localRoot and remoteRoot need to exist
-    .chain(config => {
-      return doRootPathsExist(config)
+    .chain(config => 
+      doRootPathsExist(config)
         .chain(_ => checkFile(romPath)) // check its not a dir
-        .map(getSize)
-        .map(localSize => {
-          return getSubDir(romPath)(config.localRoot)  
+        .map(localStat => getSubDir(romPath)(config.localRoot)  
           // first work out the relative path we'd have on remote
-          //   we know the path.join is safe because we've shown both consituents are safe
-            .map(relativePath => path.join(config.remoteRoot, relativePath))
-        })
-    })
+          //   we know the path.join is safe because we've shown both constituents are safe
+          //   chaining over the result returns us the remotePath, uncontainerised, but we're still in the outer Task
+          .chain(relativePath => { const remotePath = path.join(config.remoteRoot, relativePath)
+            return ({ localStat, remotePath}) }) 
+        )
+      //so we've got a remotePath, and we know localPath exists, turn the Task into a check of remotePath
+      .chain( ({ localStat, remotePath }) => checkFile(remotePath)
+        .map( remoteStat => {console.log(`local size is ${getSize(localStat)}, remote size is ${getSize(remoteStat)}`
+        ) 
+        return remoteStat
+      }))
+      
+      )
+
+    
 
   checkFiles.run().listen({
     onRejected: rej => console.log(`[synctool] unexpected error: ${rej}`),
