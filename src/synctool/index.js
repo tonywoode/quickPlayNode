@@ -33,8 +33,12 @@ const synctool = romPath => {
         .chain(remotePath => checkFile(remotePath))
         .chain(remoteStat =>
           checkFile(romPath).map(localStat => {
-            console.log(getSize(remoteStat))
-            console.log(getSize(localStat))
+            const larger = (a,b) => a > b
+            const remoteSize = getSize(remoteStat)
+            const localSize = getSize(localStat)
+            return remoteSize.chain( remote => localSize.map( local =>
+              larger(remote,local)
+            ))
           })
         )
     )
