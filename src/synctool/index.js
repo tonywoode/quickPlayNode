@@ -11,7 +11,7 @@ const objPrint = obj => JSON.stringify(obj, null, 2)
 const { getSize, isFile } = require('./checkFiles.js')
 
 const synctool = (romPath, configFileName, testing) => {
-  const checkFiles = checkRomPath(romPath) // check you passed me an input path
+  return checkRomPath(romPath) // check you passed me an input path
    .chain(_ => loadConfig(configFileName)) // starts a Task
     // so we have a valid path and a root path, is path in root path
     .map(config => isRomPathInRootPath(config, romPath))
@@ -38,12 +38,6 @@ const synctool = (romPath, configFileName, testing) => {
           })
         )
     )
-if(!testing) {
-  checkFiles.run().listen({
-    onRejected: rej => console.log(`[synctool] unexpected error: ${rej}`),
-    onResolved: result => console.log(`result is ${objPrint(result)}`)
-  })
-}
-if(testing){ return checkFiles}
+
 }
 module.exports = { synctool }

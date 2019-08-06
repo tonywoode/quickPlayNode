@@ -24,7 +24,7 @@ const Ends = taggedSum("EndStates", {
 const end = state =>
   state.cata({
     NoFileGiven: _ => rejected(`you must supply a filepath arg that you want to sync`),
-    NoConfigFile: filePath => errorAndQuit(`config file not found in root: ${filePath}`),
+    NoConfigFile: filePath => rejected(`config file not found in root: ${filePath}`),
     InvalidJson: err => errorAndQuit(`config file isn't valid json: ${err}`),
     InvalidConfig: config => errorAndQuit(`config invalid: ${objPrint(config)}`),
     FileOutsideSyncPaths: (filePath, localRoot) => errorAndQuit( `${filePath} is not a subpath of local sync folder ${localRoot}`),

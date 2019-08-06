@@ -49,7 +49,11 @@ program //TODO: these options need prepending by the command 'mametool'
 program.command(`synctool [rompath]`)
   .action( romPath => { 
     synctoolInvoked = true 
-    synctool(romPath, configFileName)
+    synctool(romPath, configFileName).run().listen({
+    onRejected: rej => console.log(`[synctool] unexpected error: ${rej}`),
+    onResolved: result => console.log(`result is ${objPrint(result)}`)
+  })
+
   })
 
    program.parse(process.argv)
