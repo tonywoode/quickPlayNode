@@ -5,7 +5,7 @@ const errorAndQuit = err => {
   quit(1)
 }
 const objPrint = obj => JSON.stringify(obj, null, 2)
-
+const { rejected } = require('folktale/concurrency/task');
 const Ends = taggedSum("EndStates", {
   NoFileGiven: [],
   NoConfigFile: ["filePath"],
@@ -23,24 +23,15 @@ const Ends = taggedSum("EndStates", {
 
 const end = state =>
   state.cata({
-    NoFileGiven: _ =>
-      errorAndQuit(`you must supply a filepath arg that you want to sync`),
-    NoConfigFile: filePath =>
-      errorAndQuit(`config file not found in root: ${filePath}`),
+    NoFileGiven: _ => rejected(`you must supply a filepath arg that you want to sync`),
+    NoConfigFile: filePath => errorAndQuit(`config file not found in root: ${filePath}`),
     InvalidJson: err => errorAndQuit(`config file isn't valid json: ${err}`),
-    InvalidConfig: config =>
-      errorAndQuit(`config invalid: ${objPrint(config)}`),
-    FileOutsideSyncPaths: (filePath, localRoot) =>
-      errorAndQuit(
-        `${filePath} is not a subpath of local sync folder ${localRoot}`
-      ),
-    InvalidStat: filePath =>
-      errorAndQuit(`file details are invalid for ${filePath}`),
-    FileNotFound: msg => errorAndQuit(msg),
-    NotAFile: filePath =>
-      errorAndQuit(`not a file - only files can be synced: ${filePath}`),
-    RootDirNotFound: rootDir =>
-      errorAndQuit(`sync path can't be accessed: ${rootDir}`)
+    InvalidConfig: config => errorAndQuit(`config invalid: ${objPrint(config)}`),
+    FileOutsideSyncPaths: (filePath, localRoot) => errorAndQuit( `${filePath} is not a subpath of local sync folder ${localRoot}`),
+    InvalidStat: filePath => errorAndQuit(`file details are invalid for ${filePath}`),
+    FileNotFound: msg => rejected(msg),
+    NotAFile: filePath => errorAndQuit(`not a file - only files can be synced: ${filePath}`),
+    RootDirNotFound: rootDir => errorAndQuit(`sync path can't be accessed: ${rootDir}`)
   })
 
 

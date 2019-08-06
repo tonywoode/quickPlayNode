@@ -17,6 +17,7 @@ const {mfm}             = require('./mfm')
 const {testArcadeRun}   = require('./testing')
 const {softlists}       = require('./softlists')
 const {synctool}        = require('./synctool')
+const configFileName = 'synctool_config.json'
 
 //tee output to console and to a logfile https://stackoverflow.com/a/30578473/3536094
 const logFile           = './mametool_logfile.txt'
@@ -48,7 +49,7 @@ program //TODO: these options need prepending by the command 'mametool'
 program.command(`synctool [rompath]`)
   .action( romPath => { 
     synctoolInvoked = true 
-    synctool(romPath)
+    synctool(romPath, configFileName)
   })
 
    program.parse(process.argv)

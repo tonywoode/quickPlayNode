@@ -7,13 +7,12 @@ const {
 } = require('./stateHandlers.js')
 const path = require('path')
 const { getSubDir } = require('./processInput.js')
-const configFileName = 'synctool_config.json'
 const objPrint = obj => JSON.stringify(obj, null, 2)
 const { getSize, isFile } = require('./checkFiles.js')
 
-const synctool = romPath => {
-  checkRomPath(romPath) // check you passed me an input path
-  const checkFiles = loadConfig(configFileName) // starts a Task
+const synctool = (romPath, configFileName, testing) => {
+  const checkFiles = checkRomPath(romPath) // check you passed me an input path
+   .chain(_ => loadConfig(configFileName)) // starts a Task
     // so we have a valid path and a root path, is path in root path
     .map(config => isRomPathInRootPath(config, romPath))
     // ok relativePath is stated to live under localRoot, but localRoot and remoteRoot need to exist
@@ -24,10 +23,7 @@ const synctool = romPath => {
             // first work out the relative path we'd have on remote
             //   we know the path.join is safe because we've shown both constituents are safe
             //   chaining over the result returns us the remotePath, uncontainerised, but we're still in the outer Task
-            .chain(relativePath => {
-              const remotePath = path.join(config.remoteRoot, relativePath)
-              return remotePath
-            })
+            .chain(relativePath => path.join(config.remoteRoot, relativePath))
         )
         // so we've got a remotePath, and we know localPath exists, turn the Task into a check of remotePath
         .chain(remotePath => checkFile(remotePath))
@@ -42,10 +38,12 @@ const synctool = romPath => {
           })
         )
     )
-
+if(!testing) {
   checkFiles.run().listen({
     onRejected: rej => console.log(`[synctool] unexpected error: ${rej}`),
     onResolved: result => console.log(`result is ${objPrint(result)}`)
   })
+}
+if(testing){ return checkFiles}
 }
 module.exports = { synctool }

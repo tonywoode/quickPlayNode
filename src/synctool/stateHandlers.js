@@ -2,10 +2,12 @@ const { Ends, end } = require('./states.js')
 const { inputEmpty, checkRequire, isConfigValid, getSubDir } = require('./processInput.js')
 const { stat, isFile, getSize } = require('./checkFiles.js')
 const log = msg => console.log(`[synctool] - ${msg}`)
+const { of } = require('folktale/concurrency/task');
 
+// String -> Task Error _
 const checkRomPath = romPath => {
-  inputEmpty(romPath) && end(Ends.NoFileGiven)
   log(`checking rom path: ${romPath}`)
+  return inputEmpty(romPath) ? end(Ends.NoFileGiven) : of("valid path")
 }
 
 const loadConfig = configFileName =>
