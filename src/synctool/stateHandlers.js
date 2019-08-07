@@ -3,8 +3,6 @@ const { inputEmpty, checkRequire, isConfigValid, getSubDir } = require('./proces
 const { stat, isFile, getSize } = require('./checkFiles.js')
 const log = msg => console.log(`[synctool] - ${msg}`)
 const { of } = require('folktale/concurrency/task');
-
-// String -> Task Error _
 const checkRomPath = romPath => {
   log(`checking rom path: ${romPath}`)
   return inputEmpty(romPath) ? end(Ends.NoFileGiven) : of("valid path")
@@ -13,7 +11,9 @@ const checkRomPath = romPath => {
 const loadConfig = configFileName =>
   stat(configFileName)
     .orElse(_ => end(Ends.NoConfigFile(configFileName)))
-    .map(_ =>
+    //here we want to make sure we return a task, the orElse above does
+    //  so we can chain here. If we don't: we'll carry on even if the json is invalid
+    .chain(_ =>
       checkRequire(`../../${configFileName}`) // check config file importable as json
         .orElse(err => end(Ends.InvalidJson(err)))
         .chain(config => {
@@ -22,7 +22,7 @@ const loadConfig = configFileName =>
           const { localRoot, remoteRoot } = config
           log(`using local root: ${localRoot}`)
           log(`using remote root: ${remoteRoot}`)
-          return config
+          return of(config)
         })
     )
 
