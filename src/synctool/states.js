@@ -29,8 +29,8 @@ const end = state =>
     InvalidConfig: config => rejected(`config invalid: ${objPrint(config)}`),
     FileOutsideSyncPaths: (filePath, localRoot) =>
       rejected(`${filePath} is not a subpath of local sync folder ${localRoot}`),
-    InvalidStat: filePath => errorAndQuit(`file details are invalid for ${filePath}`),
     FileNotFound: msg => rejected(msg),
+    InvalidStat: filePath => errorAndQuit(`file details are invalid for ${filePath}`),
     NotAFile: filePath => errorAndQuit(`not a file - only files can be synced: ${filePath}`),
     RootDirNotFound: rootDir => errorAndQuit(`sync path can't be accessed: ${rootDir}`)
   })
