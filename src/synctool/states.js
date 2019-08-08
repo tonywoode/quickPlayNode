@@ -12,10 +12,10 @@ const Ends = taggedSum('EndStates', {
   InvalidJson: ['errObj'],
   InvalidConfig: ['config'],
   FileOutsideSyncPaths: ['filePath', 'filePath'],
+  RootDirNotFound: ['rootDir'],
   FileNotFound: ['msg'],
   InvalidStat: ['filePath'],
   NotAFile: ['filePath'], // TODO: what do we do on symbolic links?
-  RootDirNotFound: ['rootDir'],
   LocalAndRemoteMatch: ['filePath', 'filePath'],
   Synced: ['filePath', 'filePath'],
   ServerError: ['errObj']
@@ -29,10 +29,10 @@ const end = state =>
     InvalidConfig: config => rejected(`config invalid: ${objPrint(config)}`),
     FileOutsideSyncPaths: (filePath, localRoot) =>
       rejected(`${filePath} is not a subpath of local sync folder ${localRoot}`),
+    RootDirNotFound: rootDir => rejected(`sync path can't be accessed: ${rootDir}`),
     FileNotFound: msg => rejected(msg),
-    InvalidStat: filePath => errorAndQuit(`file details are invalid for ${filePath}`),
-    NotAFile: filePath => errorAndQuit(`not a file - only files can be synced: ${filePath}`),
-    RootDirNotFound: rootDir => errorAndQuit(`sync path can't be accessed: ${rootDir}`)
+    InvalidStat: filePath => rejected(`file details are invalid for ${filePath}`),
+    NotAFile: filePath => rejected(`not a file - only files can be synced: ${filePath}`)
   })
 
 module.exports = {

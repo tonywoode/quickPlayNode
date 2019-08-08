@@ -17,7 +17,9 @@ const loadConfig = configFileName =>
     .chain(_ =>
       checkRequire(`../../${configFileName}`) // check config file importable as json
         .orElse(err => end(Ends.InvalidJson(err)))
-        .chain(config => // ok we have json, check key names are as expected
+        .chain((
+          config // ok we have json, check key names are as expected
+        ) =>
           isConfigValid(config)
             .orElse(err => end(Ends.InvalidConfig(err)))
             .chain(_ => {
@@ -32,7 +34,7 @@ const loadConfig = configFileName =>
 const isRomPathInRootPath = ({ localRoot, remoteRoot }, romPath) => {
   return getSubDir(romPath)(localRoot)
     .orElse(_ => end(Ends.FileOutsideSyncPaths(romPath, localRoot)))
-    .chain(_ => of( ({ localRoot, remoteRoot }) ) )
+    .chain(_ => of({ localRoot, remoteRoot }))
 }
 
 const doRootPathsExist = ({ localRoot, remoteRoot }) => {
@@ -46,12 +48,15 @@ const doRootPathsExist = ({ localRoot, remoteRoot }) => {
 // check file exists, and that stat confirms its a file
 //  (for now do nothing on dir)
 const checkFile = romPath => {
-  return stat(romPath)
-    .orElse(rej => end(Ends.FileNotFound(rej)))
-    .map(stat => {
-      isFile(stat).getOrElse(Ends.InvalidStat(romPath)) || end(Ends.NotAFile(romPath))
-      return stat
-    })
+  return (
+    stat(romPath)
+      .orElse(rej => end(Ends.FileNotFound(rej)))
+      .chain(
+        stat =>
+          // remember to wrap up the stat again if all is ok here
+          isFile(stat).getOrElse(Ends.InvalidStat(romPath)) ? of(stat) : end(Ends.NotAFile(romPath))
+      )
+  )
 }
 
 module.exports = {

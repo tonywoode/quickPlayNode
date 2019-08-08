@@ -17,12 +17,12 @@ describe.only('synctool: states', () => {
   beforeEach(() => {
     mock({
       'synctool_config.json': `{ "localRoot" : "some/valid/path", "remoteRoot": "some/other/valid/path" }`,
-      'some/valid/path/': {},
-      'some/other/valid/path/file': 'hello'
+      'some/valid/path/': { directory: {} },
+      'some/other/valid/path/': { directory: {} }
     })
   })
   describe('NoFileGiven', () => {
-    it('errors if No File Given', done => {
+    it('errors if a path to a file wasnt provided over cli', done => {
       synctool('', pathToConfig)
         .run()
         .listen({
@@ -33,7 +33,7 @@ describe.only('synctool: states', () => {
   })
 
   describe('NoConfigFile', () => {
-    it('errors if No Config File', done => {
+    it('errors if config file isnt accessible', done => {
       synctool('_', 'any config file')
         .run()
         .listen({
@@ -44,7 +44,7 @@ describe.only('synctool: states', () => {
   })
 
   describe('InvalidJson', () => {
-    it('errors if Invalid Json', done => {
+    it('errors if JSON config file isnt valid JSON', done => {
       mock({ 'synctool_config.json': `{ "localRoot" : "some/valid/path",}` })
       synctool('_', 'synctool_config.json')
         .run()
@@ -58,9 +58,9 @@ describe.only('synctool: states', () => {
     })
   })
 
-  //TODO: once require loads this invalid json, it won't let it go again, subsequent tests fail
+  // TODO: once require loads this invalid json, it won't let it go again, subsequent tests fail
   describe('InvalidConfig', () => {
-    it.skip('errors if Config Invalid', done => {
+    it.skip('errors if Config file loads, but doesnt contain settings expected', done => {
       mock({ 'synctool_config.json': `{ "random key" : "_"}` })
       synctool('_', 'synctool_config.json')
         .run()
@@ -74,7 +74,7 @@ describe.only('synctool: states', () => {
   })
 
   describe('FileOutsideSyncPaths', () => {
-    it('errors if File Outside Sync Paths', done => {
+    it('errors if the filename provided over cli isnt a subpath of the local root specified in config', done => {
       synctool('definitely outside sync paths', 'synctool_config.json')
         .run()
         .listen({
@@ -86,8 +86,26 @@ describe.only('synctool: states', () => {
     })
   })
 
+  describe('RootDirNotFound', () => {
+    it('errors if either of the root dirs doesnt exist', done => {
+      mock.restore() // require should still have our config file
+      mock({
+        'synctool_config.json': `{ "localRoot" : "some/valid/path", "remoteRoot": "some/other/valid/path" }`,
+        'some/other/valid/path/': { directory: {} }
+      })
+      synctool('some/valid/path/file', 'synctool_config.json')
+        .run()
+        .listen({
+          onRejected: rej => {
+            expect(rej).to.match(/sync path can\'t be accessed/) && done()
+          },
+          onResolved: res => newError('synctool should have failed')
+        })
+    })
+  })
+
   describe('FileNotFound', () => {
-    it('errors if File Not Found', done => {
+    it('errors if file path provided doesnt exist in one of the roots', done => {
       synctool('some/valid/path/file', 'synctool_config.json')
         .run()
         .listen({
@@ -100,8 +118,23 @@ describe.only('synctool: states', () => {
   })
 
   describe('InvalidStat', () => {
-    it.skip('errors if Stat is invalid', done => {
+    it.skip('errors if Stat passed to fns that expect a stat, is not a valid stat', done => {
       // it was just protective programming, can't cause it by invoking synctool...
+    })
+  })
+
+  describe('NotAFile', () => {
+    it('errors if we pass Synctool a directory', done => {
+      // note that, despite passing in the local path,
+      // we should error that the REMOTE path doesn't exist
+      synctool('some/valid/path/directory', 'synctool_config.json')
+        .run()
+        .listen({
+          onRejected: rej => {
+            expect(rej).to.match(/only files can be synced/) && done()
+          },
+          onResolved: res => newError('synctool should have failed')
+        })
     })
   })
 })
