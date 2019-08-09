@@ -50,7 +50,7 @@ program.command(`synctool [rompath]`)
   .action( romPath => { 
     synctoolInvoked = true 
     synctool(romPath, configFileName).run().listen({
-    onRejected: rej => console.log(`[synctool] unexpected error: ${rej}`),
+    onRejected: rej => console.log(`[synctool] - no work done: ${rej}`),
     onResolved: result => console.log(`result is ${objPrint(result)}`)
   })
 

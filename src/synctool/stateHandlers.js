@@ -3,9 +3,9 @@ const { inputEmpty, checkRequire, isConfigValid, getSubDir } = require('./proces
 const { stat, isFile } = require('./checkFiles.js')
 const log = msg => console.log(`[synctool] - ${msg}`)
 const { of } = require('folktale/concurrency/task')
-const checkRomPath = romPath => {
-  log(`checking rom path: ${romPath}`)
-  return inputEmpty(romPath) ? end(Ends.NoFileGiven) : of('valid path')
+const checkLocalPath = localPath => {
+  log(`checking rom path: ${localPath}`)
+  return inputEmpty(localPath) ? end(Ends.NoFileGiven) : of('valid path')
 }
 
 // String -> Task Error Object
@@ -31,9 +31,9 @@ const loadConfig = configFileName =>
         )
     )
 
-const isRomPathInRootPath = ({ localRoot, remoteRoot }, romPath) => {
-  return getSubDir(romPath)(localRoot)
-    .orElse(_ => end(Ends.FileOutsideSyncPaths(romPath, localRoot)))
+const isLocalPathInRootPath = ({ localRoot, remoteRoot }, localPath) => {
+  return getSubDir(localPath)(localRoot)
+    .orElse(_ => end(Ends.FileOutsideSyncPaths(localPath, localRoot)))
     .chain(_ => of({ localRoot, remoteRoot }))
 }
 
@@ -47,22 +47,22 @@ const doRootPathsExist = ({ localRoot, remoteRoot }) => {
 
 // check file exists, and that stat confirms its a file
 //  (for now do nothing on dir)
-const checkFile = romPath => {
+const checkFile = localPath => {
   return (
-    stat(romPath)
+    stat(localPath)
       .orElse(rej => end(Ends.FileNotFound(rej)))
       .chain(
         stat =>
           // remember to wrap up the stat again if all is ok here
-          isFile(stat).getOrElse(Ends.InvalidStat(romPath)) ? of(stat) : end(Ends.NotAFile(romPath))
+          isFile(stat).getOrElse(Ends.InvalidStat(localPath)) ? of(stat) : end(Ends.NotAFile(localPath))
       )
   )
 }
 
 module.exports = {
-  checkRomPath,
+  checkLocalPath,
   loadConfig,
-  isRomPathInRootPath,
+  isLocalPathInRootPath,
   doRootPathsExist,
   checkFile
 }
