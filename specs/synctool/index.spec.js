@@ -2,23 +2,21 @@ const mock = require('mock-fs')
 const path = require('path')
 const join = (...paths) => path.join(...paths)
 const { synctool } = require('../../src/synctool/index.js')
-const root = 'root/path/on/my/pc'
-const pathToConfig = 'dir/dir/dir/config'
-const pathToSrcDir = join(root, `source`)
-const pathToTextFile = join(root, `source/textFile`)
-const pathToEmptyFile = join(root, `source/emptyFile`)
+const localRoot = 'the/local/root'
+const remoteRoot = 'the/remote/root'
+const pathToConfig = 'synctool_config.json'
 const newError = msg => {
   throw new Error(msg)
 }
 
-describe.only('synctool: states', () => {
+describe('synctool: states', () => {
   // mockfs won't affect Module.resolveFilename in require calls:  //https://github.com/tschaub/mock-fs/issues/145
-  // so config path here has to agree with config path on the file system (the contents of the file, however, are changable here)
+  // so config path here has to agree with config path on the file system (the contents of the file, however, are changeable here)
   beforeEach(() => {
     mock({
-      'synctool_config.json': `{ "localRoot" : "some/valid/path", "remoteRoot": "some/other/valid/path" }`,
-      'some/valid/path/': { directory: {} },
-      'some/other/valid/path/': { directory: {} }
+      [pathToConfig]: `{ "localRoot" : "the/local/root", "remoteRoot": "the/remote/root" }`,
+      [localRoot]: { directory: {} },
+      [remoteRoot]: { directory: {} }
     })
   })
   describe('NoFileGiven', () => {
@@ -45,8 +43,8 @@ describe.only('synctool: states', () => {
 
   describe('InvalidJson', () => {
     it('errors if JSON config file isnt valid JSON', done => {
-      mock({ 'synctool_config.json': `{ "localRoot" : "some/valid/path",}` })
-      synctool('_', 'synctool_config.json')
+      mock({ 'synctool_config.json': `{#!}` })
+      synctool('_', pathToConfig)
         .run()
         .listen({
           onRejected: rej => {
@@ -61,8 +59,8 @@ describe.only('synctool: states', () => {
   // TODO: once require loads this invalid json, it won't let it go again, subsequent tests fail
   describe('InvalidConfig', () => {
     it.skip('errors if Config file loads, but doesnt contain settings expected', done => {
-      mock({ 'synctool_config.json': `{ "random key" : "_"}` })
-      synctool('_', 'synctool_config.json')
+      mock({ [pathToConfig]: `{ "random key" : "_"}` })
+      synctool('_', pathToConfig)
         .run()
         .listen({
           onRejected: rej => {
@@ -75,7 +73,7 @@ describe.only('synctool: states', () => {
 
   describe('FileOutsideSyncPaths', () => {
     it('errors if the filename provided over cli isnt a subpath of the local root specified in config', done => {
-      synctool('definitely outside sync paths', 'synctool_config.json')
+      synctool('definitely outside sync paths', pathToConfig)
         .run()
         .listen({
           onRejected: rej => {
@@ -90,10 +88,11 @@ describe.only('synctool: states', () => {
     it('errors if either of the root dirs doesnt exist', done => {
       mock.restore() // require should still have our config file
       mock({
-        'synctool_config.json': `{ "localRoot" : "some/valid/path", "remoteRoot": "some/other/valid/path" }`,
-        'some/other/valid/path/': { directory: {} }
+        [pathToConfig]: `{ "localRoot" : "the/local/root", "remoteRoot": "the/remote/root" }`,
+        // no local root
+        [remoteRoot]: { directory: {} }
       })
-      synctool('some/valid/path/file', 'synctool_config.json')
+      synctool(join(localRoot, 'file'), pathToConfig)
         .run()
         .listen({
           onRejected: rej => {
@@ -106,7 +105,7 @@ describe.only('synctool: states', () => {
 
   describe('FileNotFound', () => {
     it('errors if file path provided doesnt exist in one of the roots', done => {
-      synctool('some/valid/path/file', 'synctool_config.json')
+      synctool(join(localRoot, 'file'), pathToConfig)
         .run()
         .listen({
           onRejected: rej => {
@@ -127,7 +126,7 @@ describe.only('synctool: states', () => {
     it('errors if we pass Synctool a directory', done => {
       // note that, despite passing in the local path,
       // we should error that the REMOTE path doesn't exist
-      synctool('some/valid/path/directory', 'synctool_config.json')
+      synctool(join(localRoot, 'directory'), pathToConfig)
         .run()
         .listen({
           onRejected: rej => {

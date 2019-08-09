@@ -1,6 +1,6 @@
 const { Ends, end } = require('./states.js')
 const { inputEmpty, checkRequire, isConfigValid, getSubDir } = require('./processInput.js')
-const { stat, isFile, getSize } = require('./checkFiles.js')
+const { stat, isFile } = require('./checkFiles.js')
 const log = msg => console.log(`[synctool] - ${msg}`)
 const { of } = require('folktale/concurrency/task')
 const checkRomPath = romPath => {
