@@ -18,7 +18,8 @@ const Ends = taggedSum('EndStates', {
   NotAFile: ['filePath'], // TODO: what do we do on symbolic links?
   LocalAndRemoteMatch: ['filePath', 'filePath'],
   Synced: ['filePath', 'filePath'],
-  ServerError: ['errObj']
+  ServerError: ['errObj'],
+  LocalFileLarger: ['filePath', 'size', 'filePath', 'size']
 })
 
 const end = state =>
@@ -32,7 +33,8 @@ const end = state =>
     RootDirNotFound: rootDir => rejected(`sync path can't be accessed: ${rootDir}`),
     FileNotFound: msg => rejected(msg),
     InvalidStat: filePath => rejected(`file details are invalid for ${filePath}`),
-    NotAFile: filePath => rejected(`not a file - only files can be synced: ${filePath}`)
+    NotAFile: filePath => rejected(`not a file - only files can be synced: ${filePath}`),
+    LocalFileLarger: (localPath, localSize, remotePath, remoteSize) => rejected(`local file is larger: ${localPath} is ${localSize} and ${remotePath} is ${remoteSize}`)
   })
 
 module.exports = {

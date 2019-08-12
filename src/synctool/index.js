@@ -5,12 +5,13 @@ const {
   doRootPathsExist,
   checkFile
 } = require('./stateHandlers.js')
+const { Ends, end } = require('./states.js')
 const { join, dirname } = require('path')
 const { rejected } = require('folktale/concurrency/task')
 const { getSubDir } = require('./processInput.js')
 const objPrint = obj => JSON.stringify(obj, null, 2)
 const { getSize } = require('./checkFiles.js')
-const {mkdirRecursive, copyFile} = require('./copyFile.js')
+const { mkdirRecursive, copyFile } = require('./copyFile.js')
 const synctool = (localPath, configFileName) => {
   return (
     checkLocalPath(localPath) // check you passed me an input path
@@ -35,20 +36,29 @@ const synctool = (localPath, configFileName) => {
                 checkFile(localPath)
                   .orElse(err => {
                     console.log(`[synctool] - file appears remote but not local: ${err}`)
-                    // return rejected(err)
-                    /* actually: try to copy the file: its remote and cant be seen locally */
+                    // try to copy the file: its remote and cant be seen locally
                     console.log(`[synctool] - copying ${remotePath} to ${localPath}`)
-                    //first we'll need to make the appropriate path
+                    // first we'll need to make the appropriate path
                     const neededDir = dirname(localPath)
-                    return mkdirRecursive(neededDir)                  
-                      .chain( _ => copyFile(remotePath, localPath))
+                    return mkdirRecursive(neededDir)
+                      .chain(_ => copyFile(remotePath, localPath))
                   })
                   // the files in both places, check dest is smaller
-                  .map(localStat => {
+                  .chain(localStat => {
                     const larger = (a, b) => a > b
                     const remoteSize = getSize(remoteStat)
                     const localSize = getSize(localStat)
-                    return remoteSize.chain(remote => localSize.map(local => larger(remote, local)))
+                    return remoteSize.chain(remote =>
+                      localSize.chain(local => {
+                        const moveFile = larger(remote, local)
+                        console.log("movefile is " + moveFile)
+                        return moveFile
+                          ? mkdirRecursive(dirname(localPath)).chain(_ =>
+                            copyFile(remotePath, localPath)
+                          )
+                          : end(Ends.LocalFileLarger(localPath, local, remotePath, remote))
+                      })
+                    )
                   })
               )
           )
