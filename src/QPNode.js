@@ -18,6 +18,7 @@ const {testArcadeRun}   = require('./testing')
 const {softlists}       = require('./softlists')
 const {synctool}        = require('./synctool')
 const configFileName = 'synctool_config.json'
+const objPrint = obj => JSON.stringify(obj, null, 2)
 
 //tee output to console and to a logfile https://stackoverflow.com/a/30578473/3536094
 const logFile           = './mametool_logfile.txt'
