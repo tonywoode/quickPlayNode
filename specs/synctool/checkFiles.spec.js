@@ -26,6 +26,8 @@ describe('synctool: checkFiles', () => {
     })
   })
 
+  afterEach( () => mock.restore())
+
   describe('stat', () => {
     it('errors if path is not available', done => {
       stat('invalid path')

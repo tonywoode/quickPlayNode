@@ -19,6 +19,9 @@ describe('synctool: states', () => {
       [remoteRoot]: { directory: {} }
     })
   })
+  
+  afterEach( () => mock.restore())
+
   describe('NoFileGiven', () => {
     it('errors if a path to a file wasnt provided over cli', done => {
       synctool('', pathToConfig)
