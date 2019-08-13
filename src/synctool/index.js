@@ -34,15 +34,6 @@ const synctool = (localPath, configFileName) => {
               .orElse(fileError => rejected(`File Not In Remote Folder: ${fileError}`))
               .chain(remoteStat =>
                 checkFile(localPath)
-                  .orElse(err => {
-                    console.log(`[synctool] - file appears remote but not local: ${err}`)
-                    // try to copy the file: its remote and cant be seen locally
-                    console.log(`[synctool] - copying ${remotePath} to ${localPath}`)
-                    // first we'll need to make the appropriate path
-                    const neededDir = dirname(localPath)
-                    return mkdirRecursive(neededDir)
-                      .chain(_ => copyFile(remotePath, localPath))
-                  })
                   // the files in both places, check dest is smaller
                   .chain(localStat => {
                     const larger = (a, b) => a > b
@@ -50,15 +41,28 @@ const synctool = (localPath, configFileName) => {
                     const localSize = getSize(localStat)
                     return remoteSize.chain(remote =>
                       localSize.chain(local => {
-                        const moveFile = larger(remote, local)
-                        console.log("movefile is " + moveFile)
-                        return moveFile
+                        return larger(remote, local)
                           ? mkdirRecursive(dirname(localPath)).chain(_ =>
                             copyFile(remotePath, localPath)
                           )
                           : end(Ends.LocalFileLarger(localPath, local, remotePath, remote))
                       })
                     )
+                  })
+                  .orElse(err => {
+                    /* we need to put a sad path on the happy path (failed local stat), we're now
+                   * responsible for making sure that's why we got here */
+                    if (err.includes('ENOENT')) {
+                      console.log(`[synctool] - file appears remote but not local: ${err}`)
+                      // try to copy the file: its remote and cant be seen locally
+                      console.log(`[synctool] - copying ${remotePath} to ${localPath}`)
+                      // first we'll need to make the appropriate path
+                      return mkdirRecursive(dirname(localPath)).chain(_ =>
+                        copyFile(remotePath, localPath)
+                      )
+                    } else {
+                      return rejected(err)
+                    }
                   })
               )
           )
