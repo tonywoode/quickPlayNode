@@ -27,7 +27,6 @@
   "license": "ISC",
   "dependencies": {
     "commander": "^2.11.0",
-    "crypto": "^1.0.1",
     "daggy": "^1.2.0",
     "data.maybe": "^1.2.3",
     "folktale": "^2.3.2",

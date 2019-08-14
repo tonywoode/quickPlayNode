@@ -3,6 +3,7 @@ const { task } = require('folktale/concurrency/task')
 const crypto = require('crypto')
 
 // String -> Task String String
+// https://github.com/h2non/jsHashes is an alternative
 const fileHash = filePath =>
   task(r => {
     const hash = crypto.createHash(`md5`)

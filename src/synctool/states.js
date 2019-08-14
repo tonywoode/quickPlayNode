@@ -19,7 +19,8 @@ const Ends = taggedSum('EndStates', {
   LocalAndRemoteMatch: ['filePath', 'filePath'],
   Synced: ['filePath', 'filePath'],
   ServerError: ['errObj'],
-  LocalFileLarger: ['filePath', 'size', 'filePath', 'size']
+  LocalFileLarger: ['filePath', 'size', 'filePath', 'size'],
+  FilesAreEqual: ['filePath', 'failePath']
 })
 
 const end = state =>
@@ -34,7 +35,8 @@ const end = state =>
     FileNotFound: msg => rejected(msg),
     InvalidStat: filePath => rejected(`file details are invalid for ${filePath}`),
     NotAFile: filePath => rejected(`not a file - only files can be synced: ${filePath}`),
-    LocalFileLarger: (localPath, localSize, remotePath, remoteSize) => rejected(`local file is larger: ${localPath} is ${localSize} and ${remotePath} is ${remoteSize}`)
+    LocalFileLarger: (localPath, localSize, remotePath, remoteSize) => rejected(`local file is larger: \n ${localPath} is ${localSize} \n ${remotePath} is ${remoteSize}`),
+    FilesAreEqual: (localPath, remotePath) => rejected(`Equal file exists in both paths: \n ${localPath} \n ${remotePath}`)
   })
 
 module.exports = {

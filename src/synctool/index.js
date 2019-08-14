@@ -37,16 +37,20 @@ const synctool = (localPath, configFileName) => {
                   // the files in both places, check dest is smaller
                   .chain(localStat => {
                     const larger = (a, b) => a > b
+                    const equal = (a, b) => a === b
                     const remoteSize = getSize(remoteStat)
                     const localSize = getSize(localStat)
                     return remoteSize.chain(remote =>
-                      localSize.chain(local => {
-                        return larger(remote, local)
-                          ? mkdirRecursive(dirname(localPath)).chain(_ =>
-                            copyFile(remotePath, localPath)
-                          )
-                          : end(Ends.LocalFileLarger(localPath, local, remotePath, remote))
-                      })
+                      localSize.chain(
+                        local =>
+                          equal(remote, local)
+                            ? end(Ends.FilesAreEqual(localPath, remotePath))
+                            : larger(remote, local)
+                              ? mkdirRecursive(dirname(localPath)).chain(_ =>
+                                copyFile(remotePath, localPath)
+                              )
+                              : end(Ends.LocalFileLarger(localPath, local, remotePath, remote))
+                      )
                     )
                   })
                   .orElse(err => {
