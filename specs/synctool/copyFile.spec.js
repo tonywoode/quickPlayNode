@@ -46,8 +46,3 @@ describe('synctool: copyFile', () => {
     })
   })
 })
-// should check checksums after copying?
-// should report if there's an error during copy
-// should overwrite existing files
-// should refuse on directories?!?
-// should report if read or write denied

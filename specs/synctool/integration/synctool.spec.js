@@ -7,7 +7,6 @@ const newError = msg => {
 }
 const mountPath = join('specs', 'synctool', 'integration')
 const localRoot = 'localRoot'
-const remoteRoot = 'remoteRoot'
 const configFileName = 'integrationTestConfigFile.json'
 
 const fileName = '1MegFile'
@@ -46,6 +45,15 @@ describe('synctool: Integration Tests', () => {
         .listen({
           onRejected: rej => expect(rej).to.include('only files can be synced') && done(),
           onResolved: res => newError(`copyFile should have failed: ${res}`)
+        })
+    })
+
+    it('errors if remote file doesnt exist', done => {
+      synctool(join(mountPath, localRoot, 'fileThatIsntThere'), join(mountPath, configFileName))
+        .run()
+        .listen({
+          onRejected: rej => expect(rej).to.include('File Not In Remote Folder') && done(),
+          onResolved: res => newError(`copySameFile should have failed: ${res}`)
         })
     })
 
