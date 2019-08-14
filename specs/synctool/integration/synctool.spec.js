@@ -11,17 +11,23 @@ const remoteRoot = 'remoteRoot'
 const configFileName = 'integrationTestConfigFile.json'
 
 const fileName = '1MegFile'
+const sameFileName = '1MegSameFile'
+const localIsLargerFile = 'localIsLarger'
 const folderName = 'folder'
 
-describe.only('synctool: Integration Tests', () => {
+describe('synctool: Integration Tests', () => {
   // clear up all the files we copied
-  after(
-    () => { 
-      fs.unlink(join(mountPath, localRoot, fileName), err => console.error(`cleanup unlink errors are: ${err}`))
-      fs.unlink(join(mountPath, localRoot, folderName, fileName), err => console.error(`cleanup unlink errors are: ${err}`))
-      fs.rmdir(join(mountPath, localRoot, folderName), err => console.error(`cleanup unlink errors are: ${err}`))
-   }
-  )
+  after(() => {
+    fs.unlink(join(mountPath, localRoot, fileName), err =>
+      console.error(`cleanup unlink errors are: ${err}`)
+    )
+    fs.unlink(join(mountPath, localRoot, folderName, fileName), err =>
+      console.error(`cleanup unlink errors are: ${err}`)
+    )
+    fs.rmdir(join(mountPath, localRoot, folderName), err =>
+      console.error(`cleanup unlink errors are: ${err}`)
+    )
+  })
 
   describe('copyFile', () => {
     it('copies a file', done => {
@@ -52,7 +58,24 @@ describe.only('synctool: Integration Tests', () => {
           onResolved: res => expect(res).to.be.true && done()
         })
     })
-    
+
+    it('doesnt copy equal files', done => {
+      synctool(join(mountPath, localRoot, sameFileName), join(mountPath, configFileName))
+        .run()
+        .listen({
+          onRejected: rej => expect(rej).to.include('Equal file exists in both paths') && done(),
+          onResolved: res => newError(`copySameFile should have failed: ${res}`)
+        })
+    })
+
+    it('doesnt copy if local is larger', done => {
+      synctool(join(mountPath, localRoot, localIsLargerFile), join(mountPath, configFileName))
+        .run()
+        .listen({
+          onRejected: rej => expect(rej).to.include('local file is larger') && done(),
+          onResolved: res => newError(`copySameFile should have failed: ${res}`)
+        })
+    })
   })
   // should check checksums after copying?
   // should report if there's an error during copy
