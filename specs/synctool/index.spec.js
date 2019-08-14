@@ -28,7 +28,7 @@ describe('synctool: states', () => {
         .run()
         .listen({
           onRejected: rej => expect(rej).to.match(/must supply a filepath/) && done(),
-          onResolved: res => newError('synctool should have failed')
+          onResolved: res => newError(`synctool should have failed: ${res}`)
         })
     })
   })
@@ -39,7 +39,7 @@ describe('synctool: states', () => {
         .run()
         .listen({
           onRejected: rej => expect(rej).to.match(/config file not found/) && done(),
-          onResolved: res => newError('synctool should have failed')
+          onResolved: res => newError(`synctool should have failed: ${res}`)
         })
     })
   })
@@ -54,7 +54,7 @@ describe('synctool: states', () => {
             expect(rej).to.match(/config file isn't valid json/)
             expect(rej).to.match(/in JSON at position/) && done()
           },
-          onResolved: res => newError('synctool should have failed')
+          onResolved: res => newError(`synctool should have failed: ${res}`)
         })
     })
   })
@@ -69,7 +69,7 @@ describe('synctool: states', () => {
           onRejected: rej => {
             expect(rej).to.match(/Problems with config/) && done()
           },
-          onResolved: res => newError('synctool should have failed')
+          onResolved: res => newError(`synctool should have failed: ${res}`)
         })
     })
   })
@@ -82,7 +82,7 @@ describe('synctool: states', () => {
           onRejected: rej => {
             expect(rej).to.match(/is not a subpath of/) && done()
           },
-          onResolved: res => newError('synctool should have failed')
+          onResolved: res => newError(`synctool should have failed: ${res}`)
         })
     })
   })
@@ -101,7 +101,7 @@ describe('synctool: states', () => {
           onRejected: rej => {
             expect(rej).to.match(/sync path can\'t be accessed/) && done()
           },
-          onResolved: res => newError('synctool should have failed')
+          onResolved: res => newError(`synctool should have failed: ${res}`)
         })
     })
   })
@@ -114,7 +114,7 @@ describe('synctool: states', () => {
           onRejected: rej => {
             expect(rej).to.match(/no such file or directory/) && done()
           },
-          onResolved: res => newError('synctool should have failed')
+          onResolved: res => newError(`synctool should have failed: ${res}`)
         })
     })
   })
@@ -135,7 +135,7 @@ describe('synctool: states', () => {
           onRejected: rej => {
             expect(rej).to.match(/only files can be synced/) && done()
           },
-          onResolved: res => newError('synctool should have failed')
+          onResolved: res => newError(`synctool should have failed: ${res}`)
         })
     })
   })

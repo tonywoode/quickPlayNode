@@ -34,7 +34,7 @@ describe('synctool: checkFiles', () => {
         .run()
         .listen({
           onRejected: rej => expect(rej).to.match(/no such file/) && done(),
-          onResolved: res => newError('stat should have failed')
+          onResolved: res => newError(`stat should have failed: ${res}`)
         })
     })
 
@@ -42,7 +42,7 @@ describe('synctool: checkFiles', () => {
       stat(pathToTextFile)
         .run()
         .listen({
-          onRejected: _ => newError('stat should have succeeded'),
+          onRejected: _ => newError(`stat should have succeeded: ${rej}`),
           onResolved: res => expect(res).to.have.property('nlink') && done()
         })
     })
@@ -53,7 +53,7 @@ describe('synctool: checkFiles', () => {
       stat(pathToTextFile)
         .run()
         .listen({
-          onRejected: _ => newError('stat should have succeeded'),
+          onRejected: _ => newError(`stat should have succeeded: ${rej}`),
           onResolved: res => expect(isDir(res).getOrElse()).to.be.false && done()
         })
     })
@@ -61,7 +61,7 @@ describe('synctool: checkFiles', () => {
       stat(pathToSrcDir)
         .run()
         .listen({
-          onRejected: _ => newError('stat should have succeeded'),
+          onRejected: _ => newError(`stat should have succeeded: ${rej}`),
           onResolved: res => expect(isDir(res).getOrElse()).to.be.true && done()
         })
     })
@@ -72,7 +72,7 @@ describe('synctool: checkFiles', () => {
       stat(pathToSrcDir)
         .run()
         .listen({
-          onRejected: _ => newError('stat should have succeeded'),
+          onRejected: _ => newError(`stat should have succeeded: ${rej}`),
           onResolved: res => expect(isFile(res).getOrElse()).to.be.false && done()
         })
     })
@@ -80,7 +80,7 @@ describe('synctool: checkFiles', () => {
       stat(pathToTextFile)
         .run()
         .listen({
-          onRejected: _ => newError('stat should have succeeded'),
+          onRejected: _ => newError(`stat should have succeeded: ${rej}`),
           onResolved: res => expect(isFile(res).getOrElse()).to.be.true && done()
         })
     })
@@ -89,7 +89,7 @@ describe('synctool: checkFiles', () => {
   describe('getSize', () => {
     it("errors if path isn't available", done => {
       getSize('not a real path')
-        .map(_ => newError('getSize should have failed'))
+        .map(_ => newError(`getSize should have failed: ${res}`))
         .getOrElse(expect(true)) && done()
     })
 
@@ -98,7 +98,7 @@ describe('synctool: checkFiles', () => {
       stat(pathToTextFile)
         .run()
         .listen({
-          onRejected: _ => newError('stat should have succeeded'),
+          onRejected: _ => newError(`stat should have succeeded: ${rej}`),
           onResolved: res =>
             expect(getSize(res).getOrElse()).to.equal(expectedSizeOfTextFile) && done()
         })

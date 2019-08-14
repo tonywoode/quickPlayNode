@@ -27,7 +27,7 @@ describe('synctool: copyFile', () => {
       copyFile(join(remoteRoot, 'directory', fileName), join(localRoot, 'directory', fileName))
         .run()
         .listen({
-          onRejected: rej => newError('copyFile should have succeeded'),
+          onRejected: rej => newError(`copyFile should have succeeded: ${rej}`),
           onResolved: res => expect(res).to.be.true && done()
         })
     })
@@ -40,7 +40,7 @@ describe('synctool: copyFile', () => {
       mkdirRecursive(join(localRoot, 'directory', 'anotherDirectory', 'yetAnotherDirectory'))
         .run()
         .listen({
-          onRejected: rej => newError('mkdirRecursive should have succeeded'),
+          onRejected: rej => newError(`mkdirRecursive should have succeeded: ${rej}`),
           onResolved: res => expect(res).to.be.true && done()
         })
     })
