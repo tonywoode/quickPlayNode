@@ -13,13 +13,15 @@ const configFileName = 'integrationTestConfigFile.json'
 const fileName = '1MegFile'
 const folderName = 'folder'
 
-describe('synctool: Integration Tests', () => {
+describe.only('synctool: Integration Tests', () => {
   // clear up all the files we copied
-  after(() => {
-    fs.unlink(join(mountPath, localRoot, fileName), err =>
-      console.error(`cleanup unlink errors are: ${err}`)
-    )
-  })
+  after(
+    () => { 
+      fs.unlink(join(mountPath, localRoot, fileName), err => console.error(`cleanup unlink errors are: ${err}`))
+      fs.unlink(join(mountPath, localRoot, folderName, fileName), err => console.error(`cleanup unlink errors are: ${err}`))
+      fs.rmdir(join(mountPath, localRoot, folderName), err => console.error(`cleanup unlink errors are: ${err}`))
+   }
+  )
 
   describe('copyFile', () => {
     it('copies a file', done => {
@@ -40,20 +42,17 @@ describe('synctool: Integration Tests', () => {
           onResolved: res => newError(`copyFile should have failed: ${res}`)
         })
     })
-    //  and we don't copy without mkdirp and so on
 
-    // works fine when outside mockfs, despite version number of mockfs being acceptable
-    //  (https://github.com/tschaub/mock-fs/issues/257) - yet still doesn't work
-    describe.skip('mkdirRecursive', () => {
-      it('makes a number in on-path directories if they dont exist', done => {
-        mkdirRecursive(join(localRoot, 'directory', 'anotherDirectory', 'yetAnotherDirectory'))
-          .run()
-          .listen({
-            onRejected: rej => newError(`mkdirRecursive should have succeeded: ${rej}`),
-            onResolved: res => expect(res).to.be.true && done()
-          })
-      })
+    //  and we don't copy without mkdirp and so on
+    it('copies a deeply nested file', done => {
+      synctool(join(mountPath, localRoot, folderName, fileName), join(mountPath, configFileName))
+        .run()
+        .listen({
+          onRejected: rej => newError(`nested copyFile should have succeeded: ${rej}`),
+          onResolved: res => expect(res).to.be.true && done()
+        })
     })
+    
   })
   // should check checksums after copying?
   // should report if there's an error during copy
