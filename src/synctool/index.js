@@ -11,7 +11,7 @@ const { rejected } = require('folktale/concurrency/task')
 const { getSubDir } = require('./processInput.js')
 const objPrint = obj => JSON.stringify(obj, null, 2)
 const { getSize } = require('./checkFiles.js')
-const { mkdirRecursive, copyFile } = require('./copyFile.js')
+const { fileHash, mkdirRecursive, copyFile } = require('./copyFile.js')
 const synctool = (localPath, configFileName) => {
   return (
     checkLocalPath(localPath) // check you passed me an input path
@@ -44,7 +44,20 @@ const synctool = (localPath, configFileName) => {
                       localSize.chain(
                         local =>
                           equal(remote, local)
-                            ? end(Ends.FilesAreEqual(localPath, remotePath))
+                            ? // hashing feels like a little overkill, could be lost
+                            fileHash(remotePath).chain(remoteHash =>
+                              fileHash(localPath).chain(
+                                localHash =>
+                                  remoteHash === localHash
+                                    ? end(Ends.FilesAreEqual(localPath, remotePath, remoteHash))
+                                    : (console.log(
+                                      `[synctool] files aren't exactly the same, copying remote to local...`
+                                    ),
+                                    mkdirRecursive(dirname(localPath)).chain(_ =>
+                                      copyFile(remotePath, localPath)
+                                    ))
+                              )
+                            )
                             : larger(remote, local)
                               ? mkdirRecursive(dirname(localPath)).chain(_ =>
                                 copyFile(remotePath, localPath)
