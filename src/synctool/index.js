@@ -12,6 +12,8 @@ const { getSubDir } = require('./processInput.js')
 const objPrint = obj => JSON.stringify(obj, null, 2)
 const { getSize } = require('./checkFiles.js')
 const { fileHash, mkdirRecursive, copyFile } = require('./copyFile.js')
+
+//give synctool only the LOCAL path, and a config file that tells it how to make the remotePath
 const synctool = (localPath, configFileName) => {
   return (
     checkLocalPath(localPath) // check you passed me an input path

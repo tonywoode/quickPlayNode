@@ -2,7 +2,8 @@ const { Ends, end } = require('./states.js')
 const { inputEmpty, checkRequire, isConfigValid, getSubDir } = require('./processInput.js')
 const { stat, isFile } = require('./checkFiles.js')
 const log = msg => console.log(`[synctool] - ${msg}`)
-const { of } = require('folktale/concurrency/task')
+const {join}  = require('path')
+const { of, rejected } = require('folktale/concurrency/task')
 const checkLocalPath = localPath => {
   log(`checking rom path: ${localPath}`)
   return inputEmpty(localPath) ? end(Ends.NoFileGiven) : of('valid path')
@@ -15,8 +16,8 @@ const loadConfig = configFileName =>
     // return a task, the orElse above does
     //  so we can chain here. If we don't: we'll carry on even if e.g.: the json is invalid
     .chain(_ =>
-      checkRequire(`../../${configFileName}`) // check config file importable as json
-        .orElse(err => end(Ends.InvalidJson(err)))
+      checkRequire(join(process.cwd(), configFileName)) // check config file importable as json
+        .orElse(err => (err.toString().includes('SyntaxError') && end(Ends.InvalidJson(err))|| rejected(err)))
         .chain((
           config // ok we have json, check key names are as expected
         ) =>
