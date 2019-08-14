@@ -2,5 +2,5 @@ inputs
 outputs
 *.rc
 mametool_logfile.txt
-specs/synctool/integration/localRoot/
-specs/synctool/integration/remoteRoot/
+specs/synctool/integration/localRoot/Amidar*
+specs/synctool/integration/remoteRoot/Amidar*

@@ -1,0 +1,4 @@
+{
+ "localRoot" : "./specs/synctool/integration/localRoot",
+ "remoteRoot": "./specs/synctool/integration/remoteRoot"
+}
