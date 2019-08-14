@@ -11,11 +11,9 @@ const remoteRoot = 'remoteRoot'
 const configFileName = 'integrationTestConfigFile.json'
 
 const fileName = '1MegFile'
+const folderName = 'folder'
 
 describe('synctool: Integration Tests', () => {
-  beforeEach(() => {})
-
-  afterEach(() => {})
   // clear up all the files we copied
   after(() => {
     fs.unlink(join(mountPath, localRoot, fileName), err =>
@@ -24,8 +22,7 @@ describe('synctool: Integration Tests', () => {
   })
 
   describe('copyFile', () => {
-    it.only('copies a file', done => {
-      console.log(process.cwd())
+    it('copies a file', done => {
       synctool(join(mountPath, localRoot, fileName), join(mountPath, configFileName))
         .run()
         .listen({
@@ -33,25 +30,34 @@ describe('synctool: Integration Tests', () => {
           onResolved: res => expect(res).to.be.true && done()
         })
     })
-  })
 
-  //  show that we shout instead of trying to copy folders, and we don't copy without mkdirp and so on
- 
-  // works fine when outside mockfs, despite version number of mockfs being acceptable
-  //  (https://github.com/tschaub/mock-fs/issues/257) - yet still doesn't work
-  describe.skip('mkdirRecursive', () => {
-    it('makes a number in on-path directories if they dont exist', done => {
-      mkdirRecursive(join(localRoot, 'directory', 'anotherDirectory', 'yetAnotherDirectory'))
+    // show that we shout instead of trying to copy folders,
+    it('doesnt copy a folder', done => {
+      synctool(join(mountPath, localRoot, folderName), join(mountPath, configFileName))
         .run()
         .listen({
-          onRejected: rej => newError(`mkdirRecursive should have succeeded: ${rej}`),
-          onResolved: res => expect(res).to.be.true && done()
+          onRejected: rej => expect(rej).to.include('only files can be synced') && done(),
+          onResolved: res => newError(`copyFile should have failed: ${res}`)
         })
     })
+    //  and we don't copy without mkdirp and so on
+
+    // works fine when outside mockfs, despite version number of mockfs being acceptable
+    //  (https://github.com/tschaub/mock-fs/issues/257) - yet still doesn't work
+    describe.skip('mkdirRecursive', () => {
+      it('makes a number in on-path directories if they dont exist', done => {
+        mkdirRecursive(join(localRoot, 'directory', 'anotherDirectory', 'yetAnotherDirectory'))
+          .run()
+          .listen({
+            onRejected: rej => newError(`mkdirRecursive should have succeeded: ${rej}`),
+            onResolved: res => expect(res).to.be.true && done()
+          })
+      })
+    })
   })
+  // should check checksums after copying?
+  // should report if there's an error during copy
+  // should overwrite existing files
+  // should refuse on directories?!?
+  // should report if read or write denied
 })
-// should check checksums after copying?
-// should report if there's an error during copy
-// should overwrite existing files
-// should refuse on directories?!?
-// should report if read or write denied
