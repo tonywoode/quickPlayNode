@@ -1,15 +1,15 @@
-const { Ends, end } = require('./states.js')
-const { inputEmpty, checkRequire, isConfigValid, getSubDir } = require('./processInput.js')
-const { stat, isFile } = require('./checkFiles.js')
-const log = msg => console.log(`[synctool] - ${msg}`)
 const { join } = require('path')
 const { dirname } = require('path')
 const { of, rejected } = require('folktale/concurrency/task')
+const { Ends, end } = require('./states.js')
+const { inputEmpty, checkRequire, isConfigValid, getSubDir } = require('./processInput.js')
+const { fileHash, mkdirRecursive, copyFile } = require('./copyFile.js')
+const { stat, isFile } = require('./checkFiles.js')
+const log = msg => console.log(`[synctool] - ${msg}`)
 const checkLocalPath = localPath => {
   log(`checking rom path: ${localPath}`)
   return inputEmpty(localPath) ? end(Ends.NoFileGiven) : of('valid path')
 }
-const { fileHash, mkdirRecursive, copyFile } = require('./copyFile.js')
 const larger = (a, b) => a > b
 
 // String -> Task Error Object
@@ -81,7 +81,7 @@ const checkReallyEqual = (remotePath, localPath) =>
       localHash =>
         remoteHash === localHash
           ? end(Ends.FilesAreEqual(localPath, remotePath, remoteHash))
-          : (console.log(`[synctool] files aren't exactly the same, copying remote to local...`),
+          : (log(`files aren't exactly the same, copying remote to local...`),
           copyFileAndPath(remotePath, localPath))
     )
   )
@@ -90,6 +90,15 @@ const copyIfLocalSmaller = (localPath, localSize, remotePath, remoteSize) =>
   larger(remoteSize, localSize)
     ? copyFileAndPath(remotePath, localPath)
     : end(Ends.LocalFileLarger(localPath, localSize, remotePath, remoteSize))
+
+const copyIfLocalNotFound = (err, localPath, remotePath) =>
+  err.includes('ENOENT')
+    ? (log(`file appears remote but not local: ${err}`),
+    // try to copy the file: its remote and cant be seen locally
+    log(`copying ${remotePath} to ${localPath}`),
+    // first we'll need to make the appropriate path
+    copyFileAndPath(remotePath, localPath))
+    : rejected(err)
 
 module.exports = {
   checkLocalPath,
@@ -100,5 +109,6 @@ module.exports = {
   checkFile,
   copyFileAndPath,
   checkReallyEqual,
-  copyIfLocalSmaller
+  copyIfLocalSmaller,
+  copyIfLocalNotFound
 }

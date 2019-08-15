@@ -1,3 +1,4 @@
+const { rejected } = require('folktale/concurrency/task')
 const {
   checkLocalPath,
   loadConfig,
@@ -5,11 +6,10 @@ const {
   doRootPathsExist,
   calculateRemotePath,
   checkFile,
-  copyFileAndPath,
   checkReallyEqual,
-  copyIfLocalSmaller
+  copyIfLocalSmaller,
+  copyIfLocalNotFound
 } = require('./stateHandlers.js')
-const { rejected } = require('folktale/concurrency/task')
 const { getSize } = require('./checkFiles.js')
 
 const equal = (a, b) => a === b
@@ -36,29 +36,19 @@ const synctool = (localPath, configFileName) => {
                     getSize(remoteStat).chain(remoteSize =>
                       getSize(localStat).chain(
                         localSize =>
-                          equal(remoteSize, localSize)
-                            // filesize is equal, but check really same before deciding
+                          equal(remoteSize, localSize) // filesize is equal, but check really same before deciding
                             ? checkReallyEqual(remotePath, localPath)
                             : copyIfLocalSmaller(localPath, localSize, remotePath, remoteSize)
                       )
                     )
                   )
-                  .orElse(err => {
-                    /* we need to put a sad path on the happy path (failed local stat), we're now
+                  /* we need to put a sad path on the happy path (failed local stat), we're now
                    * responsible for making sure that's why we got here */
-                    if (err.includes('ENOENT')) {
-                      console.log(`[synctool] - file appears remote but not local: ${err}`)
-                      // try to copy the file: its remote and cant be seen locally
-                      console.log(`[synctool] - copying ${remotePath} to ${localPath}`)
-                      // first we'll need to make the appropriate path
-                      return copyFileAndPath(remotePath, localPath)
-                    } else {
-                      return rejected(err)
-                    }
-                  })
+                  .orElse(err => copyIfLocalNotFound(err, localPath, remotePath))
               )
           )
       )
   )
 }
+
 module.exports = { synctool }
