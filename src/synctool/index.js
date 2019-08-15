@@ -3,33 +3,28 @@ const {
   loadConfig,
   isLocalPathInRootPath,
   doRootPathsExist,
+  calculateRemotePath,
   checkFile
 } = require('./stateHandlers.js')
 const { Ends, end } = require('./states.js')
-const { join, dirname } = require('path')
+const { dirname } = require('path')
 const { rejected } = require('folktale/concurrency/task')
-const { getSubDir } = require('./processInput.js')
 const objPrint = obj => JSON.stringify(obj, null, 2)
 const { getSize } = require('./checkFiles.js')
 const { fileHash, mkdirRecursive, copyFile } = require('./copyFile.js')
 
-//give synctool only the LOCAL path, and a config file that tells it how to make the remotePath
+// give synctool only the LOCAL path, and a config file that tells it how to make the remotePath
 const synctool = (localPath, configFileName) => {
   return (
     checkLocalPath(localPath) // check you passed me an input path
-      .chain(_ => loadConfig(configFileName)) // starts a Task
+      .chain(_ => loadConfig(configFileName))
       // so we have a valid path and a root path, is path in root path
       .chain(config => isLocalPathInRootPath(config, localPath))
       // ok relativePath is stated to live under localRoot, but localRoot and remoteRoot need to exist
       .chain(config =>
         doRootPathsExist(config)
-          .map(_ =>
-            // work out the relative path we'd have on remote
-            getSubDir(localPath)(config.localRoot)
-              //   path.join is safe:  we've shown both constituents are safe
-              //   return remotePath uncontainerised: we're still in outer Task
-              .chain(relativePath => join(config.remoteRoot, relativePath))
-          )
+          // work out the relative path we'd have on remote
+          .map(_ => calculateRemotePath(localPath, config))
           .chain(remotePath =>
             checkFile(remotePath)
               // describe remote path error more specifically

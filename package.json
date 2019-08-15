@@ -9,7 +9,8 @@
   },
   "config": {
     "devFlags": "--dev",
-    "getSpecs": "find specs -name '*spec.js'"
+    "getSpecs": "find specs -name '*spec.js'",
+    "getSpecsSynctool": "find specs/synctool -name '*spec.js'"
   },
   "scripts": {
     "base": "node src/QPNode.js",
@@ -20,6 +21,7 @@
     "debug": "npm run basedebug -- --output-dir $npm_package_directories_outputDir $npm_package_config_devFlags",
     "fulldebug": "trash $npm_package_directories_outputDir && npm run debug --",
     "test": "mocha --  ./specs/init.js $(eval $npm_package_config_getSpecs)",
+    "test-synctool": "mocha --  ./specs/init.js $(eval $npm_package_config_getSpecsSynctool)",
     "package": "pkg src/QPNode.js -t win --out-path $npm_package_directories_binOutputDir",
     "packageParallels": "pkg src/QPNode.js -t win --out-path /Volumes/[C]\\ My\\ Boot\\ Camp/Emulators/QUICKPLAY/QuickPlayFrontend/qp/bin"
   },
