@@ -6,16 +6,12 @@ const {
   calculateRemotePath,
   checkFile,
   copyFileAndPath,
-  checkReallyEqual
+  checkReallyEqual,
+  copyIfLocalSmaller
 } = require('./stateHandlers.js')
-const { Ends, end } = require('./states.js')
-const { dirname } = require('path')
 const { rejected } = require('folktale/concurrency/task')
-const objPrint = obj => JSON.stringify(obj, null, 2)
 const { getSize } = require('./checkFiles.js')
-const { fileHash, mkdirRecursive, copyFile } = require('./copyFile.js')
 
-const larger = (a, b) => a > b
 const equal = (a, b) => a === b
 // give synctool only the LOCAL path, and a config file that tells it how to make the remotePath
 const synctool = (localPath, configFileName) => {
@@ -35,17 +31,15 @@ const synctool = (localPath, configFileName) => {
               .orElse(fileError => rejected(`File Not In Remote Folder: ${fileError}`))
               .chain(remoteStat =>
                 checkFile(localPath)
-                  // the files in both places, check dest is smaller
+                  // the files in both places, check dest is smaller, or maybe they are same file
                   .chain(localStat =>
-                    getSize(remoteStat).chain(remote =>
+                    getSize(remoteStat).chain(remoteSize =>
                       getSize(localStat).chain(
-                        local =>
-                          equal(remote, local)
+                        localSize =>
+                          equal(remoteSize, localSize)
                             // filesize is equal, but check really same before deciding
                             ? checkReallyEqual(remotePath, localPath)
-                            : larger(remote, local)
-                              ? copyFileAndPath(remotePath, localPath)
-                              : end(Ends.LocalFileLarger(localPath, local, remotePath, remote))
+                            : copyIfLocalSmaller(localPath, localSize, remotePath, remoteSize)
                       )
                     )
                   )

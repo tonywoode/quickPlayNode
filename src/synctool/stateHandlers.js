@@ -10,6 +10,7 @@ const checkLocalPath = localPath => {
   return inputEmpty(localPath) ? end(Ends.NoFileGiven) : of('valid path')
 }
 const { fileHash, mkdirRecursive, copyFile } = require('./copyFile.js')
+const larger = (a, b) => a > b
 
 // String -> Task Error Object
 const loadConfig = configFileName =>
@@ -85,6 +86,11 @@ const checkReallyEqual = (remotePath, localPath) =>
     )
   )
 
+const copyIfLocalSmaller = (localPath, localSize, remotePath, remoteSize) =>
+  larger(remoteSize, localSize)
+    ? copyFileAndPath(remotePath, localPath)
+    : end(Ends.LocalFileLarger(localPath, localSize, remotePath, remoteSize))
+
 module.exports = {
   checkLocalPath,
   loadConfig,
@@ -93,5 +99,6 @@ module.exports = {
   calculateRemotePath,
   checkFile,
   copyFileAndPath,
-  checkReallyEqual
+  checkReallyEqual,
+  copyIfLocalSmaller
 }
