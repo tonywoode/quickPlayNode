@@ -3,11 +3,13 @@ const { inputEmpty, checkRequire, isConfigValid, getSubDir } = require('./proces
 const { stat, isFile } = require('./checkFiles.js')
 const log = msg => console.log(`[synctool] - ${msg}`)
 const { join } = require('path')
+const { dirname } = require('path')
 const { of, rejected } = require('folktale/concurrency/task')
 const checkLocalPath = localPath => {
   log(`checking rom path: ${localPath}`)
   return inputEmpty(localPath) ? end(Ends.NoFileGiven) : of('valid path')
 }
+const { fileHash, mkdirRecursive, copyFile } = require('./copyFile.js')
 
 // String -> Task Error Object
 const loadConfig = configFileName =>
@@ -49,9 +51,9 @@ const doRootPathsExist = ({ localRoot, remoteRoot }) => {
     .orElse(_ => end(Ends.RootDirNotFound(remoteRoot)))
 }
 
+// Path -> Object -> Path
 /* when given a path, a subpath, and a new submpath, return path under new subpath
- * path.join is safe:  we've shown both constituents are safe
- * return remotePath uncontainerised: we're still in outer Task */
+ * path.join is safe: we've shown both constituents are safe */
 const calculateRemotePath = (localPath, { localRoot, remoteRoot }) =>
   getSubDir(localPath)(localRoot).chain(relativePath => join(remoteRoot, relativePath))
 
@@ -68,11 +70,28 @@ const checkFile = localPath => {
     )
 }
 
+const copyFileAndPath = (remotePath, localPath) =>
+  mkdirRecursive(dirname(localPath)).chain(_ => copyFile(remotePath, localPath))
+
+// hashing feels like a little overkill, could be lost
+const checkReallyEqual = (remotePath, localPath) =>
+  fileHash(remotePath).chain(remoteHash =>
+    fileHash(localPath).chain(
+      localHash =>
+        remoteHash === localHash
+          ? end(Ends.FilesAreEqual(localPath, remotePath, remoteHash))
+          : (console.log(`[synctool] files aren't exactly the same, copying remote to local...`),
+          copyFileAndPath(remotePath, localPath))
+    )
+  )
+
 module.exports = {
   checkLocalPath,
   loadConfig,
   isLocalPathInRootPath,
   doRootPathsExist,
   calculateRemotePath,
-  checkFile
+  checkFile,
+  copyFileAndPath,
+  checkReallyEqual
 }

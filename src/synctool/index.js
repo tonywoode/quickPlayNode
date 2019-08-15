@@ -4,7 +4,9 @@ const {
   isLocalPathInRootPath,
   doRootPathsExist,
   calculateRemotePath,
-  checkFile
+  checkFile,
+  copyFileAndPath,
+  checkReallyEqual
 } = require('./stateHandlers.js')
 const { Ends, end } = require('./states.js')
 const { dirname } = require('path')
@@ -13,6 +15,8 @@ const objPrint = obj => JSON.stringify(obj, null, 2)
 const { getSize } = require('./checkFiles.js')
 const { fileHash, mkdirRecursive, copyFile } = require('./copyFile.js')
 
+const larger = (a, b) => a > b
+const equal = (a, b) => a === b
 // give synctool only the LOCAL path, and a config file that tells it how to make the remotePath
 const synctool = (localPath, configFileName) => {
   return (
@@ -26,43 +30,25 @@ const synctool = (localPath, configFileName) => {
           // work out the relative path we'd have on remote
           .map(_ => calculateRemotePath(localPath, config))
           .chain(remotePath =>
+            // is file in remote? If not, be specific about why we're exiting
             checkFile(remotePath)
-              // describe remote path error more specifically
               .orElse(fileError => rejected(`File Not In Remote Folder: ${fileError}`))
               .chain(remoteStat =>
                 checkFile(localPath)
                   // the files in both places, check dest is smaller
-                  .chain(localStat => {
-                    const larger = (a, b) => a > b
-                    const equal = (a, b) => a === b
-                    const remoteSize = getSize(remoteStat)
-                    const localSize = getSize(localStat)
-                    return remoteSize.chain(remote =>
-                      localSize.chain(
+                  .chain(localStat =>
+                    getSize(remoteStat).chain(remote =>
+                      getSize(localStat).chain(
                         local =>
                           equal(remote, local)
-                            ? // hashing feels like a little overkill, could be lost
-                            fileHash(remotePath).chain(remoteHash =>
-                              fileHash(localPath).chain(
-                                localHash =>
-                                  remoteHash === localHash
-                                    ? end(Ends.FilesAreEqual(localPath, remotePath, remoteHash))
-                                    : (console.log(
-                                      `[synctool] files aren't exactly the same, copying remote to local...`
-                                    ),
-                                    mkdirRecursive(dirname(localPath)).chain(_ =>
-                                      copyFile(remotePath, localPath)
-                                    ))
-                              )
-                            )
+                            // filesize is equal, but check really same before deciding
+                            ? checkReallyEqual(remotePath, localPath)
                             : larger(remote, local)
-                              ? mkdirRecursive(dirname(localPath)).chain(_ =>
-                                copyFile(remotePath, localPath)
-                              )
+                              ? copyFileAndPath(remotePath, localPath)
                               : end(Ends.LocalFileLarger(localPath, local, remotePath, remote))
                       )
                     )
-                  })
+                  )
                   .orElse(err => {
                     /* we need to put a sad path on the happy path (failed local stat), we're now
                    * responsible for making sure that's why we got here */
@@ -71,9 +57,7 @@ const synctool = (localPath, configFileName) => {
                       // try to copy the file: its remote and cant be seen locally
                       console.log(`[synctool] - copying ${remotePath} to ${localPath}`)
                       // first we'll need to make the appropriate path
-                      return mkdirRecursive(dirname(localPath)).chain(_ =>
-                        copyFile(remotePath, localPath)
-                      )
+                      return copyFileAndPath(remotePath, localPath)
                     } else {
                       return rejected(err)
                     }
