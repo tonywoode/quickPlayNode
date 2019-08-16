@@ -1,11 +1,11 @@
-const { rejected } = require('folktale/concurrency/task')
 const {
   checkLocalPath,
   loadConfig,
   isLocalPathInRootPath,
   doRootPathsExist,
   calculateRemotePath,
-  checkFile,
+  checkLocalFile,
+  checkRemoteFile,
   dontCopyIfEqual,
   copyIfLocalSmaller,
   copyIfLocalNotFound
@@ -25,20 +25,15 @@ const synctool = (localPath, configFileName) =>
         // work out the relative path we'd have on remote
         .map(_ => calculateRemotePath(localPath, config))
     )
-    // is file in remote? If not, be specific about why we're exiting
     .chain(remotePath =>
-      checkFile(remotePath)
-        .orElse(fileError => rejected(`File Not In Remote Folder: ${fileError}`))
+      checkRemoteFile(remotePath)
         .chain(remoteStat =>
-          checkFile(localPath)
+          checkLocalFile(localPath)
             // the files in both places, check dest is smaller, or maybe they are same file
             .chain(localStat =>
               getSize(remoteStat)
-                .chain(remoteSize =>
-                  getSize(localStat).map(localSize => ({ remoteSize, localSize }))
-                )
-                .chain(
-                  ({ remoteSize, localSize }) =>
+                .chain(remoteSize => getSize(localStat).map(localSize => ({ remoteSize, localSize })))
+                .chain( ({ remoteSize, localSize }) =>
                     equal(remoteSize, localSize) // filesize is equal, but check really same before deciding
                       ? dontCopyIfEqual(remotePath, localPath)
                       : copyIfLocalSmaller(localPath, localSize, remotePath, remoteSize)

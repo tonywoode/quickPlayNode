@@ -11,7 +11,6 @@ const newError = msg => {
 const root = 'root/path/on/my/pc'
 const pathToSrcDir = join(root, `source`)
 const pathToTextFile = join(root, `source/textFile`)
-const pathToEmptyFile = join(root, `source/emptyFile`)
 
 describe('synctool: checkFiles', () => {
   beforeEach(() => {
@@ -26,79 +25,74 @@ describe('synctool: checkFiles', () => {
     })
   })
 
-  afterEach( () => mock.restore())
+  afterEach(() => mock.restore())
 
   describe('stat', () => {
-    it('errors if path is not available', done => {
+    it('errors if path is not available', done =>
       stat('invalid path')
         .run()
         .listen({
           onRejected: rej => expect(rej).to.match(/no such file/) && done(),
           onResolved: res => newError(`stat should have failed: ${res}`)
-        })
-    })
+        }))
 
-    it('produces stat if path is available', done => {
+    it('produces stat if path is available', done =>
       stat(pathToTextFile)
         .run()
         .listen({
-          onRejected: _ => newError(`stat should have succeeded: ${rej}`),
+          onRejected: rej => newError(`stat should have succeeded: ${rej}`),
           onResolved: res => expect(res).to.have.property('nlink') && done()
-        })
-    })
+        }))
   })
 
   describe('isDir', () => {
-    it('says a file is not a dir', done => {
+    it('says a file is not a dir', done =>
       stat(pathToTextFile)
         .run()
         .listen({
-          onRejected: _ => newError(`stat should have succeeded: ${rej}`),
+          onRejected: rej => newError(`stat should have succeeded: ${rej}`),
           onResolved: res => expect(isDir(res).getOrElse()).to.be.false && done()
-        })
-    })
-    it('says a dir is a dir', done => {
+        }))
+
+    it('says a dir is a dir', done =>
       stat(pathToSrcDir)
         .run()
         .listen({
-          onRejected: _ => newError(`stat should have succeeded: ${rej}`),
+          onRejected: rej => newError(`stat should have succeeded: ${rej}`),
           onResolved: res => expect(isDir(res).getOrElse()).to.be.true && done()
-        })
-    })
+        }))
   })
 
   describe('isFile', () => {
-    it('says a dir is not a file', done => {
+    it('says a dir is not a file', done =>
       stat(pathToSrcDir)
         .run()
         .listen({
-          onRejected: _ => newError(`stat should have succeeded: ${rej}`),
+          onRejected: rej => newError(`stat should have succeeded: ${rej}`),
           onResolved: res => expect(isFile(res).getOrElse()).to.be.false && done()
-        })
-    })
-    it('says a file is a file', done => {
+        }))
+
+    it('says a file is a file', done =>
       stat(pathToTextFile)
         .run()
         .listen({
-          onRejected: _ => newError(`stat should have succeeded: ${rej}`),
+          onRejected: rej => newError(`stat should have succeeded: ${rej}`),
           onResolved: res => expect(isFile(res).getOrElse()).to.be.true && done()
-        })
-    })
+        }))
   })
 
   describe('getSize', () => {
-    it("errors if path isn't available", done => {
+    it('errors if path isnt available', done =>
       getSize('not a real path')
-        .map(_ => newError(`getSize should have failed: ${res}`))
-        .getOrElse(expect(true)) && done()
-    })
+        .map(res => newError(`getSize should have failed: ${res}`))
+        .getOrElse(expect(true)) && done())
 
     it('returns filesize if file is available', done => {
       const expectedSizeOfTextFile = 10
       stat(pathToTextFile)
         .run()
         .listen({
-          onRejected: _ => newError(`stat should have succeeded: ${rej}`),
+          onRejected: rej => newError(`stat should have succeeded: ${rej}`),
           onResolved: res =>
             expect(getSize(res).getOrElse()).to.equal(expectedSizeOfTextFile) && done()
         })

@@ -62,7 +62,7 @@ const calculateRemotePath = (localPath, { localRoot, remoteRoot }) =>
 
 // Path -> Task Error Stat
 // check file exists, and that stat confirms its a file (for now do nothing on dir)
-const checkFile = localPath => {
+const checkLocalFile = localPath => {
   return stat(localPath)
     .orElse(rej => end(Ends.FileNotFound(rej)))
     .chain(
@@ -73,6 +73,10 @@ const checkFile = localPath => {
           : end(Ends.NotAFile(localPath))
     )
 }
+
+// is file in remote? If not, be specific about why we're exiting
+const checkRemoteFile = remotePath => checkLocalFile(remotePath)
+        .orElse(fileError => rejected(`File Not In Remote Folder: ${fileError}`))
 
 // Path -> Path -> Task Error _
 const copyFileAndPath = (remotePath, localPath) =>
@@ -113,7 +117,8 @@ module.exports = {
   isLocalPathInRootPath,
   doRootPathsExist,
   calculateRemotePath,
-  checkFile,
+  checkLocalFile,
+  checkRemoteFile,
   copyFileAndPath,
   dontCopyIfEqual,
   copyIfLocalSmaller,
