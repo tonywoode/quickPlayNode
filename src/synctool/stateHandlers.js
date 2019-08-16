@@ -75,7 +75,7 @@ const copyFileAndPath = (remotePath, localPath) =>
   mkdirRecursive(dirname(localPath)).chain(_ => copyFile(remotePath, localPath))
 
 // hashing feels like a little overkill, could be lost
-const checkReallyEqual = (remotePath, localPath) =>
+const dontCopyIfEqual = (remotePath, localPath) =>
   fileHash(remotePath).chain(remoteHash =>
     fileHash(localPath).chain(
       localHash =>
@@ -108,7 +108,7 @@ module.exports = {
   calculateRemotePath,
   checkFile,
   copyFileAndPath,
-  checkReallyEqual,
+  dontCopyIfEqual,
   copyIfLocalSmaller,
   copyIfLocalNotFound
 }

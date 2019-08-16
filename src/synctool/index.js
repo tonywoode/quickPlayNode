@@ -6,7 +6,7 @@ const {
   doRootPathsExist,
   calculateRemotePath,
   checkFile,
-  checkReallyEqual,
+  dontCopyIfEqual,
   copyIfLocalSmaller,
   copyIfLocalNotFound
 } = require('./stateHandlers.js')
@@ -33,14 +33,16 @@ const synctool = (localPath, configFileName) =>
           checkFile(localPath)
             // the files in both places, check dest is smaller, or maybe they are same file
             .chain(localStat =>
-              getSize(remoteStat).chain(remoteSize =>
-                getSize(localStat).chain(
-                  localSize =>
+              getSize(remoteStat)
+                .chain(remoteSize =>
+                  getSize(localStat).map(localSize => ({ remoteSize, localSize }))
+                )
+                .chain(
+                  ({ remoteSize, localSize }) =>
                     equal(remoteSize, localSize) // filesize is equal, but check really same before deciding
-                      ? checkReallyEqual(remotePath, localPath)
+                      ? dontCopyIfEqual(remotePath, localPath)
                       : copyIfLocalSmaller(localPath, localSize, remotePath, remoteSize)
                 )
-              )
             )
             /* we need to put a sad path on the happy path (failed local stat), we're now
                    * responsible for making sure that's why we got here */
