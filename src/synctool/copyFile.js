@@ -44,11 +44,12 @@ const writeFile = (filePath, stream) =>
     stream.pipe(writeStream)
   })
 
-/* the is the old way of copying, its much slower and copies only file contents and loses all metadata! fs.copyfile uses native os copy, which seems initially the better plan
- * but forget about progress: https://github.com/nodejs/node/pull/15034#issuecomment-326092955
- * and forget about progress in anything that uses fs.copyFile https://github.com/sindresorhus/cp-file/issues/18#issuecomment-327860860 */
+// here's the old way of copying, its much slower and copies only file contents and loses all metadata!
 const copyFileStream = (src, dest) => readFile(src).chain(stream => writeFile(dest, stream))
 
+/* fs.copyfile uses native os copy, which seems initially the better plan
+ * but forget about progress: https://github.com/nodejs/node/pull/15034#issuecomment-326092955
+ * and forget about progress in anything that uses fs.copyFile https://github.com/sindresorhus/cp-file/issues/18#issuecomment-327860860 */
 // String -> Task Error, String
 const copyFile = (src, dest) =>
   task(r => fs.copyFile(src, dest, err => (err ? r.reject(err) : r.resolve(true))))

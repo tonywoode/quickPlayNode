@@ -38,12 +38,14 @@ const loadConfig = configFileName =>
         )
     )
 
-const isLocalPathInRootPath = ({ localRoot, remoteRoot }, localPath) => {
-  return getSubDir(localPath)(localRoot)
+
+// Object -> Path -> Task Error Object
+const isLocalPathInRootPath = ({ localRoot, remoteRoot }, localPath) => 
+  getSubDir(localPath)(localRoot)
     .orElse(_ => end(Ends.FileOutsideSyncPaths(localPath, localRoot)))
     .chain(_ => of({ localRoot, remoteRoot }))
-}
 
+// Object -> Task Error Stat
 const doRootPathsExist = ({ localRoot, remoteRoot }) => {
   log(`checking roots exist: \n ${localRoot} \n ${remoteRoot}`)
   return stat(localRoot)
@@ -58,6 +60,7 @@ const doRootPathsExist = ({ localRoot, remoteRoot }) => {
 const calculateRemotePath = (localPath, { localRoot, remoteRoot }) =>
   getSubDir(localPath)(localRoot).chain(relativePath => join(remoteRoot, relativePath))
 
+// Path -> Task Error Stat
 // check file exists, and that stat confirms its a file (for now do nothing on dir)
 const checkFile = localPath => {
   return stat(localPath)
@@ -71,9 +74,11 @@ const checkFile = localPath => {
     )
 }
 
+// Path -> Path -> Task Error _
 const copyFileAndPath = (remotePath, localPath) =>
   mkdirRecursive(dirname(localPath)).chain(_ => copyFile(remotePath, localPath))
 
+// Path -> Path -> Path ->  Task Error _
 // hashing feels like a little overkill, could be lost
 const dontCopyIfEqual = (remotePath, localPath) =>
   fileHash(remotePath).chain(remoteHash =>
@@ -86,11 +91,13 @@ const dontCopyIfEqual = (remotePath, localPath) =>
     )
   )
 
+// Path -> Size -> Path -> Size -> Task Error _
 const copyIfLocalSmaller = (localPath, localSize, remotePath, remoteSize) =>
   larger(remoteSize, localSize)
     ? copyFileAndPath(remotePath, localPath)
     : end(Ends.LocalFileLarger(localPath, localSize, remotePath, remoteSize))
 
+// Error -> Path -> Path -> Task Error _
 const copyIfLocalNotFound = (err, localPath, remotePath) =>
   err.includes('ENOENT')
     ? (log(`file appears remote but not local: ${err}`),
