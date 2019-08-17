@@ -8,6 +8,7 @@ const newError = msg => {
 const mountPath = join('specs', 'synctool', 'integration')
 const localRoot = 'localRoot'
 const configFileName = 'integrationTestConfigFile.json'
+const badConfigFileName = 'integrationTestConfigFileNoLocal.json'
 
 const fileName = '1MegFile'
 const sameFileName = '1MegSameFile'
@@ -28,6 +29,18 @@ describe('synctool: Integration Tests', () => {
     )
   })
 
+  describe('readConfig', () => {
+    it('reports that the right root isnt accessible', done => {
+      // this requires the fileName to include the inacessible root specified in the config
+      const invalidDir = 'directory/that/doesnt/exist'
+      synctool(join(invalidDir, fileName), join(mountPath, badConfigFileName))
+        .run()
+        .listen({
+          onRejected: rej => expect(rej).to.contain(invalidDir) && done(),
+          onResolved: res => newError(`readConfig should have failed: ${res}`)
+        })
+    })
+  })
   describe('copyFile', () => {
     it('copies a file', done => {
       synctool(join(mountPath, localRoot, fileName), join(mountPath, configFileName))

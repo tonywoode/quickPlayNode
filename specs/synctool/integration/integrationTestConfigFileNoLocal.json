@@ -1,0 +1,4 @@
+{
+ "localRoot" : "./directory/that/doesnt/exist",
+ "remoteRoot": "./specs/synctool/integration/remoteRoot"
+}

@@ -38,9 +38,8 @@ const loadConfig = configFileName =>
         )
     )
 
-
 // Object -> Path -> Task Error Object
-const isLocalPathInRootPath = ({ localRoot, remoteRoot }, localPath) => 
+const isLocalPathInRootPath = ({ localRoot, remoteRoot }, localPath) =>
   getSubDir(localPath)(localRoot)
     .orElse(_ => end(Ends.FileOutsideSyncPaths(localPath, localRoot)))
     .chain(_ => of({ localRoot, remoteRoot }))
@@ -48,10 +47,16 @@ const isLocalPathInRootPath = ({ localRoot, remoteRoot }, localPath) =>
 // Object -> Task Error Stat
 const doRootPathsExist = ({ localRoot, remoteRoot }) => {
   log(`checking roots exist: \n ${localRoot} \n ${remoteRoot}`)
-  return stat(localRoot)
-    .orElse(_ => end(Ends.RootDirNotFound(localRoot)))
-    .chain(_ => stat(remoteRoot))
-    .orElse(_ => end(Ends.RootDirNotFound(remoteRoot)))
+  return (
+    stat(localRoot)
+      .chain(_ => stat(remoteRoot))
+      // don't forget that last option, something went wrong checking, wasn't about the paths
+      .orElse(
+        err =>
+          err.includes(localRoot)?  end(Ends.RootDirNotFound(localRoot, err))
+           : err.includes(remoteRoot)?  end(Ends.RootDirNotFound(remoteRoot, err))
+: rejected(err)) 
+  )
 }
 
 // Path -> Object -> Path
@@ -75,8 +80,10 @@ const checkLocalFile = localPath => {
 }
 
 // is file in remote? If not, be specific about why we're exiting
-const checkRemoteFile = remotePath => checkLocalFile(remotePath)
-        .orElse(fileError => rejected(`File Not In Remote Folder: ${fileError}`))
+const checkRemoteFile = remotePath =>
+  checkLocalFile(remotePath).orElse(fileError =>
+    rejected(`File Not In Remote Folder: ${fileError}`)
+  )
 
 // Path -> Path -> Task Error _
 const copyFileAndPath = (remotePath, localPath) =>
