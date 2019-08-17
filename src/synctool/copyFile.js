@@ -13,9 +13,17 @@ const fileHash = filePath =>
     stream.on(`error`, () => r.reject(`Could not read from ${filePath}`))
   })
 
+// unfortunate: on windows, the recursive flag isn't stopping an error if leaf dir exists,
+// which its really suppposed to. The fix is to continue in that case. hopefully you can remote this soon
 const mkdirRecursive = folderPath =>
   task(r =>
-    fs.mkdir(folderPath, { recursive: true }, err => (err ? r.reject(err) : r.resolve(true)))
+    fs.mkdir(folderPath, { recursive: true }, err => 
+      err.message.includes('already exists, mkdir')? 
+          r.resolve(true) 
+        : err? 
+        r.reject(err) 
+      : r.resolve(true)
+    )
   )
 
 // String -> Task Error Stream
