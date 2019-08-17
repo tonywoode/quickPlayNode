@@ -15,6 +15,7 @@ const sameFileName = '1MegSameFile'
 const localIsLargerFile = 'localIsLarger'
 const folderName = 'folder'
 const nestedFolderName = 'anotherFolder'
+const existingFolderName = 'existingFolder'
 
 describe('synctool: Integration Tests', () => {
   // clear up all the files we copied
@@ -30,6 +31,9 @@ describe('synctool: Integration Tests', () => {
     )
     fs.rmdir(join(mountPath, localRoot, folderName, nestedFolderName), err =>
       console.error(`cleanup rmdir errors are: ${err}`)
+    )
+    fs.unlink(join(mountPath, localRoot, folderName, existingFolderName, fileName), err =>
+      console.error(`cleanup unlink errors are: ${err}`)
     )
     fs.rmdir(join(mountPath, localRoot, folderName), err =>
       console.error(`cleanup unlink errors are: ${err}`)
@@ -89,6 +93,15 @@ describe('synctool: Integration Tests', () => {
 
     it('copies a deeply nested file', done => {
       synctool(join(mountPath, localRoot, folderName, nestedFolderName, fileName), join(mountPath, configFileName))
+        .run()
+        .listen({
+          onRejected: rej => newError(`nested copyFile should have succeeded: ${rej}`),
+          onResolved: res => expect(res).to.be.true && done()
+        })
+    })
+
+    it('if local leaf folder exists, dont error due to mkdir', done => {
+      synctool(join(mountPath, localRoot, folderName, existingFolderName, fileName), join(mountPath, configFileName))
         .run()
         .listen({
           onRejected: rej => newError(`nested copyFile should have succeeded: ${rej}`),
