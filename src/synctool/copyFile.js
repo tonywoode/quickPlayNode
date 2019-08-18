@@ -14,15 +14,16 @@ const fileHash = filePath =>
   })
 
 // unfortunate: on windows, the recursive flag isn't stopping an error if leaf dir exists,
-// which its really suppposed to. The fix is to continue in that case. hopefully you can remote this soon
+// which its really suppposed to. The fix is to continue in that case. hopefully you can remove this soon
 const mkdirRecursive = folderPath =>
   task(r =>
-    fs.mkdir(folderPath, { recursive: true }, err => 
-      err.message.includes('already exists, mkdir')? 
-          r.resolve(true) 
-        : err? 
-        r.reject(err) 
-      : r.resolve(true)
+    fs.mkdir(
+      folderPath,
+      { recursive: true },
+      err =>
+        err.message.includes('already exists, mkdir')
+          ? r.resolve(true)
+          : err ? r.reject(err) : r.resolve(true)
     )
   )
 
@@ -62,4 +63,19 @@ const copyFileStream = (src, dest) => readFile(src).chain(stream => writeFile(de
 const copyFile = (src, dest) =>
   task(r => fs.copyFile(src, dest, err => (err ? r.reject(err) : r.resolve(true))))
 
-module.exports = { fileHash, copyFile, copyFileStream, mkdirRecursive }
+// stackoverflow.com/a/14919494/3536094
+const humanFileSize = (bytes, si) => {
+  const thresh = si ? 1000 : 1024
+  Math.abs(bytes) < thresh &&  `${bytes} B`
+  const units = si
+    ? ['kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
+    : ['KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB']
+  let u = -1
+  do {
+    bytes /= thresh
+    ++u
+  } while (Math.abs(bytes) >= thresh && u < units.length - 1)
+  return bytes.toFixed(1) + ' ' + units[u]
+}
+
+module.exports = { fileHash, copyFile, copyFileStream, mkdirRecursive, humanFileSize }

@@ -3,7 +3,7 @@ const { dirname } = require('path')
 const { of, rejected } = require('folktale/concurrency/task')
 const { Ends, end } = require('./states.js')
 const { inputEmpty, checkRequire, isConfigValid, getSubDir } = require('./processInput.js')
-const { fileHash, mkdirRecursive, copyFile } = require('./copyFile.js')
+const { fileHash, mkdirRecursive, copyFile, humanFileSize } = require('./copyFile.js')
 const { stat, isFile } = require('./checkFiles.js')
 const log = msg => console.log(`[synctool] - ${msg}`)
 const checkLocalPath = localPath => {
@@ -53,9 +53,10 @@ const doRootPathsExist = ({ localRoot, remoteRoot }) => {
       // don't forget that last option, something went wrong checking, wasn't about the paths
       .orElse(
         err =>
-          err.includes(localRoot)?  end(Ends.RootDirNotFound(localRoot, err))
-           : err.includes(remoteRoot)?  end(Ends.RootDirNotFound(remoteRoot, err))
-: rejected(err)) 
+          err.includes(localRoot)
+            ? end(Ends.RootDirNotFound(localRoot, err))
+            : err.includes(remoteRoot) ? end(Ends.RootDirNotFound(remoteRoot, err)) : rejected(err)
+      )
   )
 }
 
@@ -91,13 +92,13 @@ const copyFileAndPath = (remotePath, localPath) =>
 
 // Path -> Path -> Path ->  Task Error _
 // hashing feels like a little overkill, could be lost
-const dontCopyIfEqual = (remotePath, localPath) =>
+const dontCopyIfEqual = (remotePath, localPath, remoteSize) =>
   fileHash(remotePath).chain(remoteHash =>
     fileHash(localPath).chain(
       localHash =>
         remoteHash === localHash
           ? end(Ends.FilesAreEqual(localPath, remotePath, remoteHash))
-          : (log(`files aren't exactly the same, copying remote to local...`),
+          : (log(`files aren't exactly the same, copying remote to local... - file is ${humanFileSize(remoteSize)}`),
           copyFileAndPath(remotePath, localPath))
     )
   )
@@ -105,15 +106,16 @@ const dontCopyIfEqual = (remotePath, localPath) =>
 // Path -> Size -> Path -> Size -> Task Error _
 const copyIfLocalSmaller = (localPath, localSize, remotePath, remoteSize) =>
   larger(remoteSize, localSize)
-    ? copyFileAndPath(remotePath, localPath)
+    ? (log(`copying ${remotePath} to ${localPath} - file is ${humanFileSize(remoteSize)}`),
+    copyFileAndPath(remotePath, localPath))
     : end(Ends.LocalFileLarger(localPath, localSize, remotePath, remoteSize))
 
 // Error -> Path -> Path -> Task Error _
-const copyIfLocalNotFound = (err, localPath, remotePath) =>
+const copyIfLocalNotFound = (err, localPath, remotePath, remoteSize) =>
   err.includes('ENOENT')
     ? (log(`file appears remote but not local: ${err}`),
     // try to copy the file: its remote and cant be seen locally
-    log(`copying ${remotePath} to ${localPath}`),
+    log(`copying ${remotePath} to ${localPath} - file is ${humanFileSize(remoteSize)}`),
     // first we'll need to make the appropriate path
     copyFileAndPath(remotePath, localPath))
     : rejected(err)
