@@ -21,7 +21,7 @@ const mkdirRecursive = folderPath =>
       folderPath,
       { recursive: true },
       err =>
-        err.message.includes('already exists, mkdir')
+        err && err.message.includes('already exists, mkdir')
           ? r.resolve(true)
           : err ? r.reject(err) : r.resolve(true)
     )
