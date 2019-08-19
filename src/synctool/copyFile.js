@@ -10,7 +10,7 @@ const fileHash = filePath =>
     const stream = fs.createReadStream(filePath, { autoClose: true })
     stream.on(`data`, data => hash.update(data, `utf8`))
     stream.on(`end`, () => r.resolve(hash.digest(`hex`)))
-    stream.on(`error`, () => r.reject(`Could not read from ${filePath}`))
+    stream.on(`error`, err => r.reject(`Could not read from ${filePath} - \n\t error is: ${err}`))
   })
 
 // unfortunate: on windows, the recursive flag isn't stopping an error if leaf dir exists,

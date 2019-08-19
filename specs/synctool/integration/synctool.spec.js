@@ -13,6 +13,7 @@ const badConfigFileName = 'integrationTestConfigFileNoLocal.json'
 const fileName = '1MegFile'
 const sameFileName = '1MegSameFile'
 const localIsLargerFile = 'localIsLarger'
+const localIsSameSizeButDifferentFile = 'Different'
 const folderName = 'folder'
 const nestedFolderName = 'anotherFolder'
 const existingFolderName = 'existingFolder'
@@ -25,7 +26,7 @@ describe('synctool: Integration Tests', () => {
     )
     fs.unlink(join(mountPath, localRoot, folderName, fileName), err =>
       console.error(`cleanup unlink errors are: ${err}`)
-    ) 
+    )
     fs.unlink(join(mountPath, localRoot, folderName, nestedFolderName, fileName), err =>
       console.error(`cleanup unlink errors are: ${err}`)
     )
@@ -37,6 +38,14 @@ describe('synctool: Integration Tests', () => {
     )
     fs.rmdir(join(mountPath, localRoot, folderName), err =>
       console.error(`cleanup unlink errors are: ${err}`)
+    )
+    fs.unlink(join(mountPath, localRoot, localIsSameSizeButDifferentFile), err =>
+      console.error(`cleanup unlink errors are: ${err}`)
+    )
+    fs.copyFile(
+      join(mountPath, localRoot, `${localIsSameSizeButDifferentFile}_orig`),
+      join(mountPath, localRoot, localIsSameSizeButDifferentFile),
+      err => console.error(`cleanup unlink errors are: ${err}`)
     )
   })
 
@@ -92,7 +101,10 @@ describe('synctool: Integration Tests', () => {
     })
 
     it('copies a deeply nested file', done => {
-      synctool(join(mountPath, localRoot, folderName, nestedFolderName, fileName), join(mountPath, configFileName))
+      synctool(
+        join(mountPath, localRoot, folderName, nestedFolderName, fileName),
+        join(mountPath, configFileName)
+      )
         .run()
         .listen({
           onRejected: rej => newError(`nested copyFile should have succeeded: ${rej}`),
@@ -101,7 +113,10 @@ describe('synctool: Integration Tests', () => {
     })
 
     it('if local leaf folder exists, dont error due to mkdir', done => {
-      synctool(join(mountPath, localRoot, folderName, existingFolderName, fileName), join(mountPath, configFileName))
+      synctool(
+        join(mountPath, localRoot, folderName, existingFolderName, fileName),
+        join(mountPath, configFileName)
+      )
         .run()
         .listen({
           onRejected: rej => newError(`nested copyFile should have succeeded: ${rej}`),
@@ -126,6 +141,18 @@ describe('synctool: Integration Tests', () => {
           onResolved: res => newError(`copySameFile should have failed: ${res}`)
         })
     })
+  })
+
+  it('copies if local is same size but different', done => {
+    synctool(
+      join(mountPath, localRoot, localIsSameSizeButDifferentFile),
+      join(mountPath, configFileName)
+    )
+      .run()
+      .listen({
+        onRejected: rej => newError(`copy different file should have succeeded: ${rej}`),
+        onResolved: res => expect(res).to.be.true && done()
+      })
   })
   // should check checksums after copying?
   // should report if there's an error during copy
