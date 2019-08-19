@@ -16,9 +16,6 @@ const Ends = taggedSum('EndStates', {
   FileNotFound: ['msg'],
   InvalidStat: ['filePath'],
   NotAFile: ['filePath'], // TODO: what do we do on symbolic links?
-  LocalAndRemoteMatch: ['filePath', 'filePath'],
-  Synced: ['filePath', 'filePath'],
-  ServerError: ['errObj'],
   LocalFileLarger: ['filePath', 'size', 'filePath', 'size'],
   FilesAreEqual: ['filePath', 'filePath', 'time']
 })

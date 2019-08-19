@@ -92,7 +92,7 @@ const copyFileAndPath = (remotePath, localPath) =>
 
 // Path -> Path -> Path ->  Task Error _
 // hashing feels like a little overkill, could be lost
-const dontCopyIfEqual = (remotePath, localPath, remoteSize, remoteStat, localStat) =>{
+const copyIfNotEqual = (remotePath, localPath, remoteSize, remoteStat, localStat) =>{
 console.log( "remote stat is " + JSON.stringify(remoteStat, null, 2))
 console.log( "local stat is " + JSON.stringify(localStat, null, 2))
  return remoteStat.mtimeMs === localStat.mtimeMs ?
@@ -136,7 +136,7 @@ module.exports = {
   checkLocalFile,
   checkRemoteFile,
   copyFileAndPath,
-  dontCopyIfEqual,
+  copyIfNotEqual,
   copyIfLocalSmaller,
   copyIfLocalNotFound
 }

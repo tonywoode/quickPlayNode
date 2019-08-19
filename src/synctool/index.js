@@ -6,7 +6,7 @@ const {
   calculateRemotePath,
   checkLocalFile,
   checkRemoteFile,
-  dontCopyIfEqual,
+  copyIfNotEqual,
   copyIfLocalSmaller,
   copyIfLocalNotFound
 } = require('./stateHandlers.js')
@@ -36,7 +36,7 @@ const synctool = (localPath, configFileName) =>
                 .chain(
                   ({ remoteSize, localSize }) =>
                     equal(remoteSize, localSize) // filesize is equal, but check really same before deciding
-                      ? dontCopyIfEqual(remotePath, localPath, remoteSize, remoteStat, localStat)
+                      ? copyIfNotEqual(remotePath, localPath, remoteSize, remoteStat, localStat)
                       : copyIfLocalSmaller(localPath, localSize, remotePath, remoteSize)
                 )
             )

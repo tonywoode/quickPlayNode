@@ -28,6 +28,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "acorn": "^6.3.0",
     "commander": "^2.11.0",
     "daggy": "^1.2.0",
     "data.maybe": "^1.2.3",
