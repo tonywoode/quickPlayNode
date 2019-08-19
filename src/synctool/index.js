@@ -36,7 +36,7 @@ const synctool = (localPath, configFileName) =>
                 .chain(
                   ({ remoteSize, localSize }) =>
                     equal(remoteSize, localSize) // filesize is equal, but check really same before deciding
-                      ? dontCopyIfEqual(remotePath, localPath, remoteSize)
+                      ? dontCopyIfEqual(remotePath, localPath, remoteSize, remoteStat, localStat)
                       : copyIfLocalSmaller(localPath, localSize, remotePath, remoteSize)
                 )
             )

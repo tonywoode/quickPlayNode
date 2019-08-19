@@ -143,7 +143,7 @@ describe('synctool: Integration Tests', () => {
     })
   })
 
-  it('copies if local is same size but different', done => {
+  it.only('copies if local is same size but different', done => {
     synctool(
       join(mountPath, localRoot, localIsSameSizeButDifferentFile),
       join(mountPath, configFileName)
