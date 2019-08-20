@@ -4,7 +4,7 @@ const crypto = require('crypto')
 const hashType = 'md5'
 
 // String -> Task String String
-// https://github.com/h2non/jsHashes is an alternative
+// https://github.com/h2non/jsHashes is an alternative, however any kind of hashing must read the WHOLE file so this isn't really acceptable without a good connection
 const fileHash = filePath =>
   task(r => {
     console.log(`[synctool] - generating ${hashType} hash for ${filePath}`)
@@ -15,17 +15,13 @@ const fileHash = filePath =>
     stream.on(`error`, err => r.reject(`couldn\t hash ${filePath} - \n\t error is: ${err}`))
   })
 
-// unfortunate: on windows, the recursive flag isn't stopping an error if leaf dir exists,
-// which its really suppposed to. The fix is to continue in that case. hopefully you can remove this soon
+// Path -> Task Error Boolean
 const mkdirRecursive = folderPath =>
   task(r =>
     fs.mkdir(
       folderPath,
       { recursive: true },
-      err =>
-        err && err.message.includes('already exists, mkdir')
-          ? r.resolve(true)
-          : err ? r.reject(err) : r.resolve(true)
+      err => err ? r.reject(err) : r.resolve(true)
     )
   )
 
