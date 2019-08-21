@@ -92,22 +92,19 @@ const copyFileAndPath = (remotePath, localPath) =>
 
 // Path -> Path -> Path ->  Task Error _
 // hashing feels like a little overkill, could be lost
-const copyIfNotEqual = (remotePath, localPath, remoteSize, remoteStat, localStat) =>{
-console.log( "remote stat is " + JSON.stringify(remoteStat, null, 2))
-console.log( "local stat is " + JSON.stringify(localStat, null, 2))
- return remoteStat.mtimeMs === localStat.mtimeMs ?
-    end(Ends.FilesAreEqual(localPath, remotePath, localStat.mtime))
-   : (log(`files aren't exactly the same, copying remote to local... - file is ${humanFileSize(remoteSize)}`),
-            copyFileAndPath(remotePath, localPath))
-  //return  fileHash(remotePath).chain(remoteHash =>
-  //    fileHash(localPath).chain(
-  //      localHash =>
-  //        remoteHash === localHash
-  //          ? end(Ends.FilesAreEqual(localPath, remotePath, remoteHash))
-  //          : (log(`files aren't exactly the same, copying remote to local... - file is ${humanFileSize(remoteSize)}`),
-  //          copyFileAndPath(remotePath, localPath))
-  //    )
-  //  )
+const copyIfNotEqual = (remotePath, localPath, remoteSize, remoteStat, localStat) => {
+  console.log('remote stat is ' + JSON.stringify(remoteStat, null, 2))
+  console.log('local stat is ' + JSON.stringify(localStat, null, 2))
+  const min = localStat.mtimeMs - 1000
+  const max = localStat.mtimeMs + 1000
+  return remoteStat.mtimeMs >= min && remoteStat.mtimeMs <= max
+    ? end(Ends.FilesAreEqual(localPath, remotePath, localStat.mtime))
+    : (log(
+      `files aren't exactly the same, copying remote to local... - file is ${humanFileSize(
+        remoteSize
+      )}`
+    ),
+    copyFileAndPath(remotePath, localPath))
 }
 
 // Path -> Size -> Path -> Size -> Task Error _
