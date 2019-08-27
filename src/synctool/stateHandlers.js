@@ -1,9 +1,9 @@
 const { join } = require('path')
 const { dirname } = require('path')
-const { of, rejected } = require('folktale/concurrency/task')
+const { of, rejected, task } = require('folktale/concurrency/task')
 const { Ends, end } = require('./states.js')
 const { inputEmpty, checkRequire, isConfigValid, getSubDir } = require('./processInput.js')
-const { fileHash, mkdirRecursive, copyFile, humanFileSize } = require('./copyFile.js')
+const { mkdirRecursive, copyFile, humanFileSize } = require('./copyFile.js')
 const { stat, isFile } = require('./checkFiles.js')
 const log = msg => console.log(`[synctool] - ${msg}`)
 const checkLocalPath = localPath => {
@@ -124,6 +124,13 @@ const copyIfLocalNotFound = (err, localPath, remotePath, remoteSize) =>
     copyFileAndPath(remotePath, localPath))
     : rejected(err)
 
+// Time -> a -> a
+const delay = (ms, val) =>
+  task(r => {
+    const timerId = setTimeout(() => r.resolve(val), ms)
+    r.cleanup(() => clearTimeout(timerId))
+  }).run()
+
 module.exports = {
   checkLocalPath,
   loadConfig,
@@ -135,5 +142,6 @@ module.exports = {
   copyFileAndPath,
   copyIfNotEqual,
   copyIfLocalSmaller,
-  copyIfLocalNotFound
+  copyIfLocalNotFound,
+  delay
 }

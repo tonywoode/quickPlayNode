@@ -8,7 +8,8 @@ const {
   checkRemoteFile,
   copyIfNotEqual,
   copyIfLocalSmaller,
-  copyIfLocalNotFound
+  copyIfLocalNotFound,
+  delay
 } = require('./stateHandlers.js')
 const { getSize } = require('./checkFiles.js')
 const equal = (a, b) => a === b
@@ -50,4 +51,4 @@ const synctool = (localPath, configFileName) =>
         )
     )
 
-module.exports = { synctool }
+module.exports = { synctool, delay }
