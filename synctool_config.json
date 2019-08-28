@@ -1,4 +1,5 @@
 {
  "localRoot" : "./specs/synctool/integration/localRoot",
- "remoteRoot": "./specs/synctool/integration/remoteRoot"
+ "remoteRoot": "./specs/synctool/integration/remoteRoot",
+ "timeout": 10000
 }

@@ -7,6 +7,10 @@ const { Just, Nothing } = Maybe
 const stat = file =>
   task(r => {
     fs.stat(file, (err, stats) => {
+      // https://github.com/origamitower/folktale/issues/153#issuecomment-452928871
+      // we have a race condition in a Task's 'or', so the timeout I 'or' in the
+      // main runner behaves correctly, but causes a stack print, without this check
+      if (r.isCancelled) return
       err ? r.reject(err.message) : r.resolve(stats)
     })
   })

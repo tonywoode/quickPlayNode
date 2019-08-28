@@ -9,7 +9,8 @@ const {
   copyIfNotEqual,
   copyIfLocalSmaller,
   copyIfLocalNotFound,
-  delay
+  delay,
+  timeout
 } = require('./stateHandlers.js')
 const { getSize } = require('./checkFiles.js')
 const equal = (a, b) => a === b
@@ -19,9 +20,13 @@ const synctool = (localPath, configFileName) =>
   checkLocalPath(localPath) // check you passed me an input path
     .chain(_ => loadConfig(configFileName))
     // so we have a valid path and a root path, is path in root path
-    .chain(config => isLocalPathInRootPath(config, localPath))
-    // ok relativePath is stated to live under localRoot, but localRoot and remoteRoot need to exist
-    .chain(config => doRootPathsExist(config).map(_ => calculateRemotePath(localPath, config)))
+    .chain(config =>
+      isLocalPathInRootPath(config, localPath)
+        // ok relativePath is stated to live under localRoot, but localRoot and remoteRoot need to exist
+        .chain(config => doRootPathsExist(config))
+        .or(timeout(config.timeout)) // you have to ensure config is in scope here
+        .map(_ => calculateRemotePath(localPath, config))
+    )
     // worked out the relative path we'd have on remote
     .chain(remotePath =>
       checkRemoteFile(remotePath)

@@ -131,6 +131,12 @@ const delay = (ms, val) =>
     r.cleanup(() => clearTimeout(timerId))
   }).run()
 
+const timeout = ms =>
+  task(r => {
+    const timerId = setTimeout(() => r.reject('timeout seeking paths'), ms)
+    r.cleanup(() => clearTimeout(timerId))
+  })
+
 module.exports = {
   checkLocalPath,
   loadConfig,
@@ -143,5 +149,6 @@ module.exports = {
   copyIfNotEqual,
   copyIfLocalSmaller,
   copyIfLocalNotFound,
-  delay
+  delay,
+  timeout
 }

@@ -1,4 +1,5 @@
 {
  "localRoot" : "/some/valid/path",
- "remoteRoot": "/some/other/valid/path"
+ "remoteRoot": "/some/other/valid/path",
+ "timeout": 10000
 }
