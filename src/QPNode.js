@@ -20,7 +20,6 @@ const { testArcadeRun } = require('./testing')
 const { softlists } = require('./softlists')
 const { synctool, delay } = require('./synctool')
 const configFileName = 'synctool_config.json'
-const objPrint = obj => JSON.stringify(obj, null, 2)
 
 // tee output to console and to a logfile https://stackoverflow.com/a/30578473/3536094
 const logFile = './mametool_logfile.txt'
@@ -53,7 +52,7 @@ program.command(`synctool [rompath]`).action(romPath => {
   synctoolInvoked = true
   synctool(romPath, configFileName).run().listen({
     onRejected: rej => console.log(`[synctool] - no work done: ${rej}`) || delay(3000),
-    onResolved: result => console.log(`result is ${objPrint(result)}`) || delay(3000)
+    onResolved: result => console.log(`[synctool] - ${result}: copied ${romPath}`) || delay(3000)
   })
 })
 

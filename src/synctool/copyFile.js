@@ -21,7 +21,10 @@ const mkdirRecursive = folderPath =>
     fs.mkdir(
       folderPath,
       { recursive: true },
-      err => err ? r.reject(err) : r.resolve(true)
+      err => err ? r.reject(err) : (
+        console.log(`[synctool] - ensured dir path: ${folderPath}`),
+        r.resolve(true)
+      )
     )
   )
 
