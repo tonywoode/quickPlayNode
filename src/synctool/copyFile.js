@@ -61,8 +61,13 @@ const copyFileStream = (src, dest) => readFile(src).chain(stream => writeFile(de
  * but forget about progress: https://github.com/nodejs/node/pull/15034#issuecomment-326092955
  * and forget about progress in anything that uses fs.copyFile https://github.com/sindresorhus/cp-file/issues/18#issuecomment-327860860 */
 // String -> Task Error, String
-const copyFile = (src, dest) =>
-  task(r => fs.copyFile(src, dest, err => (err ? r.reject(err) : r.resolve(true))))
+const copyFile = (src, dest, remoteStat) =>
+  task(r => fs.copyFile(src, dest, err => (err ? r.reject(err) : (
+    //we use modified date to determine equality, but only windows preserves it
+    // to make this consistent on nix, we need to update the modified date
+    // why doesn't node do this? because of the concern that the file might
+    // change underneath us as im talking...https://github.com/nodejs/node/issues/15793
+    fs.utimes(dest, remoteStat.atime, remoteStat.mtime, err => err? r.reject(err) : r.resolve(true))))))
 
 // stackoverflow.com/a/14919494/3536094
 const humanFileSize = (bytes, si) => {

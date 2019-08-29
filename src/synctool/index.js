@@ -43,14 +43,14 @@ const synctool = (localPath, configFileName) =>
                   ({ remoteSize, localSize }) =>
                     equal(remoteSize, localSize) // filesize is equal, but check really same before deciding
                       ? copyIfNotEqual(remotePath, localPath, remoteSize, remoteStat, localStat)
-                      : copyIfLocalSmaller(localPath, localSize, remotePath, remoteSize)
+                      : copyIfLocalSmaller(localPath, localSize, remotePath, remoteSize, remoteStat)
                 )
             )
             /* we need to put a sad path on the happy path (failed local stat), we're now
                    * responsible for making sure that's why we got here */
             .orElse(err =>
               getSize(remoteStat).chain(remoteSize =>
-                copyIfLocalNotFound(err, localPath, remotePath, remoteSize)
+                copyIfLocalNotFound(err, localPath, remotePath, remoteSize, remoteStat)
               )
             )
         )

@@ -87,11 +87,10 @@ const checkRemoteFile = remotePath =>
   )
 
 // Path -> Path -> Task Error _
-const copyFileAndPath = (remotePath, localPath) =>
-  mkdirRecursive(dirname(localPath)).chain(_ => copyFile(remotePath, localPath))
+const copyFileAndPath = (remotePath, localPath, remoteStat) =>
+  mkdirRecursive(dirname(localPath)).chain(_ => copyFile(remotePath, localPath, remoteStat))
 
 // Path -> Path -> Path ->  Task Error _
-// hashing feels like a little overkill, could be lost
 const copyIfNotEqual = (remotePath, localPath, remoteSize, remoteStat, localStat) => {
   console.log('remote stat is ' + JSON.stringify(remoteStat, null, 2))
   console.log('local stat is ' + JSON.stringify(localStat, null, 2))
@@ -104,24 +103,24 @@ const copyIfNotEqual = (remotePath, localPath, remoteSize, remoteStat, localStat
         remoteSize
       )}`
     ),
-    copyFileAndPath(remotePath, localPath))
+    copyFileAndPath(remotePath, localPath, remoteStat))
 }
 
 // Path -> Size -> Path -> Size -> Task Error _
-const copyIfLocalSmaller = (localPath, localSize, remotePath, remoteSize) =>
+const copyIfLocalSmaller = (localPath, localSize, remotePath, remoteSize, remoteStat) =>
   larger(remoteSize, localSize)
     ? (log(`copying ${remotePath} to ${localPath} - file is ${humanFileSize(remoteSize)}`),
-    copyFileAndPath(remotePath, localPath))
+    copyFileAndPath(remotePath, localPath, remoteStat))
     : end(Ends.LocalFileLarger(localPath, localSize, remotePath, remoteSize))
 
 // Error -> Path -> Path -> Task Error _
-const copyIfLocalNotFound = (err, localPath, remotePath, remoteSize) =>
+const copyIfLocalNotFound = (err, localPath, remotePath, remoteSize, remoteStat) =>
   err.includes('ENOENT')
     ? (log(`file appears remote but not local: ${err}`),
     // try to copy the file: its remote and cant be seen locally
     log(`copying ${remotePath} to ${localPath} - file is ${humanFileSize(remoteSize)}`),
     // first we'll need to make the appropriate path
-    copyFileAndPath(remotePath, localPath))
+    copyFileAndPath(remotePath, localPath, remoteStat))
     : rejected(err)
 
 // Time -> a -> a
