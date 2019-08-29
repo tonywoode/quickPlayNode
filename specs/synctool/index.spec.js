@@ -112,7 +112,9 @@ describe('synctool: states', () => {
         .run()
         .listen({
           onRejected: rej => {
-            expect(rej).to.match(/no such file or directory/) && done()
+            //here's a lesson for you, i was regexing on /no such file or directory/ but a node update made me
+            // have to rege on ENOENT - its ENOENT that will last...
+            expect(rej).to.match(/ENOENT/) && done()
           },
           onResolved: res => newError(`synctool should have failed: ${res}`)
         })

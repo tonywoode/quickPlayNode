@@ -21,10 +21,15 @@ describe('synctool: copyFile', () => {
 
   // pity we're atomically testing this, really we need in integration test to
   // show that we shout instead of trying to copy folders, and we don't copy without mkdirp and so on
+  // remember we need to pass a stat of the timestamps to update them for cross platform
   describe('copyFile', () => {
     it('copies a file', done => {
       const fileName = 'AFile'
-      copyFile(join(remoteRoot, 'directory', fileName), join(localRoot, 'directory', fileName))
+      const year = 2019
+      copyFile(join(remoteRoot, 'directory', fileName), join(localRoot, 'directory', fileName), {
+        atime: year,
+        mtime: year
+      })
         .run()
         .listen({
           onRejected: rej => newError(`copyFile should have succeeded: ${rej}`),

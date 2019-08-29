@@ -32,7 +32,7 @@ describe('synctool: checkFiles', () => {
       stat('invalid path')
         .run()
         .listen({
-          onRejected: rej => expect(rej).to.match(/no such file/) && done(),
+          onRejected: rej => expect(rej).to.match(/ENOENT/) && done(), // https://stackoverflow.com/a/19902850/3536094
           onResolved: res => newError(`stat should have failed: ${res}`)
         }))
 
