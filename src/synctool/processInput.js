@@ -35,23 +35,9 @@ const checkConfigKeys = config => {
     checkKey(key)(config).orElse(error => problems.push(error))
     return problems
   }
-  const issues = reduce(checkKeys, [], ['remoteRoot', 'localRoot', 'timeout'])
+  const issues = reduce(checkKeys, [], ['remoteRoot', 'localRoot'])
   return issues.length ? Result.Error(issues.toString()) : Result.Ok(config)
 }
-
-// Object -> Result Error Object
-// const checkConfigKeys = config => {
-//  const remote = checkKey('remoteRoot')(config)
-//  const local = checkKey('localRoot')(config)
-//  return local
-//    .orElse(
-//      noLocal =>
-//        remote
-//          .orElse(noRemote => Result.Error(`Problems with config:\n ${noRemote} \n ${noLocal}`))
-//          .chain(_ => Result.Error(noLocal)) // there was a remote, but there still is no local
-//    )
-//    .chain(_ => remote) // there is a local, but there still may be no remote
-// }
 
 // Object -> Result Error Maybe Object
 const isConfigValid = config =>

@@ -130,7 +130,7 @@ const delay = (ms, val) =>
     r.cleanup(() => clearTimeout(timerId))
   }).run()
 
-const timeout = ms =>
+const timeout = (ms = 10000) =>
   task(r => {
     const timerId = setTimeout(() => r.reject('timeout seeking paths'), ms)
     r.cleanup(() => clearTimeout(timerId))
