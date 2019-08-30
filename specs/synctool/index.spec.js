@@ -19,8 +19,8 @@ describe('synctool: states', () => {
       [remoteRoot]: { directory: {} }
     })
   })
-  
-  afterEach( () => mock.restore())
+
+  afterEach(() => mock.restore())
 
   describe('NoFileGiven', () => {
     it('errors if a path to a file wasnt provided over cli', done => {
@@ -112,7 +112,7 @@ describe('synctool: states', () => {
         .run()
         .listen({
           onRejected: rej => {
-            //here's a lesson for you, i was regexing on /no such file or directory/ but a node update made me
+            // here's a lesson for you, i was regexing on /no such file or directory/ but a node update made me
             // have to rege on ENOENT - its ENOENT that will last...
             expect(rej).to.match(/ENOENT/) && done()
           },

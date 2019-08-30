@@ -81,24 +81,6 @@ describe('synctool: checkFiles', () => {
         }))
   })
 
-  describe('getSize', () => {
-    it('errors if path isnt available', done =>
-      getSize('not a real path')
-        .map(res => newError(`getSize should have failed: ${res}`))
-        .getOrElse(expect(true)) && done())
-
-    it('returns filesize if file is available', done => {
-      const expectedSizeOfTextFile = 10
-      stat(pathToTextFile)
-        .run()
-        .listen({
-          onRejected: rej => newError(`stat should have succeeded: ${rej}`),
-          onResolved: res =>
-            expect(getSize(res).getOrElse()).to.equal(expectedSizeOfTextFile) && done()
-        })
-    })
-  })
-
   //  describe("fileIs0KB", () => {
   //    it("errors if path isn't available", done => {
   //      fileIs0KB("random").fork(

@@ -12,7 +12,6 @@ const {
   delay,
   timeout
 } = require('./stateHandlers.js')
-const { getSize } = require('./checkFiles.js')
 const equal = (a, b) => a === b
 
 // give synctool only the LOCAL path, and a config file that tells it how to make the remotePath
@@ -26,32 +25,22 @@ const synctool = (localPath, configFileName) =>
         .chain(config => doRootPathsExist(config))
         .or(timeout(config.timeout)) // you have to ensure config is in scope here
         .map(_ => calculateRemotePath(localPath, config))
-    )
-    // worked out the relative path we'd have on remote
-    .chain(remotePath =>
-      checkRemoteFile(remotePath)
-        // remote exists
-        .chain(remoteStat =>
-          checkLocalFile(localPath)
-            // the files in both places, check dest is smaller, or maybe they are same file
-            .chain(localStat =>
-              getSize(remoteStat)
-                .chain(remoteSize =>
-                  getSize(localStat).map(localSize => ({ remoteSize, localSize }))
-                )
+        // worked out the relative path we'd have on remote
+        .chain(remotePath =>
+          checkRemoteFile(remotePath)
+            // remote exists
+            .chain(remoteStat =>
+              checkLocalFile(localPath)
+                // the files in both places, check dest is smaller, or maybe they are same file
                 .chain(
-                  ({ remoteSize, localSize }) =>
-                    equal(remoteSize, localSize) // filesize is equal, but check really same before deciding
-                      ? copyIfNotEqual(remotePath, localPath, remoteSize, remoteStat, localStat)
-                      : copyIfLocalSmaller(localPath, localSize, remotePath, remoteSize, remoteStat)
+                  localStat =>
+                    equal(remoteStat.size, localStat.size) // filesize is equal, but check really same before deciding
+                      ? copyIfNotEqual(remotePath, localPath, remoteStat, localStat)
+                      : copyIfLocalSmaller(localPath, remotePath, remoteStat, localStat)
                 )
-            )
-            /* we need to put a sad path on the happy path (failed local stat), we're now
+                /* we need to put a sad path on the happy path (failed local stat), we're now
                    * responsible for making sure that's why we got here */
-            .orElse(err =>
-              getSize(remoteStat).chain(remoteSize =>
-                copyIfLocalNotFound(err, localPath, remotePath, remoteSize, remoteStat)
-              )
+                .orElse(err => copyIfLocalNotFound(err, localPath, remotePath, remoteStat))
             )
         )
     )

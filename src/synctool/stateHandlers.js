@@ -91,7 +91,7 @@ const copyFileAndPath = (remotePath, localPath, remoteStat) =>
   mkdirRecursive(dirname(localPath)).chain(_ => copyFile(remotePath, localPath, remoteStat))
 
 // Path -> Path -> Path ->  Task Error _
-const copyIfNotEqual = (remotePath, localPath, remoteSize, remoteStat, localStat) => {
+const copyIfNotEqual = (remotePath, localPath, remoteStat, localStat) => {
   console.log('remote stat is ' + JSON.stringify(remoteStat, null, 2))
   console.log('local stat is ' + JSON.stringify(localStat, null, 2))
   const min = localStat.mtimeMs - 1000
@@ -100,25 +100,25 @@ const copyIfNotEqual = (remotePath, localPath, remoteSize, remoteStat, localStat
     ? end(Ends.FilesAreEqual(localPath, remotePath, localStat.mtime))
     : (log(
       `files aren't exactly the same, copying remote to local... - file is ${humanFileSize(
-        remoteSize
+        remoteStat.size
       )}`
     ),
     copyFileAndPath(remotePath, localPath, remoteStat))
 }
 
-// Path -> Size -> Path -> Size -> Task Error _
-const copyIfLocalSmaller = (localPath, localSize, remotePath, remoteSize, remoteStat) =>
-  larger(remoteSize, localSize)
-    ? (log(`copying ${remotePath} to ${localPath} - file is ${humanFileSize(remoteSize)}`),
+// Path -> Path -> Stat -> Stat -> Task Error _
+const copyIfLocalSmaller = (localPath, remotePath, remoteStat, localStat) =>
+  larger(remoteStat.size, localStat.size)
+    ? (log(`copying ${remotePath} to ${localPath} - file is ${humanFileSize(remoteStat.size)}`),
     copyFileAndPath(remotePath, localPath, remoteStat))
-    : end(Ends.LocalFileLarger(localPath, localSize, remotePath, remoteSize))
+    : end(Ends.LocalFileLarger(localPath, localStat.size, remotePath, remoteStat.size))
 
-// Error -> Path -> Path -> Task Error _
-const copyIfLocalNotFound = (err, localPath, remotePath, remoteSize, remoteStat) =>
+// Error -> Path -> Path -> Stat -> Task Error _
+const copyIfLocalNotFound = (err, localPath, remotePath, remoteStat) =>
   err.includes('ENOENT')
     ? (log(`file appears remote but not local: ${err}`),
     // try to copy the file: its remote and cant be seen locally
-    log(`copying ${remotePath} to ${localPath} - file is ${humanFileSize(remoteSize)}`),
+    log(`copying ${remotePath} to ${localPath} - file is ${humanFileSize(remoteStat.size)}`),
     // first we'll need to make the appropriate path
     copyFileAndPath(remotePath, localPath, remoteStat))
     : rejected(err)
@@ -130,6 +130,7 @@ const delay = (ms, val) =>
     r.cleanup(() => clearTimeout(timerId))
   }).run()
 
+// rather than insist the timeout key exists in the config, have a default
 const timeout = (ms = 10000) =>
   task(r => {
     const timerId = setTimeout(() => r.reject('timeout seeking paths'), ms)
