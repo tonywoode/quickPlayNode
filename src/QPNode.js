@@ -1,5 +1,6 @@
 'use strict'
 
+require('./helpers/ctrlCToQuit.js')() //required for windows
 const program = require('commander')
 const fs = require('fs')
 const path = require('path')
