@@ -1,5 +1,7 @@
 {
+ "NOTE:OnWindows" : "...use forward slashes for these paths, or double backslashes if you insist on backslashes",
  "localRoot" : "/some/valid/path",
  "remoteRoot": "/some/other/valid/path",
- "timeout": 10000
+ "timeout": 10000,
+ "timeTolerance": 1000
 }

@@ -1,4 +1,5 @@
 {
+ "NOTE:OnWindows" : "...use forward slashes for these paths, or double backslashes if you insist on backslashes",
  "localRoot" : "./specs/synctool/integration/localRoot",
  "remoteRoot": "./specs/synctool/integration/remoteRoot",
  "timeout": 10000,
