@@ -1,5 +1,6 @@
 {
  "localRoot" : "./specs/synctool/integration/localRoot",
  "remoteRoot": "./specs/synctool/integration/remoteRoot",
- "timeout": 10000
+ "timeout": 10000,
+ "timeTolerance": 1000
 }

@@ -35,7 +35,7 @@ const synctool = (localPath, configFileName) =>
                 .chain(
                   localStat =>
                     equal(remoteStat.size, localStat.size) // filesize is equal, but check really same before deciding
-                      ? copyIfNotEqual(remotePath, localPath, remoteStat, localStat)
+                      ?  copyIfNotEqual(remotePath, localPath, remoteStat, localStat, config.timeTolerance) // prettier-ignore
                       : copyIfLocalSmaller(localPath, remotePath, remoteStat, localStat)
                 )
                 /* we need to put a sad path on the happy path (failed local stat), we're now

@@ -91,11 +91,12 @@ const copyFileAndPath = (remotePath, localPath, remoteStat) =>
   mkdirRecursive(dirname(localPath)).chain(_ => copyFile(remotePath, localPath, remoteStat))
 
 // Path -> Path -> Path ->  Task Error _
-const copyIfNotEqual = (remotePath, localPath, remoteStat, localStat) => {
+// modified times are often only very slightly different, i'm not entirely sure why, tolerance required
+const copyIfNotEqual = (remotePath, localPath, remoteStat, localStat, timeTolerance = 1000) => {
   console.log('remote stat is ' + JSON.stringify(remoteStat, null, 2))
   console.log('local stat is ' + JSON.stringify(localStat, null, 2))
-  const min = localStat.mtimeMs - 1000
-  const max = localStat.mtimeMs + 1000
+  const min = localStat.mtimeMs - timeTolerance
+  const max = localStat.mtimeMs + timeTolerance
   return remoteStat.mtimeMs >= min && remoteStat.mtimeMs <= max
     ? end(Ends.FilesAreEqual(localPath, remotePath, localStat.mtime))
     : (log(
