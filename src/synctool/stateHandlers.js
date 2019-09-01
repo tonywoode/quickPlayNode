@@ -124,13 +124,6 @@ const copyIfLocalNotFound = (err, localPath, remotePath, remoteStat) =>
     copyFileAndPath(remotePath, localPath, remoteStat))
     : rejected(err)
 
-// Time -> a -> a
-const delay = (ms, val) =>
-  task(r => {
-    const timerId = setTimeout(() => r.resolve(val), ms)
-    r.cleanup(() => clearTimeout(timerId))
-  }).run()
-
 // rather than insist the timeout key exists in the config, have a default
 const timeout = (ms = 10000) =>
   task(r => {
@@ -150,6 +143,5 @@ module.exports = {
   copyIfNotEqual,
   copyIfLocalSmaller,
   copyIfLocalNotFound,
-  delay,
   timeout
 }

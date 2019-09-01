@@ -9,7 +9,6 @@ const {
   copyIfNotEqual,
   copyIfLocalSmaller,
   copyIfLocalNotFound,
-  delay,
   timeout
 } = require('./stateHandlers.js')
 const equal = (a, b) => a === b
@@ -45,4 +44,4 @@ const synctool = (localPath, configFileName) =>
         )
     )
 
-module.exports = { synctool, delay }
+module.exports = { synctool }

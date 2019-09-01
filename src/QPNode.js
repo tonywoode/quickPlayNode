@@ -1,6 +1,4 @@
 'use strict'
-
-require('./helpers/ctrlCToQuit.js')() //required for windows
 const program = require('commander')
 const fs = require('fs')
 const path = require('path')
@@ -19,7 +17,7 @@ const { arcade } = require('./arcade')
 const { mfm } = require('./mfm')
 const { testArcadeRun } = require('./testing')
 const { softlists } = require('./softlists')
-const { synctool, delay } = require('./synctool')
+const { synctool } = require('./synctool')
 const configFileName = 'synctool_config.json'
 
 // tee output to console and to a logfile https://stackoverflow.com/a/30578473/3536094
@@ -51,10 +49,19 @@ program // TODO: these options need prepending by the command 'mametool'
 
 program.command(`synctool [rompath]`).action(romPath => {
   synctoolInvoked = true
-  synctool(romPath, configFileName).run().listen({
-    onRejected: rej => console.log(`[synctool] - no work done: ${rej}`) || delay(3000),
-    onResolved: result => console.log(`[synctool] - ${result}: copied ${romPath}`) || delay(3000)
-  })
+  // TODO: ctrlCToQuit here because it changes the behaviour of node, you have to explicitly call 
+  //   process.exit now, so need to check that mametool could/should cope with that
+  const exitCodeZero = 0
+  require('./helpers/ctrlCToQuit.js')(exitCodeZero) // required for windows
+  synctool(romPath, configFileName)
+    .run()
+    .listen({
+      onRejected: rej =>
+        console.log(`[synctool] - no work done: ${rej}`) || setTimeout(() => process.exit(), 3000),
+      onResolved: result =>
+        console.log(`[synctool] - ${result}: copied ${romPath}`) ||
+        setTimeout(() => process.exit(0), 3000)
+    })
 })
 
 program.parse(process.argv)
