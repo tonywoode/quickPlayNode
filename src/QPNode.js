@@ -22,18 +22,16 @@ const configFileName = 'synctool_config.json'
 
 // tee output to console and to a logfile https://stackoverflow.com/a/30578473/3536094
 const logFile = './mametool_logfile.txt'
-const logStream = fs.createWriteStream(logFile)
-console.log = (...args) => {
+const logStream = fs.createWriteStream(logFile) //todo: close stream on exit!
+
+const muxLog = logType => (...args) => {
   const text = util.format.apply(this, args) + '\n'
-  logStream.write(text)
-  process.stdout.write(text)
+  logStream.write(`${new Date().toISOString()} ${text}`)
+  process[logType].write(text)
 }
 
-console.error = (...args) => {
-  const text = util.format.apply(this, args) + '\n'
-  logStream.write(text)
-  process.stderr.write(text)
-}
+console.log = muxLog('stdout')
+console.error = muxLog('error')
 
 let synctoolInvoked = false
 program // TODO: these options need prepending by the command 'mametool'
