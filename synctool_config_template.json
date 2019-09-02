@@ -3,5 +3,7 @@
  "localRoot" : "/some/valid/path",
  "remoteRoot": "/some/other/valid/path",
  "timeout": 10000,
- "timeTolerance": 1000
+ "timeTolerance": 1000,
+ "globalEnable": false,
+ "enableOnHostName": []
 }

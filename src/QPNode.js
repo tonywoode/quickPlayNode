@@ -1,6 +1,7 @@
 'use strict'
 const program = require('commander')
 const fs = require('fs')
+const os = require('os')
 const path = require('path')
 const _throw = m => {
   throw new Error(m)
@@ -17,12 +18,12 @@ const { arcade } = require('./arcade')
 const { mfm } = require('./mfm')
 const { testArcadeRun } = require('./testing')
 const { softlists } = require('./softlists')
-const { synctool } = require('./synctool')
+const { synctool, loadConfig } = require('./synctool')
 const configFileName = 'synctool_config.json'
 
 // tee output to console and to a logfile https://stackoverflow.com/a/30578473/3536094
 const logFile = './mametool_logfile.txt'
-const logStream = fs.createWriteStream(logFile) //todo: close stream on exit!
+const logStream = fs.createWriteStream(logFile) // todo: close stream on exit!
 
 const muxLog = logType => (...args) => {
   const text = util.format.apply(this, args) + '\n'
@@ -44,10 +45,11 @@ program // TODO: these options need prepending by the command 'mametool'
   .option(`--testArcadeRun`)
   // messTool options
   .option(`--softlists [rompath]`) // todo, []=optional, <>=required, surely latter
+  .option(`--synctoolEnable`)
 
 program.command(`synctool [rompath]`).action(romPath => {
   synctoolInvoked = true
-  // TODO: ctrlCToQuit here because it changes the behaviour of node, you have to explicitly call 
+  // TODO: ctrlCToQuit here because it changes the behaviour of node, you have to explicitly call
   //   process.exit now, so need to check that mametool could/should cope with that
   const exitCodeZero = 0
   require('./helpers/ctrlCToQuit.js')(exitCodeZero) // required for windows
@@ -79,10 +81,29 @@ if (!process.argv.slice(2).length) {
   )
   process.exit()
 }
+
+// client is able to not run synctool unless askedto
+if (program.synctoolEnable) {
+  loadConfig(configFileName)
+    .run()
+    .listen({
+      onRejected: rej => {
+        console.error(`[synctoolEnable] - ${rej}`)
+        process.exit(1)
+      },
+      onResolved: res => {
+        res.globalEnable && process.exit(0)
+        res.enableOnHostName.map(hostName => hostName === os.hostname() && process.exit(0))
+        process.exit(1)
+      }
+    })
+}
+
 // bypass mametool stuff if synctool
 // program.synctool      && synctool(program.synctool)
 // TODO: oops as it is we'll fall through to this lot, also empty string falls thorugh
-if (!synctoolInvoked) {
+if (!synctoolInvoked && !program.synctoolEnable) {
+  // DeMorgan
   // calculate these
   const outputDir = program.outputDir
   !program.scan &&

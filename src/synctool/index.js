@@ -44,4 +44,4 @@ const synctool = (localPath, configFileName) =>
         )
     )
 
-module.exports = { synctool }
+module.exports = { synctool, loadConfig }
