@@ -92,8 +92,8 @@ if (program.synctoolEnable) {
         process.exit(1)
       },
       onResolved: res => {
-        res.globalEnable && process.exit(0)
-        res.enableOnHostName.map(hostName => hostName === os.hostname() && process.exit(0))
+        res.globalEnable && (console.log("SyncTool is Enabled") || process.exit(0))
+        res.enableOnHostName.map(hostName => hostName === os.hostname() && (console.log("SyncTool is Enabled") || process.exit(0)))
         process.exit(1)
       }
     })
