@@ -12,9 +12,10 @@ const newError = msg => {
 describe('synctool: states', () => {
   // mockfs won't affect Module.resolveFilename in require calls:  //https://github.com/tschaub/mock-fs/issues/145
   // so config path here has to agree with config path on the file system (the contents of the file, however, are changeable here)
+  // the mock config here will get used for the synctoolEnable test too, since require is sticky
   beforeEach(() => {
     mock({
-      [pathToConfig]: `{ "localRoot" : "the/local/root", "remoteRoot": "the/remote/root" }`,
+      [pathToConfig]: `{ "localRoot" : "the/local/root", "remoteRoot": "the/remote/root",  "globalEnable": true }`,
       [localRoot]: { directory: {} },
       [remoteRoot]: { directory: {} }
     })
@@ -67,7 +68,7 @@ describe('synctool: states', () => {
         .run()
         .listen({
           onRejected: rej => {
-            expect(rej).to.match(/Problems with config/) && done()
+            expect(rej).to.match(/config invalid/) && done()
           },
           onResolved: res => newError(`synctool should have failed: ${res}`)
         })

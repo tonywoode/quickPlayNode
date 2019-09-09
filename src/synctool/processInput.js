@@ -2,6 +2,9 @@ const { isEmpty, isNil, compose, chain, reduce } = require('ramda')
 const { relative, isAbsolute } = require('path')
 const Result = require('folktale/result')
 
+// we can't run synctool without these  keys, all others can be excused in some way, but not these
+const syncToolRequiredKeys = ['remoteRoot', 'localRoot']
+
 const isString = str => typeof str === 'string' || str instanceof String
 const strEmpty = str => isNil(str) || str === ''
 const inputEmpty = str => !isString(str) || strEmpty(str)
@@ -35,7 +38,7 @@ const checkConfigKeys = config => {
     checkKey(key)(config).orElse(error => problems.push(error))
     return problems
   }
-  const issues = reduce(checkKeys, [], ['remoteRoot', 'localRoot'])
+  const issues = reduce(checkKeys, [], syncToolRequiredKeys)
   return issues.length ? Result.Error(issues.toString()) : Result.Ok(config)
 }
 

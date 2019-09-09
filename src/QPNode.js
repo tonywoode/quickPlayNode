@@ -1,7 +1,6 @@
 'use strict'
 const program = require('commander')
 const fs = require('fs')
-const os = require('os')
 const path = require('path')
 const _throw = m => {
   throw new Error(m)
@@ -18,7 +17,7 @@ const { arcade } = require('./arcade')
 const { mfm } = require('./mfm')
 const { testArcadeRun } = require('./testing')
 const { softlists } = require('./softlists')
-const { synctool, loadConfig } = require('./synctool')
+const { synctool, synctoolEnable } = require('./synctool')
 const configFileName = 'synctool_config.json'
 
 // tee output to console and to a logfile https://stackoverflow.com/a/30578473/3536094
@@ -32,7 +31,7 @@ const muxLog = logType => (...args) => {
 }
 
 console.log = muxLog('stdout')
-console.error = muxLog('error')
+console.error = muxLog('stderr')
 
 let synctoolInvoked = false
 program // TODO: these options need prepending by the command 'mametool'
@@ -57,7 +56,7 @@ program.command(`synctool [rompath]`).action(romPath => {
     .run()
     .listen({
       onRejected: rej =>
-        console.log(`[synctool] - no work done: ${rej}`) || setTimeout(() => process.exit(), 3000),
+        console.log(`[synctool] - no work done: ${rej}`) || setTimeout(() => process.exit(1), 3000),
       onResolved: result =>
         console.log(`[synctool] - ${result}: copied ${romPath}`) ||
         setTimeout(() => process.exit(0), 3000)
@@ -82,19 +81,16 @@ if (!process.argv.slice(2).length) {
   process.exit()
 }
 
-// client is able to not run synctool unless askedto
 if (program.synctoolEnable) {
-  loadConfig(configFileName)
-    .run()
+  synctoolEnable(configFileName).run()
     .listen({
       onRejected: rej => {
-        console.error(`[synctoolEnable] - ${rej}`)
+        console.error(rej)
         process.exit(1)
       },
       onResolved: res => {
-        res.globalEnable && (console.log("SyncTool is Enabled") || process.exit(0))
-        res.enableOnHostName.map(hostName => hostName === os.hostname() && (console.log("SyncTool is Enabled") || process.exit(0)))
-        process.exit(1)
+        console.log(res)
+        process.exit(0)
       }
     })
 }
@@ -180,3 +176,5 @@ MAME exe path:          ${settings.mameExePath}`
   program.testArcadeRun && testArcadeRun(settings, readMameJson, jsonOutPath, outputDir)
   program.softlists && softlists(settings, jsonOutPath, hashDir, outputDir, log)
 }
+
+module.exports = { synctoolEnable }

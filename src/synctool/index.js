@@ -1,3 +1,5 @@
+const os = require('os')
+const { of, rejected } = require('folktale/concurrency/task')
 const {
   checkLocalPath,
   loadConfig,
@@ -12,7 +14,6 @@ const {
   timeout
 } = require('./stateHandlers.js')
 const equal = (a, b) => a === b
-
 // give synctool only the LOCAL path, and a config file that tells it how to make the remotePath
 const synctool = (localPath, configFileName) =>
   checkLocalPath(localPath) // check you passed me an input path
@@ -44,4 +45,20 @@ const synctool = (localPath, configFileName) =>
         )
     )
 
-module.exports = { synctool, loadConfig }
+// client is able to not run synctool unless askedto
+const synctoolEnable = configFileName =>
+  configFileName
+    ? loadConfig(configFileName)
+      .orElse(rej => rejected(`[syncToolEnable] - ${rej}`))
+      .chain(
+        config =>
+          config.globalEnable
+            ? of('[syncToolEnable] - SyncTool is Enabled')
+            : config.enableOnHostName &&
+                config.enableOnHostName.map(hostName => hostName === os.hostname())
+              ? of('[syncToolEnable] - SyncTool is Enabled')
+              : of('[syncToolEnable] - SyncTool is Disabled')
+      )
+    : rejected('[synctoolEnable] - no config filename passed')
+
+module.exports = { synctool, synctoolEnable }
