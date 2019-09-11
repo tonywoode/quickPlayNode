@@ -63,7 +63,11 @@ const copyFileStream = (src, dest, remoteStat) => {
     const to = fs.createWriteStream(dest)
     const from = fs.createReadStream(src)
 to.on('unpipe', function () {
-        fs.unlinkSync(dest) // effectively deletes the file
+to.destroy()
+  // don't delete symlinks, delete the real file!
+  const realDest = fs.realpathSync(dest)
+        fs.unlinkSync(realDest) // effectively deletes the file
+      process.exit()
       })
     const readline = require('readline');
     readline.emitKeypressEvents(process.stdin);
@@ -71,7 +75,8 @@ to.on('unpipe', function () {
     process.stdin.on('keypress', (str, key) => {
       if (key.ctrl && key.name === 'c') {
         from.unpipe()
-        process.exit();
+        console.log("i just unlinked")
+        //process.exit();
       } else {
         console.log(`You pressed the "${str}" key`);
         console.log();
