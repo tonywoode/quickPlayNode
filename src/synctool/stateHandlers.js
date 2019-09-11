@@ -3,7 +3,7 @@ const { dirname } = require('path')
 const { of, rejected, task } = require('folktale/concurrency/task')
 const { Ends, end } = require('./states.js')
 const { inputEmpty, checkRequire, isConfigValid, getSubDir } = require('./processInput.js')
-const { mkdirRecursive, copyFile, humanFileSize } = require('./copyFile.js')
+const { mkdirRecursive, copyFile, copyFileStream, humanFileSize } = require('./copyFile.js')
 const { stat, isFile } = require('./checkFiles.js')
 const log = msg => console.log(`[synctool] - ${msg}`)
 const checkLocalPath = localPath => {
@@ -88,7 +88,7 @@ const checkRemoteFile = remotePath =>
 
 // Path -> Path -> Task Error _
 const copyFileAndPath = (remotePath, localPath, remoteStat) =>
-  mkdirRecursive(dirname(localPath)).chain(_ => copyFile(remotePath, localPath, remoteStat))
+  mkdirRecursive(dirname(localPath)).chain(_ => copyFileStream(remotePath, localPath, remoteStat))
 
 // Path -> Path -> Path ->  Task Error _
 // modified times are often only very slightly different, i'm not entirely sure why, tolerance required

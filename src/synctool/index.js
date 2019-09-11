@@ -13,7 +13,9 @@ const {
   copyIfLocalNotFound,
   timeout
 } = require('./stateHandlers.js')
+
 const equal = (a, b) => a === b
+
 // give synctool only the LOCAL path, and a config file that tells it how to make the remotePath
 const synctool = (localPath, configFileName) =>
   checkLocalPath(localPath) // check you passed me an input path

@@ -4,7 +4,7 @@
 // TODO: what code to exit with, and anyway is windows receiving the exit code (havent seen the message print very often)?
 // may cause issues with the process.exit see - https://stackoverflow.com/questions/14031763/doing-a-cleanup-action-just-before-node-js-exits
 module.exports = exitCode => {
-  const message = '[QPNode] exiting...)'
+  const message = '[QPNode] exiting...'
   if (process.platform === 'win32') {
     require('readline')
       .createInterface({
