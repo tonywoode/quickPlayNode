@@ -51,58 +51,105 @@ const writeFile = (filePath, stream) =>
       writeStream.end()
       r.reject(err)
     })
+
+    writeStream.on('unpipe', () => {
+      stream.destroy()
+      // stackoverflow.com/a/38520486/3536094, however if the unlink
+      //   is here, it always also runs on successful completion
+    })
+
     stream.pipe(writeStream)
+    const readline = require('readline')
+    readline.emitKeypressEvents(process.stdin)
+    process.stdin.setRawMode(true)
+    process.stdin.on('keypress', (str, key) => {
+      if (key.ctrl && key.name === 'c') {
+        stream.unpipe()
+        console.log('Cancelling...')
+        fs.realpath(
+          filePath,
+          (err, realPath) =>
+            err
+              ? r.reject(err)
+              : (console.log(`realdest is ${realPath}`),
+              fs.unlink(realPath, err => {
+                if (err) throw err
+                console.log('path/file.txt was deleted')
+                process.exit()
+              }))
+        ) // process.exit()
+      }
+    })
+    console.log('Press ctrl+c to abort...')
   })
 
 // here's the old way of copying, its much slower and copies only file contents and loses all metadata!
-const copyFileStreamOLD = (src, dest, remoteStat) =>
+const copyFileStream = (src, dest, remoteStat) =>
   readFile(src).chain(stream => writeFile(dest, stream))
 
-const copyFileStream = (src, dest, remoteStat) => {
+const copyFileStreamAttempt = (src, dest, remoteStat) => {
+  return task(r => {
+    var from = fs.createReadStream(src).pipe(to)
+    var to = fs.createWriteStream(dest).on('unpipe', function () {
+      fs.unlink(dest) // effectively deletes the file
+    })
+    to.on('finish', () => {
+      writeStream.close()
+      r.resolve(filePath)
+    })
+  })
+}
 
-    const to = fs.createWriteStream(dest)
-    const from = fs.createReadStream(src)
-to.on('unpipe', function () {
-to.destroy()
-  // don't delete symlinks, delete the real file!
-  const realDest = fs.realpathSync(dest)
-        fs.unlinkSync(realDest) // effectively deletes the file
+const copyFileStreamREAL = (src, dest, remoteStat) => {
+  const from = fs.createReadStream(src)
+  const to = fs.createWriteStream(dest)
+
+  const readline = require('readline')
+  readline.emitKeypressEvents(process.stdin)
+  process.stdin.setRawMode(true)
+  process.stdin.on('keypress', (str, key) => {
+    if (key.ctrl && key.name === 'c') {
+      //    from.unpipe()
+      console.log('Cancelling...')
       process.exit()
-      })
-    const readline = require('readline');
-    readline.emitKeypressEvents(process.stdin);
-    process.stdin.setRawMode(true);
-    process.stdin.on('keypress', (str, key) => {
-      if (key.ctrl && key.name === 'c') {
-        from.unpipe()
-        console.log("i just unlinked")
-        //process.exit();
-      } else {
-        console.log(`You pressed the "${str}" key`);
-        console.log();
-        console.log(key);
-        console.log();
-      }
-    });
-    console.log('Press any key...');
-
+    }
+  })
+  console.log('Press ctrl+c to abort...')
 
   return task(r => {
-      to.on('finish', () => {
-        // we use modified date to determine equality, but only windows preserves it
-        // to make this consistent on nix, we need to update the modified date
-        // why doesn't node do this? because of the concern that the file might
-        // change underneath us as im talking...https://github.com/nodejs/node/issues/15793
-        fs.utimes( dest, remoteStat.atime, remoteStat.mtime,
-          err => (err ? r.reject(err) : r.resolve(true))
-        )
+    to
+      .on('finish', () => {
         to.close()
+        fs.realpath(
+          dest,
+          (err, realPath) =>
+            err
+              ? r.reject(err)
+              : (console.log(`realdest is ${realPath}`),
+              // we use modified date to determine equality, but only windows preserves it
+              // to make this consistent on nix, we need to update the modified date
+              // why doesn't node do this? because of the concern that the file might
+              // change underneath us as im talking...https://github.com/nodejs/node/issues/15793
+              fs.utimes(
+                realPath,
+                remoteStat.atime,
+                remoteStat.mtime,
+                err => (err ? r.reject(err) : r.resolve(true))
+              ))
+        )
       })
       .on('error', err => {
         to.end()
         r.reject(err)
       })
-      
+      .on('unpipe', function () {
+        // to.destroy()
+        // don't delete symlinks, delete the real file!
+        fs.realpath(
+          dest,
+          (err, realPath) => fs.unlinkSync(realPath) // effectively deletes the file
+        )
+      })
 
     from.pipe(to)
   })
