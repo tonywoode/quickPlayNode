@@ -43,19 +43,4 @@ const getRealPath = filePath =>
     })
   })
 
-// up till now we've just been stat-ing which follows symlinks, now we need to get the real filepath
-// NOTE: can only be called if a file exists, don't call this before synctool has started writing
-// (which effectively means for synctool its better to just use readlink
-// Path, Task Path
-const getRealPathOLD = filePath =>
-  task(r =>
-    fs.realpath(
-      filePath,
-      (err, realPath) =>
-        err
-          ? r.reject(`[synctool] can't get real path (did I start writing it yet?): ${err}`)
-          : (console.log(`[synctool] real path of ${filePath}: \n${realPath}`), r.resolve(realPath))
-    )
-  )
-
 module.exports = { stat, isDir, isFile, getRealPath }

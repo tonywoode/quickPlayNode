@@ -65,78 +65,46 @@ const writeFile = (filePath, stream) =>
     process.stdin.on('keypress', (str, key) => {
       if (key.ctrl && key.name === 'c') {
         stream.unpipe()
-        console.log('Cancelling...')
-        fs.unlink(filePath, err => { // expect that filePath isn't a symlink
-          if (err) throw err
-          console.log('path/file.txt was deleted')
-          process.exit()
+        console.log('[synctool] Cancelling...')
+        // expect that filePath isn't a symlink
+        fs.unlink(filePath, err => {
+          err
+            ? r.reject(`[synctool] - couldn't delete cancelled transfer: ${err}`)
+            : r.reject(`[synctool] - transfer was cancelled - local file deleted: ${filePath}`)
+          process.exit(1)
         })
       }
     })
     console.log('Press ctrl+c to abort...')
   })
 
+/* we use modified date to determine equality, copyFile on windows preserves it
+ * but nothing else does...to make this consistent, update modified date
+ * why doesn't node do this? because of the concern that the file might
+ * change underneath us as im talking...https://github.com/nodejs/node/issues/15793 */
+// Path -> Stat -> Task _
+const copyTimestamps = (path, sourceStat) =>
+  task(r =>
+    fs.utimes(
+      path,
+      sourceStat.atime,
+      sourceStat.mtime,
+      err =>
+        err
+          ? r.reject(`[synctool] copied ${path} but couldn't update timestamps from source`)
+          : (console.log(`[synctool] copied timestamps from source file`), r.resolve(true))
+    )
+  )
+
 // streams is the old way of copying, its much slower and copies only file contents and loses all metadata,
 //  but has several advantages for us here: firstly it has hooks so we can cancel during copy, which won't
 //  leave a corrupt destination file (on windows of full size!). We'll need the true path of the destination
 //  in case we're pointing to a symlink
 const copyFileStream = (src, dest, remoteStat) =>
-  readFile(src).chain(stream => writeFile(dest, stream))
+  readFile(src)
+    .chain(stream => writeFile(dest, stream))
+    .chain(_ => copyTimestamps(dest, remoteStat))
 
-const copyFileStreamFirstAttempt = (src, dest, remoteStat) => {
-  const from = fs.createReadStream(src)
-  const to = fs.createWriteStream(dest)
-
-  const readline = require('readline')
-  readline.emitKeypressEvents(process.stdin)
-  process.stdin.setRawMode(true)
-  process.stdin.on('keypress', (str, key) => {
-    if (key.ctrl && key.name === 'c') {
-      //    from.unpipe()
-      console.log('Cancelling...')
-      process.exit()
-    }
-  })
-  console.log('Press ctrl+c to abort...')
-
-  return task(r => {
-    to
-      .on('finish', () => {
-        to.close()
-        fs.realpath(
-          dest,
-          (err, realPath) =>
-            err
-              ? r.reject(err)
-              : (console.log(`realdest is ${realPath}`),
-              // we use modified date to determine equality, but only windows preserves it
-              // to make this consistent on nix, we need to update the modified date
-              // why doesn't node do this? because of the concern that the file might
-              // change underneath us as im talking...https://github.com/nodejs/node/issues/15793
-              fs.utimes(
-                realPath,
-                remoteStat.atime,
-                remoteStat.mtime,
-                err => (err ? r.reject(err) : r.resolve(true))
-              ))
-        )
-      })
-      .on('error', err => {
-        to.end()
-        r.reject(err)
-      })
-      .on('unpipe', function () {
-        // to.destroy()
-        // don't delete symlinks, delete the real file!
-        fs.realpath(
-          dest,
-          (err, realPath) => fs.unlinkSync(realPath) // effectively deletes the file
-        )
-      })
-
-    from.pipe(to)
-  })
-}
 /* fs.copyfile uses native os copy, which seems initially the better plan
  * but forget about progress: https://github.com/nodejs/node/pull/15034#issuecomment-326092955
  * and forget about progress in anything that uses fs.copyFile https://github.com/sindresorhus/cp-file/issues/18#issuecomment-327860860 */
