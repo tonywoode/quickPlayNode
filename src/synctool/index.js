@@ -39,12 +39,12 @@ const synctool = (localPath, configFileName) =>
                     localStat =>
                       // the files in both places, check dest is smaller, or maybe they are same file
                       equal(remoteStat.size, localStat.size) // filesize is equal, but check really same before deciding
-                        ? copyIfNotEqual(remotePath, realLocalPath, remoteStat, localStat, config.timeTolerance) // prettier-ignore
-                        : copyIfLocalSmaller(realLocalPath, remotePath, remoteStat, localStat)
+                        ? copyIfNotEqual(remotePath, realLocalPath, remoteStat, localStat, config)
+                        : copyIfLocalSmaller(realLocalPath, remotePath, remoteStat, localStat, config)  // prettier-ignore
                   )
                   /* we need to put a sad path on the happy path (failed local stat), we're now
                    * responsible for making sure that's why we got here */
-                  .orElse(err => copyIfLocalNotFound(err, realLocalPath, remotePath, remoteStat))
+                  .orElse(err => copyIfLocalNotFound(err, realLocalPath, remotePath, remoteStat, config)) //prettier-ignore
               )
             )
         )

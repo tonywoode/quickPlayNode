@@ -109,8 +109,12 @@ const copyFileStream = (src, dest, remoteStat) =>
  * but forget about progress: https://github.com/nodejs/node/pull/15034#issuecomment-326092955
  * and forget about progress in anything that uses fs.copyFile https://github.com/sindresorhus/cp-file/issues/18#issuecomment-327860860 */
 // String -> Task Error, String
-const copyFile = (src, dest, remoteStat) =>
-  task(r =>
+const copyFile = (src, dest, remoteStat) => {
+  // TODO: if using copyFile, on windows ctrl+c may have a problem doing anything, fix that
+  const exitCodeZero = 0
+  require('../helpers/ctrlCToQuit.js')(exitCodeZero) // required for windows
+
+  return task(r =>
     fs.copyFile(
       src,
       dest,
@@ -129,7 +133,7 @@ const copyFile = (src, dest, remoteStat) =>
           )
     )
   )
-
+}
 // stackoverflow.com/a/14919494/3536094
 const humanFileSize = (bytes, si) => {
   const thresh = si ? 1000 : 1024

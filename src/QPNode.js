@@ -48,10 +48,6 @@ program // TODO: these options need prepending by the command 'mametool'
 
 program.command(`synctool [rompath]`).action(romPath => {
   synctoolInvoked = true
-  // TODO: ctrlCToQuit here because it changes the behaviour of node, you have to explicitly call
-  //   process.exit now, so need to check that mametool could/should cope with that
-  const exitCodeZero = 0
-//  require('./helpers/ctrlCToQuit.js')(exitCodeZero) // required for windows
   synctool(romPath, configFileName)
     .run()
     .listen({

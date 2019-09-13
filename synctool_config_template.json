@@ -6,4 +6,5 @@
  "timeTolerance": 1000,
  "globalEnable": false,
  "enableOnHostName": []
+ "useCopyOrCopyStream": "copy"
 }

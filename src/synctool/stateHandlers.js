@@ -3,7 +3,7 @@ const { dirname } = require('path')
 const { of, rejected, task } = require('folktale/concurrency/task')
 const { Ends, end } = require('./states.js')
 const { inputEmpty, checkRequire, isConfigValid, getSubDir } = require('./processInput.js')
-const { mkdirRecursive, copyFileStream, humanFileSize } = require('./copyFile.js')
+const { mkdirRecursive, copyFile, copyFileStream, humanFileSize } = require('./copyFile.js')
 const { stat, isFile } = require('./checkFiles.js')
 const log = msg => console.log(`[synctool] - ${msg}`)
 const checkLocalPath = localPath => {
@@ -86,12 +86,20 @@ const checkRemoteFile = remotePath =>
   )
 
 // Path -> Path -> Task Error _
-const copyFileAndPath = (remotePath, localPath, remoteStat) =>
-  mkdirRecursive(dirname(localPath)).chain(_ => copyFileStream(remotePath, localPath, remoteStat))
+const copyFileAndPath = (remotePath, localPath, remoteStat, config) => {
+  const copy =
+    config.useCopyOrCopyStream &&
+    typeof config.useCopyOrCopyStream === 'string' &&
+    config.useCopyOrCopyStream.toLowerCase() === `copystream`
+      ? copyFileStream
+      : copyFile
+  return mkdirRecursive(dirname(localPath)).chain(_ => copy(remotePath, localPath, remoteStat))
+}
 
 // Path -> Path -> Path ->  Task Error _
 // modified times are often only very slightly different, i'm not entirely sure why, tolerance required
-const copyIfNotEqual = (remotePath, localPath, remoteStat, localStat, timeTolerance = 1000) => {
+const copyIfNotEqual = (remotePath, localPath, remoteStat, localStat, config) => {
+  const timeTolerance = config.timeTolerance ? config.timeTolerance : 1000
   console.log('remote stat is ' + JSON.stringify(remoteStat, null, 2))
   console.log('local stat is ' + JSON.stringify(localStat, null, 2))
   const min = localStat.mtimeMs - timeTolerance
@@ -103,24 +111,24 @@ const copyIfNotEqual = (remotePath, localPath, remoteStat, localStat, timeTolera
         remoteStat.size
       )}`
     ),
-    copyFileAndPath(remotePath, localPath, remoteStat))
+    copyFileAndPath(remotePath, localPath, remoteStat, config))
 }
 
 // Path -> Path -> Stat -> Stat -> Task Error _
-const copyIfLocalSmaller = (localPath, remotePath, remoteStat, localStat) =>
+const copyIfLocalSmaller = (localPath, remotePath, remoteStat, localStat, config) =>
   larger(remoteStat.size, localStat.size)
     ? (log(`copying ${remotePath} to ${localPath} - file is ${humanFileSize(remoteStat.size)}`),
-    copyFileAndPath(remotePath, localPath, remoteStat))
+    copyFileAndPath(remotePath, localPath, remoteStat, config))
     : end(Ends.LocalFileLarger(localPath, localStat.size, remotePath, remoteStat.size))
 
 // Error -> Path -> Path -> Stat -> Task Error _
-const copyIfLocalNotFound = (err, localPath, remotePath, remoteStat) =>
+const copyIfLocalNotFound = (err, localPath, remotePath, remoteStat, config) =>
   err.includes('ENOENT')
     ? (log(`file appears remote but not local: ${err}`),
     // try to copy the file: its remote and cant be seen locally
     log(`copying ${remotePath} to ${localPath} - file is ${humanFileSize(remoteStat.size)}`),
     // first we'll need to make the appropriate path
-    copyFileAndPath(remotePath, localPath, remoteStat))
+    copyFileAndPath(remotePath, localPath, remoteStat, config))
     : rejected(err)
 
 // rather than insist the timeout key exists in the config, have a default
