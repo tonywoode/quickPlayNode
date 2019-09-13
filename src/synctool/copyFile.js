@@ -105,35 +105,30 @@ const copyFileStream = (src, dest, remoteStat) =>
     .chain(stream => writeFile(dest, stream))
     .chain(_ => copyTimestamps(dest, remoteStat))
 
-/* fs.copyfile uses native os copy, which seems initially the better plan
- * but forget about progress: https://github.com/nodejs/node/pull/15034#issuecomment-326092955
- * and forget about progress in anything that uses fs.copyFile https://github.com/sindresorhus/cp-file/issues/18#issuecomment-327860860 */
-// String -> Task Error, String
-const copyFile = (src, dest, remoteStat) => {
-  // TODO: if using copyFile, on windows ctrl+c may have a problem doing anything, fix that
-  const exitCodeZero = 0
-  require('../helpers/ctrlCToQuit.js')(exitCodeZero) // required for windows
-
-  return task(r =>
+// Path -> Path -> Task Error _
+const copy = (src, dest) =>
+  task(r =>
     fs.copyFile(
       src,
       dest,
       err =>
         err
-          ? r.reject(err)
-          : // we use modified date to determine equality, but only windows preserves it
-        // to make this consistent on nix, we need to update the modified date
-        // why doesn't node do this? because of the concern that the file might
-        // change underneath us as im talking...https://github.com/nodejs/node/issues/15793
-          fs.utimes(
-            dest,
-            remoteStat.atime,
-            remoteStat.mtime,
-            err => (err ? r.reject(err) : r.resolve(true))
-          )
+          ? r.reject(`[synctool] - copy failed: ${err}`)
+          : (console.log(`[synctool] - data copy succeeded: ${dest}`), r.resolve(dest))
     )
   )
+
+/* fs.copyfile uses native os copy, which seems initially the better plan
+ * but forget about progress: https://github.com/nodejs/node/pull/15034#issuecomment-326092955
+ * and forget about progress in anything that uses fs.copyFile https://github.com/sindresorhus/cp-file/issues/18#issuecomment-327860860 */
+// Path -> Path -> Stat -> Task Error _
+const copyFile = (src, dest, remoteStat) => {
+  // TODO: if using copyFile, on windows ctrl+c may have a problem doing anything, fix that
+  const exitCodeZero = 0
+  require('../helpers/ctrlCToQuit.js')(exitCodeZero) // required for windows
+  return copy(src, dest).chain(_ => copyTimestamps(dest, remoteStat))
 }
+
 // stackoverflow.com/a/14919494/3536094
 const humanFileSize = (bytes, si) => {
   const thresh = si ? 1000 : 1024
