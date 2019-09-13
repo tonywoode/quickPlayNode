@@ -3,7 +3,7 @@ const { dirname } = require('path')
 const { of, rejected, task } = require('folktale/concurrency/task')
 const { Ends, end } = require('./states.js')
 const { inputEmpty, checkRequire, isConfigValid, getSubDir } = require('./processInput.js')
-const { mkdirRecursive, copyFile, copyFileStream, humanFileSize } = require('./copyFile.js')
+const { mkdirRecursive, copyFileStream, humanFileSize } = require('./copyFile.js')
 const { stat, isFile } = require('./checkFiles.js')
 const log = msg => console.log(`[synctool] - ${msg}`)
 const checkLocalPath = localPath => {
@@ -68,8 +68,8 @@ const calculateRemotePath = (localPath, { localRoot, remoteRoot }) =>
 
 // Path -> Task Error Stat
 // check file exists, and that stat confirms its a file (for now do nothing on dir)
-const checkLocalFile = localPath => {
-  return stat(localPath)
+const checkLocalFile = localPath =>
+  stat(localPath)
     .orElse(rej => end(Ends.FileNotFound(rej)))
     .chain(
       stat =>
@@ -78,7 +78,6 @@ const checkLocalFile = localPath => {
           ? of(stat)
           : end(Ends.NotAFile(localPath))
     )
-}
 
 // is file in remote? If not, be specific about why we're exiting
 const checkRemoteFile = remotePath =>

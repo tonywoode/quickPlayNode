@@ -2,6 +2,7 @@ const fs = require('fs')
 const { task } = require('folktale/concurrency/task')
 const crypto = require('crypto')
 const hashType = 'md5'
+const readline = require('readline')
 
 // String -> Task String String
 // https://github.com/h2non/jsHashes is an alternative, however any kind of hashing must read the WHOLE file so this isn't really acceptable without a good connection
@@ -59,48 +60,30 @@ const writeFile = (filePath, stream) =>
     })
 
     stream.pipe(writeStream)
-    const readline = require('readline')
     readline.emitKeypressEvents(process.stdin)
     process.stdin.setRawMode(true)
     process.stdin.on('keypress', (str, key) => {
       if (key.ctrl && key.name === 'c') {
         stream.unpipe()
         console.log('Cancelling...')
-        fs.realpath(
-          filePath,
-          (err, realPath) =>
-            err
-              ? r.reject(err)
-              : (console.log(`realdest is ${realPath}`),
-              fs.unlink(realPath, err => {
-                if (err) throw err
-                console.log('path/file.txt was deleted')
-                process.exit()
-              }))
-        ) // process.exit()
+        fs.unlink(filePath, err => { // expect that filePath isn't a symlink
+          if (err) throw err
+          console.log('path/file.txt was deleted')
+          process.exit()
+        })
       }
     })
     console.log('Press ctrl+c to abort...')
   })
 
-// here's the old way of copying, its much slower and copies only file contents and loses all metadata!
+// streams is the old way of copying, its much slower and copies only file contents and loses all metadata,
+//  but has several advantages for us here: firstly it has hooks so we can cancel during copy, which won't
+//  leave a corrupt destination file (on windows of full size!). We'll need the true path of the destination
+//  in case we're pointing to a symlink
 const copyFileStream = (src, dest, remoteStat) =>
   readFile(src).chain(stream => writeFile(dest, stream))
 
-const copyFileStreamAttempt = (src, dest, remoteStat) => {
-  return task(r => {
-    var from = fs.createReadStream(src).pipe(to)
-    var to = fs.createWriteStream(dest).on('unpipe', function () {
-      fs.unlink(dest) // effectively deletes the file
-    })
-    to.on('finish', () => {
-      writeStream.close()
-      r.resolve(filePath)
-    })
-  })
-}
-
-const copyFileStreamREAL = (src, dest, remoteStat) => {
+const copyFileStreamFirstAttempt = (src, dest, remoteStat) => {
   const from = fs.createReadStream(src)
   const to = fs.createWriteStream(dest)
 

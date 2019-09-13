@@ -13,7 +13,7 @@ const {
   copyIfLocalNotFound,
   timeout
 } = require('./stateHandlers.js')
-
+const { getRealPath } = require('./checkFiles.js')
 const equal = (a, b) => a === b
 
 // give synctool only the LOCAL path, and a config file that tells it how to make the remotePath
@@ -32,17 +32,20 @@ const synctool = (localPath, configFileName) =>
           checkRemoteFile(remotePath)
             // remote exists
             .chain(remoteStat =>
-              checkLocalFile(localPath)
-                // the files in both places, check dest is smaller, or maybe they are same file
-                .chain(
-                  localStat =>
-                    equal(remoteStat.size, localStat.size) // filesize is equal, but check really same before deciding
-                      ? copyIfNotEqual(remotePath, localPath, remoteStat, localStat, config.timeTolerance) // prettier-ignore
-                      : copyIfLocalSmaller(localPath, remotePath, remoteStat, localStat)
-                )
-                /* we need to put a sad path on the happy path (failed local stat), we're now
+              // we potentially need the real local path now for fs methods in case a symlink is sitting at the localPath, but we DON'T want it when statting
+              getRealPath(localPath).chain(realLocalPath =>
+                checkLocalFile(localPath) // statting one more time
+                  .chain(
+                    localStat =>
+                      // the files in both places, check dest is smaller, or maybe they are same file
+                      equal(remoteStat.size, localStat.size) // filesize is equal, but check really same before deciding
+                        ? copyIfNotEqual(remotePath, realLocalPath, remoteStat, localStat, config.timeTolerance) // prettier-ignore
+                        : copyIfLocalSmaller(realLocalPath, remotePath, remoteStat, localStat)
+                  )
+                  /* we need to put a sad path on the happy path (failed local stat), we're now
                    * responsible for making sure that's why we got here */
-                .orElse(err => copyIfLocalNotFound(err, localPath, remotePath, remoteStat))
+                  .orElse(err => copyIfLocalNotFound(err, realLocalPath, remotePath, remoteStat))
+              )
             )
         )
     )
