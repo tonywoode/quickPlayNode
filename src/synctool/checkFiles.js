@@ -38,7 +38,7 @@ const getRealPath = filePath =>
       err
           ? r.resolve(filePath) // assume its not a symlink
         : ( 
-        console.log(`[synctool] destination is a symlink real path set to ${target}`), 
+        console.log(`[synctool] - destination is a symlink real path set to ${target}`), 
         r.resolve(target))
     })
   })

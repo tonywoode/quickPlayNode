@@ -66,7 +66,7 @@ const writeFile = (filePath, stream) =>
     process.stdin.on('keypress', (str, key) => {
       if (key.ctrl && key.name === 'c') {
         stream.unpipe()
-        console.log('[synctool] Cancelling...')
+        console.log('[synctool] - Cancelling...')
         // expect that filePath isn't a symlink
         fs.unlink(filePath, err => {
           err
@@ -92,8 +92,8 @@ const copyTimestamps = (path, sourceStat) =>
       sourceStat.mtime,
       err =>
         err
-          ? r.reject(`[synctool] copied ${path} but couldn't update timestamps from source`)
-          : (console.log(`[synctool] copied timestamps from source file`), r.resolve(true))
+          ? r.reject(`[synctool] - copied ${path} but couldn't update timestamps from source`)
+          : (console.log(`[synctool] - copied timestamps from source file`), r.resolve(true))
     )
   )
 

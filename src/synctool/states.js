@@ -1,7 +1,7 @@
 const taggedSum = require('daggy').taggedSum
 const quit = (code = 0) => process.exit(code)
 const errorAndQuit = err => {
-  console.log(`[synctool] error: ${err}`)
+  console.log(`[synctool] - error: ${err}`)
   quit(1)
 }
 const objPrint = obj => JSON.stringify(obj, null, 2)
