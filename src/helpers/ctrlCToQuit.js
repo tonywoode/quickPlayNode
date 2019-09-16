@@ -5,6 +5,7 @@
 // may cause issues with the process.exit see - https://stackoverflow.com/questions/14031763/doing-a-cleanup-action-just-before-node-js-exits
 module.exports = exitCode => {
   const message = '[QPNode] exiting...'
+  console.log("press ctrl+c (and wait a little while) to quit")
   if (process.platform === 'win32') {
     require('readline')
       .createInterface({

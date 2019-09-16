@@ -3,6 +3,7 @@ const { task } = require('folktale/concurrency/task')
 const crypto = require('crypto')
 const hashType = 'md5'
 const readline = require('readline')
+const ctrlCToQuit = require('../helpers/ctrlCToQuit.js')
 
 // String -> Task String String
 // https://github.com/h2non/jsHashes is an alternative, however any kind of hashing must read the WHOLE file so this isn't really acceptable without a good connection
@@ -124,8 +125,7 @@ const copy = (src, dest) =>
 // Path -> Path -> Stat -> Task Error _
 const copyFile = (src, dest, remoteStat) => {
   // TODO: if using copyFile, on windows ctrl+c may have a problem doing anything, fix that
-  const exitCodeZero = 0
-  require('../helpers/ctrlCToQuit.js')(exitCodeZero) // required for windows
+  const exitCodeZero = 0; ctrlCToQuit(exitCodeZero)
   return copy(src, dest).chain(_ => copyTimestamps(dest, remoteStat))
 }
 
