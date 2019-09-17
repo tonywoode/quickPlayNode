@@ -4,12 +4,13 @@ const crypto = require('crypto')
 const hashType = 'md5'
 const readline = require('readline')
 const ctrlCToQuit = require('../helpers/ctrlCToQuit.js')
+const log = msg => console.log(`[synctool] - ${msg}`)
 
 // String -> Task String String
 // https://github.com/h2non/jsHashes is an alternative, however any kind of hashing must read the WHOLE file so this isn't really acceptable without a good connection
 const fileHash = filePath =>
   task(r => {
-    console.log(`[synctool] - generating ${hashType} hash for ${filePath}`)
+    log(`generating ${hashType} hash for ${filePath}`)
     const hash = crypto.createHash(hashType)
     const stream = fs.createReadStream(filePath, { autoClose: true })
     stream.on(`data`, data => hash.update(data, `utf8`))
@@ -26,7 +27,7 @@ const mkdirRecursive = folderPath =>
       err =>
         err
           ? r.reject(err)
-          : (console.log(`[synctool] - ensured dir path: ${folderPath}`), r.resolve(true))
+          : (log(`ensured dir path: ${folderPath}`), r.resolve(true))
     )
   )
 
@@ -66,7 +67,7 @@ const writeFile = (filePath, stream) =>
     process.stdin.on('keypress', (str, key) => {
       if (key.ctrl && key.name === 'c') {
         stream.unpipe()
-        console.log('[synctool] - Cancelling...')
+        log(`Cancelling...`)
         // expect that filePath isn't a symlink
         fs.unlink(filePath, err => {
           err
@@ -93,7 +94,7 @@ const copyTimestamps = (path, sourceStat) =>
       err =>
         err
           ? r.reject(`[synctool] - copied ${path} but couldn't update timestamps from source`)
-          : (console.log(`[synctool] - copied timestamps from source file`), r.resolve(true))
+          : (log(`copied timestamps from source file`), r.resolve(true))
     )
   )
 
@@ -115,7 +116,7 @@ const copy = (src, dest) =>
       err =>
         err
           ? r.reject(`[synctool] - copy failed: ${err}`)
-          : (console.log(`[synctool] - data copy succeeded: ${dest}`), r.resolve(dest))
+          : (log(`data copy succeeded: ${dest}`), r.resolve(dest))
     )
   )
 
@@ -124,6 +125,7 @@ const copy = (src, dest) =>
  * and forget about progress in anything that uses fs.copyFile https://github.com/sindresorhus/cp-file/issues/18#issuecomment-327860860 */
 // Path -> Path -> Stat -> Task Error _
 const copyFile = (src, dest, remoteStat) => {
+  log(`copying:\n ${src} \n to \n ${dest} \n file is ${humanFileSize(remoteStat.size)}`)
   // TODO: if using copyFile, on windows ctrl+c may have a problem doing anything, fix that
   const exitCodeZero = 0; ctrlCToQuit(exitCodeZero)
   return copy(src, dest).chain(_ => copyTimestamps(dest, remoteStat))

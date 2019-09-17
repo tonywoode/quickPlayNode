@@ -3,7 +3,7 @@ const { dirname } = require('path')
 const { of, rejected, task } = require('folktale/concurrency/task')
 const { Ends, end } = require('./states.js')
 const { inputEmpty, checkRequire, isConfigValid, getSubDir } = require('./processInput.js')
-const { mkdirRecursive, copyFile, copyFileStream, humanFileSize } = require('./copyFile.js')
+const { mkdirRecursive, copyFile, copyFileStream } = require('./copyFile.js')
 const { stat, isFile } = require('./checkFiles.js')
 const log = msg => console.log(`[synctool] - ${msg}`)
 const checkLocalPath = localPath => {
@@ -106,28 +106,22 @@ const copyIfNotEqual = (remotePath, localPath, remoteStat, localStat, config) =>
   const max = localStat.mtimeMs + timeTolerance
   return remoteStat.mtimeMs >= min && remoteStat.mtimeMs <= max
     ? end(Ends.FilesAreEqual(localPath, remotePath, localStat.mtime))
-    : (log(
-      `files aren't exactly the same, copying remote to local... - file is ${humanFileSize(
-        remoteStat.size
-      )}`
-    ),
+    : (log(`files aren't exactly the same, copying remote to local...`),
     copyFileAndPath(remotePath, localPath, remoteStat, config))
 }
 
 // Path -> Path -> Stat -> Stat -> Task Error _
 const copyIfLocalSmaller = (localPath, remotePath, remoteStat, localStat, config) =>
   larger(remoteStat.size, localStat.size)
-    ? (log(`copying ${remotePath} to ${localPath} - file is ${humanFileSize(remoteStat.size)}`),
+    ? (log(`local file is smaller, copying...`),
     copyFileAndPath(remotePath, localPath, remoteStat, config))
     : end(Ends.LocalFileLarger(localPath, localStat.size, remotePath, remoteStat.size))
 
 // Error -> Path -> Path -> Stat -> Task Error _
 const copyIfLocalNotFound = (err, localPath, remotePath, remoteStat, config) =>
   err.includes('ENOENT')
-    ? (log(`file appears remote but not local: ${err}`),
-    // try to copy the file: its remote and cant be seen locally
-    log(`copying ${remotePath} to ${localPath} - file is ${humanFileSize(remoteStat.size)}`),
-    // first we'll need to make the appropriate path
+    ? (log(`file appears remote but not local (because error is: ${err})`),
+    // try to copy the file: its remote and cant be seen locally,first we'll need to make the appropriate path
     copyFileAndPath(remotePath, localPath, remoteStat, config))
     : rejected(err)
 
