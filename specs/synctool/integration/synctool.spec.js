@@ -18,6 +18,8 @@ const folderName = 'folder'
 const nestedFolderName = 'anotherFolder'
 const existingFolderName = 'existingFolder'
 
+// Decided to use fixtures instead of mockfs after >1 issue with mockfs, it might
+//  have been fine for here, i was just annoyed....
 describe('synctool: Integration Tests', () => {
   // clear up all the files we copied
   after(() => {

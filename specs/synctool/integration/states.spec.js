@@ -1,7 +1,7 @@
 const mock = require('mock-fs')
 const path = require('path')
 const join = (...paths) => path.join(...paths)
-const { synctool } = require('../../src/synctool/index.js')
+const { synctool } = require('../../../src/synctool/index.js')
 const localRoot = 'the/local/root'
 const remoteRoot = 'the/remote/root'
 const pathToConfig = 'synctool_config.json'
