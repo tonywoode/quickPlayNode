@@ -7,10 +7,12 @@ const newError = msg => {
 }
 const mountPath = join('specs', 'synctool', 'integration')
 const localRoot = 'localRoot'
+const remoteRoot = 'remoteRoot'
 const configFileName = 'integrationTestConfigFile.json'
 const badConfigFileName = 'integrationTestConfigFileNoLocal.json'
 
 const fileName = '1MegFile'
+const fileNameMtime = '1MegFileMtime'
 const sameFileName = '1MegSameFile'
 const localIsLargerFile = 'localIsLarger'
 const localIsSameSizeButDifferentFile = 'Different'
@@ -24,6 +26,9 @@ describe('synctool: Integration Tests', () => {
   // clear up all the files we copied
   after(() => {
     fs.unlink(join(mountPath, localRoot, fileName), err =>
+      console.error(`cleanup unlink errors are: ${err}`)
+    )
+    fs.unlink(join(mountPath, localRoot, fileNameMtime), err =>
       console.error(`cleanup unlink errors are: ${err}`)
     )
     fs.unlink(join(mountPath, localRoot, folderName, fileName), err =>
@@ -70,6 +75,34 @@ describe('synctool: Integration Tests', () => {
         .listen({
           onRejected: rej => newError(`copyFile should have succeeded: ${rej}`),
           onResolved: res => expect(res).to.be.true && done()
+        })
+    })
+
+    it('copies timestamps on a successful copy', done => {
+      synctool(join(mountPath, localRoot, fileNameMtime), join(mountPath, configFileName))
+        .run()
+        .listen({
+          onRejected: rej => newError(`copyFile should have succeeded: ${rej}`),
+          onResolved: res => {
+            fs.stat(
+              join(mountPath, remoteRoot, fileNameMtime),
+              (err, remoteStat) =>
+                err
+                  ? newError(`couldn't stat the remote text fixture in the timestamp test`)
+                  : fs.stat(
+                    join(mountPath, localRoot, fileNameMtime),
+                    (err, localStat) =>
+                      err
+                        ? newError(
+                          `couldn't stat the local text fixture in the timestamp test`
+                        )
+                        : expect(
+                          remoteStat.mtime.toString(),
+                          'modified times against each file should be equal'
+                        ).to.equal(localStat.mtime.toString()) && done()
+                  )
+            )
+          }
         })
     })
 
@@ -143,22 +176,23 @@ describe('synctool: Integration Tests', () => {
           onResolved: res => newError(`copySameFile should have failed: ${res}`)
         })
     })
-  })
 
-  it('copies if local is same size but different', done => {
-    synctool(
-      join(mountPath, localRoot, localIsSameSizeButDifferentFile),
-      join(mountPath, configFileName)
-    )
-      .run()
-      .listen({
-        onRejected: rej => newError(`copy different file should have succeeded: ${rej}`),
-        onResolved: res => expect(res).to.be.true && done()
-      })
+    it('copies if local is same size but different', done => {
+      synctool(
+        join(mountPath, localRoot, localIsSameSizeButDifferentFile),
+        join(mountPath, configFileName)
+      )
+        .run()
+        .listen({
+          onRejected: rej => newError(`copy different file should have succeeded: ${rej}`),
+          onResolved: res => expect(res).to.be.true && done()
+        })
+    })
+
+    // should check checksums after copying?
+    // should report if there's an error during copy
+    // should overwrite existing files
+    // should refuse on directories?!?
+    // should report if read or write denied
   })
-  // should check checksums after copying?
-  // should report if there's an error during copy
-  // should overwrite existing files
-  // should refuse on directories?!?
-  // should report if read or write denied
 })
