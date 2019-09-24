@@ -18,24 +18,27 @@ const R = require('ramda')
    *   the softlist emulator definitions to include these calls instead, and introduce a 'mamename' emulator for each system
    *   for standard calls */
 
-const makeOtherSoftlists = (softlistParams, log) => {
+const makeOtherSoftlists = (softlistParams, list, log) => {
   let originalOtherSoftlists = []
-  //don't do work if there are no other softlists
-  if (softlistParams.thisEmulator.otherSoftlists.length) { 
+  let filteredOtherSoftlists = []
+  //don't do work if there are no other softlists, or if we didn't make a list of other game names
+  if (softlistParams.thisEmulator.otherSoftlists.length && softlistParams.otherGameNames) { 
     if (log.otherGameNames) {
       console.log(`   ----> ${softlistParams.thisEmulator.name} other softlists: ${R.keys(softlistParams.otherGameNames)}`)
     }
     //remove the 'compatible' softlists for this system
     const isOriginal = softlist => softlist.status === `original`
     originalOtherSoftlists = R.pluck('name', R.filter(isOriginal, softlistParams.thisEmulator.otherSoftlists))
+    const nameIsInMyFilteredSoftlistList = name => !!list[name]
+    filteredOtherSoftlists = originalOtherSoftlists.filter(nameIsInMyFilteredSoftlistList, originalOtherSoftlists )
     if (log.otherGameNames) {
-      originalOtherSoftlists.length?  
-        console.log(`        ----> ${softlistParams.thisEmulator.name}: Original softlists ${originalOtherSoftlists}`) 
+      filteredOtherSoftlists.length?  
+        console.log(`        ----> ${softlistParams.thisEmulator.name}: Filtered Original softlists ${filteredOtherSoftlists}`) 
        : 
-        console.log(`      ----> ${softlistParams.thisEmulator.name}: No Original Softlists`)
+        console.log(`      ----> ${softlistParams.thisEmulator.name}: No Filtered Original Softlists`)
     }
   }
-  return originalOtherSoftlists
+  return filteredOtherSoftlists
 }
 
 

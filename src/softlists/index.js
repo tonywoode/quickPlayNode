@@ -23,19 +23,23 @@ const softlists = (settings, jsonOutPath, hashDir, outputDir, log) => {
   
   //program flow at emu level
   const  makeSoftlists = settings => emuSystems => {
-    R.map(emu => {
+    //we need some details from the filtered sofware list, R.map hides the parent list somewhere whilst iterating...
+    // list serves the purpose of passing the filtered lists of software lists down to the 'other game name' functioanlity later
+      // TODO: check duplicate info being created from that list in softlistParams
+    const mapWithRef = R.addIndex(R.map) //adds the list as well as the index like js's map
+    mapWithRef( (emu, index, list) => {
           const softlistParams = makeParams(settings, hashDir, outputDir, emu)
           readSoftlistXML(softlistParams.xml, (err, softlist) => {
             err && (console.error(err))
             const cleanedSoftlist = cleanSoftlist(softlist)
-            readOtherSoftlistNames(hashDir, emu, log, thisSoftlistsOtherGameNames => {
+            readOtherSoftlistNames(hashDir, emu, log, list, thisSoftlistsOtherGameNames => {
               let softlistParamsPlusNames = softlistParams //TODO: done to not make an empty object key if there arent otherSoftlists
               R.isEmpty(thisSoftlistsOtherGameNames) || (
                   log.otherSoftlists && 
                     console.log(`Made otherGames list for ${emu.name}: ${JSON.stringify(thisSoftlistsOtherGameNames, null, '')}`)
                 , softlistParamsPlusNames = R.assoc( `otherGameNames`, thisSoftlistsOtherGameNames, softlistParams) 
               )
-              printSoftlistRomdata(settings, softlistParamsPlusNames, cleanedSoftlist, log)
+              printSoftlistRomdata(settings, softlistParamsPlusNames, cleanedSoftlist, list, log)
             })
           })
         }, emuSystems)

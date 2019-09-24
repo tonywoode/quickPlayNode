@@ -8,7 +8,7 @@ const setRegionalEmu       = require('./setRegionalEmu.js')
 const {makeOtherSoftlists, doWeNeedToSpecifyDevice} = require('./otherGameNames')
 const {makeParameters}     = require('./otherGameNames')
 
-module.exports = (settings, softlistParams, softlist, log) => {
+module.exports = (settings, softlistParams, softlist, list, log) => {
 
   //don't make a dat or folder if all of the games for a softlist aren't supported
   if (!softlist.length) { 
@@ -57,7 +57,8 @@ module.exports = (settings, softlistParams, softlist, log) => {
   /* Before we can decide whether we have a gamename conflict with another softlist for this system, we need to make
    *  a list of the other applicable softlists to check against. Done outside of the object loop in 
    *  applyRomdata as we only want it to run once per softlist */
-  const originalOtherSoftlists = makeOtherSoftlists(softlistParams, log)
+   //had to pass 'list' in here to retain info on which softlists have no hash files, TODO: tidy up: softlistParams and list contain duplicate info
+  const originalOtherSoftlists = makeOtherSoftlists(softlistParams, list, log)
 
   //sets the variables for a line of romdata entry for later injection into a romdata printer
   const applyRomdata = (obj, settings)  => R.map( obj => {

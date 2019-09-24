@@ -7,19 +7,19 @@ const _throw    = m => { throw new Error(m) }
 
 const readGameNamesFromXML = require('../readGameNamesFromXML.js')
 
-module.exports = (hashDir, softlist, log, callback) => {
+module.exports = (hashDir, softlist, log, list, callback) => {
   const otherSoftlistDevices = []
   //todo: actually we aren't taking the game names from ALL softlists - maybe that would be quicker?
   const thisSoftlistsOtherGameNames = {}
-  R.map( emu => otherSoftlistDevices.push(emu.name), softlist.otherSoftlists)
-
-
+  //make a list of the other softlists for this system, but don't bother including softlists already filtered out
+  R.map( emu => emu.name in list && otherSoftlistDevices.push(emu.name), softlist.otherSoftlists)
   if (otherSoftlistDevices.length) { 
     if (log.otherSoftlists) console.log(`${softlist.name} on same system: ${JSON.stringify(otherSoftlistDevices)}`)
     var num = 0
     R.map( name => {
-      fs.existsSync(`${hashDir}${name}.xml`) || 
-        _throw(`was asked to read names from invalid softlist ${hashDir}${name}.xml - is your hash directory ok and up-to-date with your mame xml?`)
+      //since we're now adhering to 'list' the filter that created that already did the below check
+      //fs.existsSync(`${hashDir}${name}.xml`) || 
+        //_throw(`was asked to read names from invalid softlist ${hashDir}${name}.xml - these should have been filtered out before this point?`)
       const stream = fs.createReadStream(`${hashDir}${name}.xml`)
       const xml    = new XmlStream(stream)
       readGameNamesFromXML(xml, name, softlist, (err, names) => {
