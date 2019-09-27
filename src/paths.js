@@ -20,6 +20,8 @@ module.exports = (settingsIniPath, mameInisOverridePath ) => {
     , mfmTextFileInPath : s.MameFileManagerFilePath
     , mameExtrasPath    : s.MameExtrasPath 
     , winIconDir        : `${s.MameExtrasPath}\\icons`
+    , mameFilePaths     : s.MameFilePaths
+    , mameZipType       : s.MameZipType
     , mameExe           : s.MametoolMameExeName
     , mameExePath       : s.MametoolMameExePath
     , iniDir            : mameInisOverridePath? mameInisOverridePath : `${s.MameExtrasPath}\\folders`

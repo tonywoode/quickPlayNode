@@ -6,6 +6,7 @@ const _throw = m => {
   throw new Error(m)
 }
 const util = require('util')
+const ini = require('ini')
 
 const paths = require('./paths.js')
 // these two are used by multiple modules and are being passed in as dependecies
@@ -78,7 +79,8 @@ if (!process.argv.slice(2).length) {
 }
 
 if (program.synctoolEnable) {
-  synctoolEnable(configFileName).run()
+  synctoolEnable(configFileName)
+    .run()
     .listen({
       onRejected: rej => {
         console.error(rej)
@@ -166,6 +168,61 @@ MAME exe path:          ${settings.mameExePath}`
     : `${mameEmuDir}\\hash\\`
   const hashDir = devMode ? `${devInputsDir}/hash/` : liveHashDir
 
+  // determine the location of the mame.ini, this is only for printing filepaths, we just print a default if anything goes wrong...
+  if (settings.mameFilePaths) {
+    settings.mameRoms = ''
+    settings.mameChds = ''
+    settings.mameSoftwareListRoms = ''
+    settings.mameSoftwareListChds = ''
+    const standardMameIniPath = path.join(mameEmuDir, `./mame.ini`)
+    const mameIniPath = devMode
+      ? `./mame.ini`
+      : fs.existsSync(standardMameIniPath) ? standardMameIniPath : ''
+    const getMamePath = () => {
+      try {
+        const mameIni = fs.readFileSync(mameIniPath, 'utf-8')
+        const match = /^rompath\s+(.*)$/m.exec(mameIni)
+        const quotesRemoved = match[1].replace(/^["'](.*)["']$/, '$1')
+        return quotesRemoved
+      } catch {
+        return ''
+      }
+    }
+
+    const mameRomPath = mameIniPath ? getMamePath() : ''
+    console.log(mameRomPath)
+    const romPathSplit = mameRomPath.split(';')
+    console.log(romPathSplit)
+    if (mameRomPath) {
+      if (romPathSplit.length === 1) {
+        console.log('we have only one result make it all the params')
+        console.log(romPathSplit[0])
+        settings.mameRoms = romPathSplit[1]
+        settings.mameChds = ''
+        settings.mameSoftwareListRoms = ''
+        settings.mameSoftwareListChds = ''
+      } else {
+        console.log(romPathSplit[0])
+        const romsRegex = /^.*\\ROMS$/i
+        const chdsRegex = /^.*\\CHDs$/i
+        const softListRomsRegex = /^.*\\Software List ROMS$/i
+        const softListChdsRegex = /^.*\\Software List CHDs$/i
+        console.log(romsRegex.test(romPathSplit[0]))
+        romPathSplit.forEach(rompath => {
+          romsRegex.test(rompath) && (settings.mameRoms = rompath)
+          chdsRegex.test(rompath) && (settings.mameChds = rompath)
+          softListRomsRegex.test(rompath) && (settings.mameSoftwareListRoms = rompath)
+          softListChdsRegex.test(rompath) && (settings.mameSoftwareListChds = rompath)
+        })
+      }
+    }
+    
+    console.log(`mame roms is set to ${settings.mameRoms}`)
+    console.log(`mame chds is set to ${settings.mameChds}`)
+    console.log(`mame software list roms is set to ${settings.mameSoftwareListRoms}`)
+    console.log(`mame software list chds is set to ${settings.mameSoftwareListChds}`)
+  }
+  process.exit()
   // TODO: promisify these so you can run combinations
   program.scan && scan(settings, jsonOutPath, qpIni, efindOutPath, datInPath, datOutPath, log)
   program.mfm && mfm(settings, readMameJson, jsonOutPath, generateRomdata, outputDir)
