@@ -137,6 +137,7 @@ MAME exe path:          ${settings.mameExePath}`
     // these probably should be printed to the user
     printer: true, // prints softlist names as syncrhonously printed, leave on
     fileProblems: true, // as of mame 187, there is persistently one file missing in mame's hash: 'squale'
+    printFilePaths: true,
     // these probably shouldn't
     deviceProblems: false,
     otherSoftlists: false,
