@@ -45,6 +45,8 @@ const makeSystems = (mameXMLStream, nodeback) => {
       arcadeNode.status         = machine.driver.$.status
       arcadeNode.savestate      = machine.driver.$.savestate
       if (machine.softwarelist) arcadeNode.hasSoftwarelist = true
+      if (machine.rom) arcadeNode.hasRom = true
+      if (machine.disk) arcadeNode.chdname = machine.disk.$.name //assumes there's only one chd
       arcade.push(arcadeNode)
     }
 

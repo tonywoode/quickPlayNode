@@ -222,7 +222,7 @@ MAME exe path:          ${settings.mameExePath}`
     console.log(`mame software list roms is set to ${settings.mameSoftwareListRoms}`)
     console.log(`mame software list chds is set to ${settings.mameSoftwareListChds}`)
   }
-  process.exit()
+
   // TODO: promisify these so you can run combinations
   program.scan && scan(settings, jsonOutPath, qpIni, efindOutPath, datInPath, datOutPath, log)
   program.mfm && mfm(settings, readMameJson, jsonOutPath, generateRomdata, outputDir)
