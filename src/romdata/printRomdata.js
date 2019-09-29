@@ -72,7 +72,7 @@ const printRomdataFolder = (romdataOutDir, mameExtrasDir, iconName, rootDir) => 
 
 // makes and prints a romdata using all the above
 const generateRomdata = (romdataOutDir, settings, rootDir) => mameJson => {
-    const mameRomdata  = makeRomdata(settings.mameExe)(mameJson)
+    const mameRomdata  = makeRomdata(settings)(mameJson)
     const emuIcon = settings.isItRetroArch? `RetroArch` : `Mame`
     //for testing we must stub the exported fn https://stackoverflow.com/a/35754124/3536094
     const romdata = module.exports.printRomdataFolder(romdataOutDir, settings.winIconDir, emuIcon, rootDir)(mameRomdata)

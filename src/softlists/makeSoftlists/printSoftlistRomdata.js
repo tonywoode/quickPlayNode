@@ -19,9 +19,9 @@ module.exports = (settings, softlistParams, softlist, list, log) => {
   log.printer && console.log(`INFO: printing softlist for ${softlistParams.name}`)
   const romdataHeader = `ROM DataFile Version : 1.1`
   const path = `./qp.exe` //we don't need a path for softlist romdatas, they don't use it, we just need to point to a valid file
-  const romdataLine = ({name, MAMEName, parentName, path, emu, company, year, parameters, comment}, isItRetroArch) => { 
-    const callToEmu = isItRetroArch?  `Retroarch ${emu} (MAME)` : `MAME ${emu}` 
-    const possiblyRetroArchParameters = (parameters && isItRetroArch)?  `-L cores\\mame_libretro.dll " ${parameters}"` : parameters
+  const romdataLine = ({name, MAMEName, parentName, path, emu, company, year, parameters, comment}, settings) => { 
+    const callToEmu = settings.isItRetroArch?  `Retroarch ${emu} (MAME)` : `MAME ${emu}` 
+    const possiblyRetroArchParameters = (parameters && settings.isItRetroArch)?  `-L cores\\mame_libretro.dll " ${parameters}"` : parameters
     return  `${name}¬${MAMEName}¬${parentName}¬¬${path}¬${callToEmu}`
     + `¬${company}¬${year}¬¬¬¬${possiblyRetroArchParameters}¬${comment}¬0¬1¬<IPS>¬</IPS>¬¬¬` 
   }
@@ -84,7 +84,7 @@ module.exports = (settings, softlistParams, softlist, list, log) => {
     })}${makeFeature(obj[`part`])}` 
       
    }
-   return romdataLine(romParams, settings.isItRetroArch)
+   return romdataLine(romParams, settings)
   }, softlist)
 
   const romdata        = applyRomdata(softlist, settings)

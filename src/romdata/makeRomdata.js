@@ -2,7 +2,7 @@
 
 const  R  = require('ramda')
 
-const makeRomdata = mameEmu => mameJson => {
+const makeRomdata = settings => mameJson => {
   const romdataHeader = `ROM DataFile Version : 1.1`
   const path = `./qp.exe` //we don't need a path for mame roms, they don't use it, we just need to point to a valid file
   const mameRomdataLine = ({name, MAMEName, parentName, path, emu, company, year, gameType, rating, language, comment, players}) => ( 
@@ -23,7 +23,7 @@ const makeRomdata = mameEmu => mameJson => {
       , MAMEName    : obj.call
       , parentName  : obj.cloneof || ``
       , path
-      , emu         : `${mameEmu}` 
+      , emu         : `${settings.mameExe}` 
       , company     : obj.company.replace(/[^\x00-\x7F]/g, ``)
       , year        : obj.year
       , gameType    : obj.catlist|| obj.category|| obj.genre|| ``
