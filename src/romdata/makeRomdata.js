@@ -1,10 +1,10 @@
 'use strict'
-
+const path = require('path')
 const  R  = require('ramda')
 
 const makeRomdata = settings => mameJson => {
   const romdataHeader = `ROM DataFile Version : 1.1`
-  const path = `./qp.exe` //we don't need a path for mame roms, they don't use it, we just need to point to a valid file
+  const noPath = `./qp.exe` //we don't need a path for mame roms, they don't use it, we just need to point to a valid file
   const mameRomdataLine = ({name, MAMEName, parentName, path, emu, company, year, gameType, rating, language, comment, players}) => ( 
       `${name}¬${MAMEName}¬${parentName}¬¬${path}¬${emu}`
     + `¬${company}¬${year}¬${gameType}¬${rating}¬${language}¬¬${comment}¬0¬1¬<IPS>¬</IPS>¬${players}¬¬`
@@ -18,11 +18,28 @@ const makeRomdata = settings => mameJson => {
  //sets the variables for a line of romdata entry for later injection into a romdata printer
   const applyRomdata = mameJson  => R.map( obj => {
 
+    const calculatePath = () => {
+
+    if (settings.mameFilePaths) {
+      if (obj.chdname && settings.mameChds) {
+        if (obj.hasRom) { console.log(`MAMECHDs: ` + 
+            path.join(settings.mameRoms, `${obj.call}.${settings.mameZipType}`) + 
+            ` will need to exist before ${obj.chdname} will run`) }
+        return path.join(settings.mameChds, obj.call, `${obj.chdname}.chd`)
+      } else if (!obj.chdname && obj.hasRom) {
+        return path.join(settings.mameRoms, `${obj.call}.${settings.mameZipType}`)
+      } else {
+        return noPath
+      }
+    }
+      else return noPath
+    }
+
     const romParams = {
         name        : obj.system.replace(/[^\x00-\x7F]/g, ``) //in case of japanese
       , MAMEName    : obj.call
       , parentName  : obj.cloneof || ``
-      , path
+      , path        : calculatePath()
       , emu         : `${settings.mameExe}` 
       , company     : obj.company.replace(/[^\x00-\x7F]/g, ``)
       , year        : obj.year
