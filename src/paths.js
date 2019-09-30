@@ -21,6 +21,7 @@ module.exports = (settingsIniPath, mameInisOverridePath ) => {
     , mameExtrasPath    : s.MameExtrasPath 
     , winIconDir        : `${s.MameExtrasPath}\\icons`
     , mameFilePaths     : s.MameFilePaths
+    , MameFilePathsRomsType :s.MameFilePathsRomsType
     , mameZipType       : s.MameZipType
     , mameExe           : s.MametoolMameExeName
     , mameExePath       : s.MametoolMameExePath

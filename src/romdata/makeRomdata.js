@@ -20,14 +20,17 @@ const makeRomdata = settings => mameJson => {
 
     const calculatePath = () => {
 
+    //we do have romof at this point as well as cloneof if that helps...
+    const romName = (settings.MameFilePathsRomsType.match(/^Merged$/i)) && obj.cloneof? obj.cloneof : obj.call
+
     if (settings.mameFilePaths) {
       if (obj.chdname && settings.mameChds) {
         if (obj.hasRom) { console.log(`MAMECHDs: ` + 
-            path.join(settings.mameRoms, `${obj.call}.${settings.mameZipType}`) + 
+            path.join(settings.mameRoms, `${romName}.${settings.mameZipType}`) + 
             ` will need to exist before ${obj.chdname} will run`) }
-        return path.join(settings.mameChds, obj.call, `${obj.chdname}.chd`)
+        return path.join(settings.mameChds, romName, `${obj.chdname}.chd`)
       } else if (!obj.chdname && obj.hasRom) {
-        return path.join(settings.mameRoms, `${obj.call}.${settings.mameZipType}`)
+        return path.join(settings.mameRoms, `${romName}.${settings.mameZipType}`)
       } else {
         return noPath
       }
