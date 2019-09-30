@@ -1,6 +1,7 @@
 'use strict'
 
 const fs                   = require('fs')
+const path                 = require('path')
 const mkdirp               = require('mkdirp')
 const R                    = require('ramda')
 
@@ -18,7 +19,7 @@ module.exports = (settings, softlistParams, softlist, list, log) => {
 
   log.printer && console.log(`INFO: printing softlist for ${softlistParams.name}`)
   const romdataHeader = `ROM DataFile Version : 1.1`
-  const path = `./qp.exe` //we don't need a path for softlist romdatas, they don't use it, we just need to point to a valid file
+  const noPath = `./qp.exe` //we don't need a path for softlist romdatas, they don't use it, we just need to point to a valid file
   const romdataLine = ({name, MAMEName, parentName, path, emu, company, year, parameters, comment}, settings) => { 
     const callToEmu = settings.isItRetroArch?  `Retroarch ${emu} (MAME)` : `MAME ${emu}` 
     const possiblyRetroArchParameters = (parameters && settings.isItRetroArch)?  `-L cores\\mame_libretro.dll " ${parameters}"` : parameters
@@ -63,6 +64,22 @@ module.exports = (settings, softlistParams, softlist, list, log) => {
   //sets the variables for a line of romdata entry for later injection into a romdata printer
   const applyRomdata = (obj, settings)  => R.map( obj => {
 
+    const calculatePath = () => {
+      if (settings.mameFilePaths) {
+        const weHaveMergedRoms = settings.mameFilePathsRomsType.toLowerCase() === 'Merged'.toLowerCase()
+        const romName = weHaveMergedRoms && obj.cloneof? obj.cloneof : obj.call
+        //atm the best we can do is ask if the first thing in the box is a cdrom'
+        if (obj.part[0] && obj.part[0].chdname && settings.mameSoftwareListChds) {
+          if (obj.part[1]){ console.log(`${obj.name} in ${softlistParams.name} has other media, we're only printing the first chd: ${JSON.stringify(obj.part, null,2)}`)}
+          return path.join(settings.mameSoftwareListChds, softlistParams.name, romName, `${obj.part[0].chdname}.chd`)
+        } else if (settings.mameSoftwareListRoms) {
+          return path.join(settings.mameSoftwareListRoms, softlistParams.name, `${romName}.${settings.mameZipType}`)
+        } else {
+          return noPath
+        }
+      }
+    }
+
     const emuWithRegionSet = setRegionalEmu(log, obj.name, softlistParams.thisEmulator, softlistParams.thisEmulator.regions)
 
     //TODO: to catch that situation where some c64 games have both a cart and a disk, you could send the part names of all the parts that make up the softlist item here, not just the first one
@@ -73,7 +90,7 @@ module.exports = (settings, softlistParams, softlist, list, log) => {
       name        : obj.name.replace(/[^\x00-\x7F]/g, "") //remove japanese
     , MAMEName    : obj.call
     , parentName  : obj.cloneof?  obj.cloneof : ``
-    , path
+    , path        : calculatePath()
     , emu         : emuWithRegionSet.emulatorName //we can't just use the default emu as many system's games are region locked. Hence all the regional code!
     , company     : obj.company.replace(/[^\x00-\x7F]/g, "")
     , year        : obj.year

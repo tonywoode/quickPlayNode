@@ -20,7 +20,7 @@ const makeRomdata = settings => mameJson => {
 
     const calculatePath = () => {
       if (settings.mameFilePaths) {
-        const weHaveMergedRoms = settings.MameFilePathsRomsType.match(/^Merged$/i)
+        const weHaveMergedRoms = settings.mameFilePathsRomsType.toLowerCase() === 'Merged'.toLowerCase()
         const romName = weHaveMergedRoms && obj.cloneof? obj.cloneof : obj.call
         // one day maybe it might help to be able to detect bioses and feature sets needed, i think romof tells you bios sets
         if ( (weHaveMergedRoms) && (obj.cloneof !== obj.romof) ) { console.log(`BIOS Reminder: ${obj.call} will also need ${obj.romof} to run`)}
