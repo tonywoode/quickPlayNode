@@ -9,8 +9,8 @@ const R = require('ramda')
 module.exports = softlist => {
   //I removed destructuring elsewhere but here the object isn't going to grow
   const cleanPairs = (key, name, value)  => R.map( ({ $ }) => ( ({ [name]:$.name, [value]:$.value }) ) , key )
-  //TODO: overly specific and there's a better way than to map/destructure
-  const cleanPart = partKey => R.map( ({ feature, $ }) => ( ({ feature, name:$.name, interface:$.interface }) ) , partKey )
+  //TODO: overly specific and there's a better way than to map/destructure, beginning to feel like an irritating aesthetic gatekeeper?
+  const cleanPart = partKey => R.map( ({ feature, $, diskarea }) => ( ({ feature, name:$.name, interface:$.interface, chdname: diskarea? diskarea.disk.$.name : '' }) ) , partKey )
   
   const replacePart = list => R.map( obj => R.assoc(`part`, cleanPart(obj.part), obj), list)
 

@@ -63,13 +63,13 @@ module.exports = (settings, softlistParams, softlist, list, log) => {
   //sets the variables for a line of romdata entry for later injection into a romdata printer
   const applyRomdata = (obj, settings)  => R.map( obj => {
 
-  const emuWithRegionSet = setRegionalEmu(log, obj.name, softlistParams.thisEmulator, softlistParams.thisEmulator.regions)
+    const emuWithRegionSet = setRegionalEmu(log, obj.name, softlistParams.thisEmulator, softlistParams.thisEmulator.regions)
 
-  //TODO: to catch that situation where some c64 games have both a cart and a disk, you could send the part names of all the parts that make up the softlist item here, not just the first one
-  const parameters = doWeNeedToSpecifyDevice(originalOtherSoftlists, obj.call, softlistParams, log)? 
+    //TODO: to catch that situation where some c64 games have both a cart and a disk, you could send the part names of all the parts that make up the softlist item here, not just the first one
+    const parameters = doWeNeedToSpecifyDevice(originalOtherSoftlists, obj.call, softlistParams, log)? 
       makeParameters(emuWithRegionSet.call, softlistParams.name, softlistParams.thisEmulator.loaderCall, obj.part[0].name, log) : ``
 
-  const romParams = {
+    const romParams = {
       name        : obj.name.replace(/[^\x00-\x7F]/g, "") //remove japanese
     , MAMEName    : obj.call
     , parentName  : obj.cloneof?  obj.cloneof : ``
@@ -83,8 +83,8 @@ module.exports = (settings, softlistParams, softlist, list, log) => {
       , sharedFeat: obj.sharedFeat
     })}${makeFeature(obj[`part`])}` 
       
-   }
-   return romdataLine(romParams, settings)
+    }
+    return romdataLine(romParams, settings)
   }, softlist)
 
   const romdata        = applyRomdata(softlist, settings)
