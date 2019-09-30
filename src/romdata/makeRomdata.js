@@ -19,22 +19,23 @@ const makeRomdata = settings => mameJson => {
   const applyRomdata = mameJson  => R.map( obj => {
 
     const calculatePath = () => {
+      if (settings.mameFilePaths) {
+        const weHaveMergedRoms = settings.MameFilePathsRomsType.match(/^Merged$/i)
+        const romName = weHaveMergedRoms && obj.cloneof? obj.cloneof : obj.call
+        // one day maybe it might help to be able to detect bioses and feature sets needed, i think romof tells you bios sets
+        if ( (weHaveMergedRoms) && (obj.cloneof !== obj.romof) ) { console.log(`BIOS Reminder: ${obj.call} will also need ${obj.romof} to run`)}
 
-    //we do have romof at this point as well as cloneof if that helps...
-    const romName = (settings.MameFilePathsRomsType.match(/^Merged$/i)) && obj.cloneof? obj.cloneof : obj.call
-
-    if (settings.mameFilePaths) {
-      if (obj.chdname && settings.mameChds) {
-        if (obj.hasRom) { console.log(`MAMECHDs: ` + 
+        if (obj.chdname && settings.mameChds) {
+          if (obj.hasRom) { console.log(`MAMECHDs: ` + 
             path.join(settings.mameRoms, `${romName}.${settings.mameZipType}`) + 
             ` will need to exist before ${obj.chdname} will run`) }
-        return path.join(settings.mameChds, romName, `${obj.chdname}.chd`)
-      } else if (!obj.chdname && obj.hasRom) {
-        return path.join(settings.mameRoms, `${romName}.${settings.mameZipType}`)
-      } else {
-        return noPath
+          return path.join(settings.mameChds, romName, `${obj.chdname}.chd`)
+        } else if (!obj.chdname && obj.hasRom) {
+          return path.join(settings.mameRoms, `${romName}.${settings.mameZipType}`)
+        } else {
+          return noPath
+        }
       }
-    }
       else return noPath
     }
 
