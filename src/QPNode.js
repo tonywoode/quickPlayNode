@@ -139,7 +139,7 @@ MAME exe path:          ${settings.mameExePath}`
     // these probably should be printed to the user
     printer: true, // prints softlist names as syncrhonously printed, leave on
     fileProblems: true, // as of mame 187, there is persistently one file missing in mame's hash: 'squale'
-    printFilePaths: true,
+    filePaths: true,
     // these probably shouldn't
     deviceProblems: false,
     otherSoftlists: false,
@@ -190,24 +190,20 @@ MAME exe path:          ${settings.mameExePath}`
     }
 
     const mameRomPath = mameIniPath ? getMamePath() : ''
-    console.log(mameRomPath)
     const romPathSplit = mameRomPath.split(';')
-    console.log(romPathSplit)
+    log.filePaths && console.log(`Found mame ini file in ${mameIniPath}:\n ${romPathSplit}`)
     if (mameRomPath) {
       if (romPathSplit.length === 1) {
-        console.log('we have only one result make it all the params')
-        console.log(romPathSplit[0])
+        log.filePaths && console.log(`we have only one path in your mame ini, so make it all the params: ${romPathSplit[0]}`)
         settings.mameRoms = romPathSplit[1]
         settings.mameChds = ''
         settings.mameSoftwareListRoms = ''
         settings.mameSoftwareListChds = ''
       } else {
-        console.log(romPathSplit[0])
         const romsRegex = /^.*\\ROMS$/i
         const chdsRegex = /^.*\\CHDs$/i
         const softListRomsRegex = /^.*\\Software List ROMS$/i
         const softListChdsRegex = /^.*\\Software List CHDs$/i
-        console.log(romsRegex.test(romPathSplit[0]))
         romPathSplit.forEach(rompath => {
           romsRegex.test(rompath) && (settings.mameRoms = rompath)
           chdsRegex.test(rompath) && (settings.mameChds = rompath)
@@ -217,10 +213,10 @@ MAME exe path:          ${settings.mameExePath}`
       }
     }
     
-    console.log(`mame roms is set to ${settings.mameRoms}`)
-    console.log(`mame chds is set to ${settings.mameChds}`)
-    console.log(`mame software list roms is set to ${settings.mameSoftwareListRoms}`)
-    console.log(`mame software list chds is set to ${settings.mameSoftwareListChds}`)
+    log.filePaths && console.log(`your mame roms path is set to ${settings.mameRoms}`)
+    log.filePaths && console.log(`your mame chds path is set to ${settings.mameChds}`)
+    log.filePaths && console.log(`your mame software list roms path is set to ${settings.mameSoftwareListRoms}`)
+    log.filePaths && console.log(`your mame software list chds path is set to ${settings.mameSoftwareListChds}`)
   }
 
   // TODO: promisify these so you can run combinations
