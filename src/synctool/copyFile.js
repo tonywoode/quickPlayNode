@@ -4,6 +4,7 @@ const crypto = require('crypto')
 const hashType = 'md5'
 const readline = require('readline')
 const ctrlCToQuit = require('../helpers/ctrlCToQuit.js')
+const mkdirp = require('mkdirp')
 const log = msg => console.log(`[synctool] - ${msg}`)
 
 // String -> Task String String
@@ -21,15 +22,25 @@ const fileHash = filePath =>
 // Path -> Task Error Boolean
 const mkdirRecursive = folderPath =>
   task(r =>
-    fs.mkdir(
+    mkdirp(
       folderPath,
-      { recursive: true },
       err =>
         err
           ? r.reject(err)
           : (log(`ensured dir path: ${folderPath}`), r.resolve(true))
     )
   )
+// waiting for pkg to support node >10 without some issue
+//  task(r =>
+//    fs.mkdir(
+//      folderPath,
+//      { recursive: true },
+//      err =>
+//        err
+//          ? r.reject(err)
+//          : (log(`ensured dir path: ${folderPath}`), r.resolve(true))
+//    )
+//  )
 
 // String -> Task Error Stream
 const readFile = filePath =>
