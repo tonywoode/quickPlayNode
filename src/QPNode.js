@@ -174,10 +174,23 @@ MAME exe path:          ${settings.mameExePath}`
     settings.mameChds = ''
     settings.mameSoftwareListRoms = ''
     settings.mameSoftwareListChds = ''
-    const standardMameIniPath = path.join(mameEmuDir, `./mame.ini`)
+    const mameIniFileName = `./mame.ini`
+    const standardMameIniPath = settings.isItRetroArch
+      ? path.join(mameEmuDir, `system`, `mame`, mameIniFileName)
+      : path.join(mameEmuDir, mameIniFileName)
+    const messIniFileName = `./mess.ini`
+    const standardMessIniPath = settings.isItRetroArch
+      ? path.join(mameEmuDir, `system`, `mess2015`, messIniFileName) //was true in 2019, best i can do
+      : path.join(mameEmuDir, messIniFileName)
+
     const mameIniPath = devMode
-      ? `./mame.ini`
-      : fs.existsSync(standardMameIniPath) ? standardMameIniPath : ''
+      ? mameIniFileName
+      : fs.existsSync(standardMameIniPath) 
+        ? standardMameIniPath 
+        : fs.existsSync(standardMessIniPath)
+          ? standardMessIniPath
+          : '' //no ini path, no paths get (safely) printed
+
     const getMamePath = () => {
       try {
         const mameIni = fs.readFileSync(mameIniPath, 'utf-8')
