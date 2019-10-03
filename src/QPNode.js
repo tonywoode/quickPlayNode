@@ -180,7 +180,7 @@ MAME exe path:          ${settings.mameExePath}`
       : path.join(mameEmuDir, mameIniFileName)
     const messIniFileName = `./mess.ini`
     const standardMessIniPath = settings.isItRetroArch
-      ? path.join(mameEmuDir, `system`, `mess2015`, messIniFileName) //was true in 2019, best i can do
+      ? path.join(mameEmuDir, `system`, `mess2015`, messIniFileName) //foldername at least was true in 2019, best i can do
       : path.join(mameEmuDir, messIniFileName)
 
     const mameIniPath = devMode
