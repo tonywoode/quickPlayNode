@@ -67,13 +67,14 @@ module.exports = (settings, softlistParams, softlist, list, log) => {
     const calculatePath = () => {
       if (settings.mameFilePaths) {
         const weHaveMergedRoms = settings.mameFilePathsRomsType.toLowerCase() !== 'NonMerged'.toLowerCase()
+        const zipType = settings.mameZipType.toLowerCase() === '7z'.toLowerCase()? `7z` : `zip`
         const romName = weHaveMergedRoms && obj.cloneof? obj.cloneof : obj.call
         //atm the best we can do is ask if the first thing in the box is a cdrom'
         if (obj.part[0] && obj.part[0].chdname && settings.mameSoftwareListChds) {
           if (obj.part[1]){ console.log(`${obj.name} in ${softlistParams.name} has other media, we're only printing the first chd: ${JSON.stringify(obj.part, null,2)}`)}
           return path.join(settings.mameSoftwareListChds, softlistParams.name, romName, `${obj.part[0].chdname}.chd`)
         } else if (settings.mameSoftwareListRoms) {
-          return path.join(settings.mameSoftwareListRoms, softlistParams.name, `${romName}.${settings.mameZipType}`)
+          return path.join(settings.mameSoftwareListRoms, softlistParams.name, `${romName}.${zipType}`)
         } else {
           return noPath
         }
