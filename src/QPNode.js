@@ -6,13 +6,12 @@ const _throw = m => {
   throw new Error(m)
 }
 const util = require('util')
-const ini = require('ini')
 
 const paths = require('./paths.js')
 // these two are used by multiple modules and are being passed in as dependecies
 const { generateRomdata } = require('./romdata/printRomdata.js')
 const readMameJson = require('./romdata/readMameJson.js')
-
+const addMameFilePathsToSettings = require('./printPaths/printPaths.js')
 const scan = require('./scan')
 const { arcade } = require('./arcade')
 const { mfm } = require('./mfm')
@@ -117,7 +116,7 @@ if (!synctoolInvoked && !program.synctoolEnable) {
   // read these from the ini
   const settings = paths(qpIni, devExtrasOverride)
   settings.devMode = devMode
-  settings.isItRetroArch = path.win32.basename(settings.mameExePath).match(/retroarch/i) // best bet is to limit ourselves to what the emu file is called for this
+  settings.isItRetroArch = path.basename(settings.mameExePath).match(/retroarch/i) // best bet is to limit ourselves to what the emu file is called for this
 
   console.log(
     `MAME extras dir:        ${settings.mameExtrasPath}
@@ -137,9 +136,9 @@ MAME exe path:          ${settings.mameExePath}`
     json: false,
     // softlist
     // these probably should be printed to the user
-    printer: true, // prints softlist names as syncrhonously printed, leave on
+    printer: true, // prints softlist names as synchronously printed, leave on
     fileProblems: true, // as of mame 187, there is persistently one file missing in mame's hash: 'squale'
-    filePaths: true,
+    filePaths: true, // will also print helpful 'necessary to run this rom' file info
     // these probably shouldn't
     deviceProblems: false,
     otherSoftlists: false,
@@ -158,78 +157,18 @@ MAME exe path:          ${settings.mameExePath}`
   // are we making a mess or retroarch efinder file? to make both the users has to go through the menu again and select the appropriate emu
   const efindOutName = settings.isItRetroArch ? `Mess_Retroarch.ini` : `Mess_Mame.ini`
   const efindOutPath = devMode ? `${outputDir}/${efindOutName}` : `EFind\\${efindOutName}`
-  console.log(`EFind Ini output Path   ${efindOutPath}`)
+  console.log(`EFind Ini output Path:  ${efindOutPath}`)
 
   // softlist paths
-  const mameEmuDir = path.win32.dirname(settings.mameExePath)
-  // mess hash dir is determinable realtive to mame exe dir (mame is distributed that way/retroarch users must place it here to work)
+  const mameEmuDir = path.dirname(settings.mameExePath)
+  // mess hash dir is determinable relative to mame exe dir (mame is distributed that way/retroarch users must place it here to work)
   const liveHashDir = settings.isItRetroArch
     ? `${mameEmuDir}\\system\\mame\\hash\\`
     : `${mameEmuDir}\\hash\\`
   const hashDir = devMode ? `${devInputsDir}/hash/` : liveHashDir
 
-  // determine the location of the mame.ini, this is only for printing filepaths, we just print a default if anything goes wrong...
   if (settings.mameFilePaths) {
-    settings.mameRoms = ''
-    settings.mameChds = ''
-    settings.mameSoftwareListRoms = ''
-    settings.mameSoftwareListChds = ''
-    const mameIniFileName = `./mame.ini`
-    const standardMameIniPath = settings.isItRetroArch
-      ? path.join(mameEmuDir, `system`, `mame`, mameIniFileName)
-      : path.join(mameEmuDir, mameIniFileName)
-    const messIniFileName = `./mess.ini`
-    const standardMessIniPath = settings.isItRetroArch
-      ? path.join(mameEmuDir, `system`, `mess2015`, messIniFileName) //foldername at least was true in 2019, best i can do
-      : path.join(mameEmuDir, messIniFileName)
-
-    const mameIniPath = devMode
-      ? mameIniFileName
-      : fs.existsSync(standardMameIniPath) 
-        ? standardMameIniPath 
-        : fs.existsSync(standardMessIniPath)
-          ? standardMessIniPath
-          : '' //no ini path, no paths get (safely) printed
-
-    const getMamePath = () => {
-      try {
-        const mameIni = fs.readFileSync(mameIniPath, 'utf-8')
-        const match = /^rompath\s+(.*)$/m.exec(mameIni)
-        const quotesRemoved = match[1].replace(/^["'](.*)["']$/, '$1')
-        return quotesRemoved
-      } catch {
-        return ''
-      }
-    }
-
-    const mameRomPath = mameIniPath ? getMamePath() : ''
-    const romPathSplit = mameRomPath.split(';')
-    log.filePaths && console.log(`Found mame ini file in ${mameIniPath}:\n ${romPathSplit}`)
-    if (mameRomPath) {
-      if (romPathSplit.length === 1) {
-        log.filePaths && console.log(`we have only one path in your mame ini, so make it all the params: ${romPathSplit[0]}`)
-        settings.mameRoms = romPathSplit[1]
-        settings.mameChds = ''
-        settings.mameSoftwareListRoms = ''
-        settings.mameSoftwareListChds = ''
-      } else {
-        const romsRegex = /^.*\\ROMS$/i
-        const chdsRegex = /^.*\\CHDs$/i
-        const softListRomsRegex = /^.*\\Software List ROMS$/i
-        const softListChdsRegex = /^.*\\Software List CHDs$/i
-        romPathSplit.forEach(rompath => {
-          romsRegex.test(rompath) && (settings.mameRoms = rompath)
-          chdsRegex.test(rompath) && (settings.mameChds = rompath)
-          softListRomsRegex.test(rompath) && (settings.mameSoftwareListRoms = rompath)
-          softListChdsRegex.test(rompath) && (settings.mameSoftwareListChds = rompath)
-        })
-      }
-    }
-    
-    log.filePaths && console.log(`your mame roms path is set to ${settings.mameRoms}`)
-    log.filePaths && console.log(`your mame chds path is set to ${settings.mameChds}`)
-    log.filePaths && console.log(`your mame software list roms path is set to ${settings.mameSoftwareListRoms}`)
-    log.filePaths && console.log(`your mame software list chds path is set to ${settings.mameSoftwareListChds}`)
+    addMameFilePathsToSettings(settings, devMode, log)
   }
 
   // TODO: promisify these so you can run combinations
