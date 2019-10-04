@@ -66,7 +66,7 @@ module.exports = (settings, softlistParams, softlist, list, log) => {
 
     const calculatePath = () => {
       if (settings.mameFilePaths) {
-        const weHaveMergedRoms = settings.mameFilePathsRomsType.toLowerCase() === 'Merged'.toLowerCase()
+        const weHaveMergedRoms = settings.mameFilePathsRomsType.toLowerCase() !== 'NonMerged'.toLowerCase()
         const romName = weHaveMergedRoms && obj.cloneof? obj.cloneof : obj.call
         //atm the best we can do is ask if the first thing in the box is a cdrom'
         if (obj.part[0] && obj.part[0].chdname && settings.mameSoftwareListChds) {
