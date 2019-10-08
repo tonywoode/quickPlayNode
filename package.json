@@ -13,8 +13,7 @@
     "getSpecsSynctool": "find specs/synctool -name '*spec.js'"
   },
   "scripts": {
-    "base": "node src/QPNode.js",
-    "start": "node src/QPNode.js --output-dir $npm_package_directories_outputDir $npm_package_config_devFlags",
+    "start": "node src/QPNode.js mametool --output-dir $npm_package_directories_outputDir $npm_package_config_devFlags",
     "mess-start": "npm run start -- --scan && npm run start -- --softlists",
     "full": "trash $npm_package_directories_outputDir && mkdir $npm_package_directories_outputDir && npm run start -- --scan && npm run start -- --arcade && npm run start -- --softlists",
     "basedebug": "node --inspect-brk src/QPNode.js",
@@ -39,6 +38,7 @@
     "mkdirp": "^0.5.1",
     "pkg": "^4.3.7",
     "ramda": "^0.24.1",
+    "replace-in-file": "^4.1.3",
     "sanctuary": "^2.0.0",
     "trash-cli": "^1.4.0",
     "xml-stream": "^0.4.5"

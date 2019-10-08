@@ -17,7 +17,7 @@ const { arcade } = require('./arcade')
 const { mfm } = require('./mfm')
 const { testArcadeRun } = require('./testing')
 const { softlists } = require('./softlists')
-const { synctool, synctoolEnable } = require('./synctool')
+const { synctool, synctoolEnable, synctoolFolderFlip } = require('./synctool')
 const configFileName = 'synctool_config.json'
 
 // tee output to console and to a logfile https://stackoverflow.com/a/30578473/3536094
@@ -33,8 +33,10 @@ const muxLog = logType => (...args) => {
 console.log = muxLog('stdout')
 console.error = muxLog('stderr')
 
-let synctoolInvoked = false
-program // TODO: these options need prepending by the command 'mametool'
+//https://github.com/tj/commander.js/issues/944
+//TODO: need real nested subcommands, swith to yargs?
+program
+  .command(`mametool`)
   .option('--output-dir [path]')
   .option(`--scan`)
   .option(`--dev`)
@@ -44,10 +46,91 @@ program // TODO: these options need prepending by the command 'mametool'
   .option(`--testArcadeRun`)
   // messTool options
   .option(`--softlists [rompath]`) // todo, []=optional, <>=required, surely latter
-  .option(`--synctoolEnable`)
+  .action(mametoolObj => {
+    const outputDir = mametoolObj.outputDir
+    !mametoolObj.scan &&
+      (fs.existsSync(outputDir) ||
+        _throw(
+          `output directory ${outputDir} doesn't exist, so Mametool can't output any romdatas`
+        ))
+    const devMode = mametoolObj.dev
+    const jsonOutDir = devMode ? outputDir : `dats` // json will sit in the frontends config dir, or for dev in the passed-in dir
+    const jsonOutName = `mame.json`
+    const jsonOutPath = `${jsonOutDir}/${jsonOutName}`
+    const qpIni = devMode ? `./settings.ini` : `dats\\settings.ini` // settings from QP's ini file, or nix dev settings
+    const devExtrasOverride = devMode ? `/Volumes/GAMES/MAME/EXTRAs/folders` : `` // on windows its specified in the settings.ini above
+
+    devMode && console.log(`\t*** Mametool is in Dev mode ***\n`)
+    ;(mametoolObj.scan && !devMode) || console.log(`Output dir:             ${outputDir}`)
+    console.log(`MAME Json dir:          ${jsonOutDir}`)
+
+    // read these from the ini
+    const settings = paths(qpIni, devExtrasOverride)
+    settings.devMode = devMode
+    settings.isItRetroArch = path.basename(settings.mameExePath).match(/retroarch/i) // best bet is to limit ourselves to what the emu file is called for this
+
+    console.log(
+      `MAME extras dir:        ${settings.mameExtrasPath}
+MAME icons dir:         ${settings.winIconDir} 
+MAME exe:               ${settings.mameExe}
+MAME exe path:          ${settings.mameExePath}`
+    )
+
+    const log = {
+      // datAndEfind
+      efindProblems: devMode,
+      loaderCalls: true,
+      loaderCallsVerbose: false,
+      // the data/efind/scan artifacts
+      dat: false,
+      efind: false,
+      json: false,
+      // softlist
+      // these probably should be printed to the user
+      printer: true, // prints softlist names as synchronously printed, leave on
+      fileProblems: true, // as of mame 187, there is persistently one file missing in mame's hash: 'squale'
+      filePaths: true, // will also print helpful 'necessary to run this rom' file info
+      // these probably shouldn't
+      deviceProblems: false,
+      otherSoftlists: false,
+      otherGameNames: false,
+      otherGameConflicts: false,
+      findRegions: false,
+      regions: false,
+      regionsGames: false,
+      exclusions: false
+    }
+
+    // determine that location of the systems.dat
+    const devInputsDir = `inputs/current`
+    const datInPath = devMode ? `${devInputsDir}/systems.dat` : `dats\\systems.dat`
+    const datOutPath = devMode ? `${outputDir}/systems.dat` : `dats\\systems.dat`
+    // are we making a mess or retroarch efinder file? to make both the users has to go through the menu again and select the appropriate emu
+    const efindOutName = settings.isItRetroArch ? `Mess_Retroarch.ini` : `Mess_Mame.ini`
+    const efindOutPath = devMode ? `${outputDir}/${efindOutName}` : `EFind\\${efindOutName}`
+    console.log(`EFind Ini output Path:  ${efindOutPath}`)
+
+    // softlist paths
+    const mameEmuDir = path.dirname(settings.mameExePath)
+    // mess hash dir is determinable relative to mame exe dir (mame is distributed that way/retroarch users must place it here to work)
+    const liveHashDir = settings.isItRetroArch
+      ? `${mameEmuDir}\\system\\mame\\hash\\`
+      : `${mameEmuDir}\\hash\\`
+    const hashDir = devMode ? `${devInputsDir}/hash/` : liveHashDir
+
+    if (settings.mameFilePaths) {
+      addMameFilePathsToSettings(settings, devMode, log)
+    }
+
+    // TODO: promisify these so you can run combinations
+    mametoolObj.scan && scan(settings, jsonOutPath, qpIni, efindOutPath, datInPath, datOutPath, log)
+    mametoolObj.mfm && mfm(settings, readMameJson, jsonOutPath, generateRomdata, outputDir)
+    mametoolObj.arcade && arcade(settings, jsonOutPath, outputDir, readMameJson, generateRomdata)
+    mametoolObj.testArcadeRun && testArcadeRun(settings, readMameJson, jsonOutPath, outputDir)
+    mametoolObj.softlists && softlists(settings, jsonOutPath, hashDir, outputDir, log)
+  })
 
 program.command(`synctool [rompath]`).action(romPath => {
-  synctoolInvoked = true
   synctool(romPath, configFileName)
     .run()
     .listen({
@@ -56,6 +139,36 @@ program.command(`synctool [rompath]`).action(romPath => {
       onResolved: result =>
         console.log(`[synctool] - ${result}: copied ${romPath}`) ||
         setTimeout(() => process.exit(0), 3000)
+    })
+})
+
+program.command(`synctool-romdata-folder-flip <startFolder>`).action(startFolder => {
+  synctoolFolderFlip(startFolder, configFileName)
+    .run()
+    .listen({
+      onRejected: rej => {
+        console.error(rej)
+        process.exit(1)
+      },
+      onResolved: res => {
+        console.log(res)
+        process.exit(0)
+      }
+    })
+})
+
+program.command(`synctoolEnable`).action(() => {
+  synctoolEnable(configFileName)
+    .run()
+    .listen({
+      onRejected: rej => {
+        console.error(rej)
+        process.exit(1)
+      },
+      onResolved: res => {
+        console.log(res)
+        process.exit(0)
+      }
     })
 })
 
@@ -77,106 +190,4 @@ if (!process.argv.slice(2).length) {
   process.exit()
 }
 
-if (program.synctoolEnable) {
-  synctoolEnable(configFileName)
-    .run()
-    .listen({
-      onRejected: rej => {
-        console.error(rej)
-        process.exit(1)
-      },
-      onResolved: res => {
-        console.log(res)
-        process.exit(0)
-      }
-    })
-}
-
-// bypass mametool stuff if synctool
-// program.synctool      && synctool(program.synctool)
-// TODO: oops as it is we'll fall through to this lot, also empty string falls thorugh
-if (!synctoolInvoked && !program.synctoolEnable) {
-  // DeMorgan
-  // calculate these
-  const outputDir = program.outputDir
-  !program.scan &&
-    (fs.existsSync(outputDir) ||
-      _throw(`output directory ${outputDir} doesn't exist, so Mametool can't output any romdatas`))
-  const devMode = program.dev
-  const jsonOutDir = devMode ? outputDir : `dats` // json will sit in the frontends config dir, or for dev in the passed-in dir
-  const jsonOutName = `mame.json`
-  const jsonOutPath = `${jsonOutDir}/${jsonOutName}`
-  const qpIni = devMode ? `./settings.ini` : `dats\\settings.ini` // settings from QP's ini file, or nix dev settings
-  const devExtrasOverride = devMode ? `/Volumes/GAMES/MAME/EXTRAs/folders` : `` // on windows its specified in the settings.ini above
-
-  devMode && console.log(`\t*** Mametool is in Dev mode ***\n`)
-  ;(program.scan && !devMode) || console.log(`Output dir:             ${outputDir}`)
-  console.log(`MAME Json dir:          ${jsonOutDir}`)
-
-  // read these from the ini
-  const settings = paths(qpIni, devExtrasOverride)
-  settings.devMode = devMode
-  settings.isItRetroArch = path.basename(settings.mameExePath).match(/retroarch/i) // best bet is to limit ourselves to what the emu file is called for this
-
-  console.log(
-    `MAME extras dir:        ${settings.mameExtrasPath}
-MAME icons dir:         ${settings.winIconDir} 
-MAME exe:               ${settings.mameExe}
-MAME exe path:          ${settings.mameExePath}`
-  )
-
-  const log = {
-    // datAndEfind
-    efindProblems: devMode,
-    loaderCalls: true,
-    loaderCallsVerbose: false,
-    // the data/efind/scan artifacts
-    dat: false,
-    efind: false,
-    json: false,
-    // softlist
-    // these probably should be printed to the user
-    printer: true, // prints softlist names as synchronously printed, leave on
-    fileProblems: true, // as of mame 187, there is persistently one file missing in mame's hash: 'squale'
-    filePaths: true, // will also print helpful 'necessary to run this rom' file info
-    // these probably shouldn't
-    deviceProblems: false,
-    otherSoftlists: false,
-    otherGameNames: false,
-    otherGameConflicts: false,
-    findRegions: false,
-    regions: false,
-    regionsGames: false,
-    exclusions: false
-  }
-
-  // determine that location of the systems.dat
-  const devInputsDir = `inputs/current`
-  const datInPath = devMode ? `${devInputsDir}/systems.dat` : `dats\\systems.dat`
-  const datOutPath = devMode ? `${outputDir}/systems.dat` : `dats\\systems.dat`
-  // are we making a mess or retroarch efinder file? to make both the users has to go through the menu again and select the appropriate emu
-  const efindOutName = settings.isItRetroArch ? `Mess_Retroarch.ini` : `Mess_Mame.ini`
-  const efindOutPath = devMode ? `${outputDir}/${efindOutName}` : `EFind\\${efindOutName}`
-  console.log(`EFind Ini output Path:  ${efindOutPath}`)
-
-  // softlist paths
-  const mameEmuDir = path.dirname(settings.mameExePath)
-  // mess hash dir is determinable relative to mame exe dir (mame is distributed that way/retroarch users must place it here to work)
-  const liveHashDir = settings.isItRetroArch
-    ? `${mameEmuDir}\\system\\mame\\hash\\`
-    : `${mameEmuDir}\\hash\\`
-  const hashDir = devMode ? `${devInputsDir}/hash/` : liveHashDir
-
-  if (settings.mameFilePaths) {
-    addMameFilePathsToSettings(settings, devMode, log)
-  }
-
-  // TODO: promisify these so you can run combinations
-  program.scan && scan(settings, jsonOutPath, qpIni, efindOutPath, datInPath, datOutPath, log)
-  program.mfm && mfm(settings, readMameJson, jsonOutPath, generateRomdata, outputDir)
-  program.arcade && arcade(settings, jsonOutPath, outputDir, readMameJson, generateRomdata)
-  program.testArcadeRun && testArcadeRun(settings, readMameJson, jsonOutPath, outputDir)
-  program.softlists && softlists(settings, jsonOutPath, hashDir, outputDir, log)
-}
-
-module.exports = { synctoolEnable }
+module.exports = { synctoolEnable, synctoolFolderFlip }

@@ -65,5 +65,8 @@ const synctoolEnable = configFileName =>
               : of('[syncToolEnable] - SyncTool is Disabled')
       )
     : rejected('[synctoolEnable] - no config filename passed')
+      
+const synctoolFolderFlip = startFolder => {}
 
-module.exports = { synctool, synctoolEnable }
+
+module.exports = { synctool, synctoolEnable, synctoolFolderFlip}
