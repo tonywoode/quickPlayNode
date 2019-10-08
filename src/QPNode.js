@@ -33,8 +33,8 @@ const muxLog = logType => (...args) => {
 console.log = muxLog('stdout')
 console.error = muxLog('stderr')
 
-//https://github.com/tj/commander.js/issues/944
-//TODO: need real nested subcommands, swith to yargs?
+// https://github.com/tj/commander.js/issues/944
+// TODO: need real nested subcommands, swith to yargs?
 program
   .command(`mametool`)
   .option('--output-dir [path]')
@@ -130,34 +130,30 @@ MAME exe path:          ${settings.mameExePath}`
     mametoolObj.softlists && softlists(settings, jsonOutPath, hashDir, outputDir, log)
   })
 
-program.command(`synctool [rompath]`).action(romPath => {
-  synctool(romPath, configFileName)
+program
+  .command(`synctool`)
+  .option(`--sync [rompath]`)
+  .option(`--checkStatus`)
+  .option(`--folderFlip <startFolder>`)
+  .action(synctoolObj => {
+    synctoolObj.sync && runSynctool(synctoolObj.sync, configFileName)
+    synctoolObj.checkStatus && synctoolStatus()
+    synctoolObj.folderFlip && synctoolRomdataFlip(synctoolObj.folderFlip, configFileName)
+  })
+
+const runSynctool = (rompath, configFileName) => {
+  synctool(rompath, configFileName)
     .run()
     .listen({
       onRejected: rej =>
         console.log(`[synctool] - no work done: ${rej}`) || setTimeout(() => process.exit(1), 3000),
       onResolved: result =>
-        console.log(`[synctool] - ${result}: copied ${romPath}`) ||
+        console.log(`[synctool] - ${result}: copied ${rompath}`) ||
         setTimeout(() => process.exit(0), 3000)
     })
-})
+}
 
-program.command(`synctool-romdata-folder-flip <startFolder>`).action(startFolder => {
-  synctoolFolderFlip(startFolder, configFileName)
-    .run()
-    .listen({
-      onRejected: rej => {
-        console.error(rej)
-        process.exit(1)
-      },
-      onResolved: res => {
-        console.log(res)
-        process.exit(0)
-      }
-    })
-})
-
-program.command(`synctoolEnable`).action(() => {
+const synctoolStatus = () => {
   synctoolEnable(configFileName)
     .run()
     .listen({
@@ -170,7 +166,22 @@ program.command(`synctoolEnable`).action(() => {
         process.exit(0)
       }
     })
-})
+}
+
+const synctoolRomdataFlip = (startFolder, configFileName) => {
+  synctoolFolderFlip(startFolder, configFileName)
+    .run()
+    .listen({
+      onRejected: rej => {
+        console.error(rej)
+        process.exit(1)
+      },
+      onResolved: res => {
+        console.log(res)
+        process.exit(0)
+      }
+    })
+}
 
 program.parse(process.argv)
 
