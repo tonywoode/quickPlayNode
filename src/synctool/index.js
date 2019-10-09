@@ -69,12 +69,11 @@ const synctoolEnable = configFileName =>
     : rejected('[synctoolEnable] - no config filename passed')
 
 const tagMsg = msg => `[Synctool Folder Flip] - ${msg}`
-const log = (message, obj) => console.log(`${tagMsg(message)}: \n`, obj || '')
+const log = (message, obj) => console.log(`${tagMsg(message)}`)
 const haveRomdatasChanged = results => results.filter(result => result.hasChanged).length !== 0
 const getChangedRomdatas = results =>
   results.filter(result => result.hasChanged).map(result => result.file)
-const printObj = obj => JSON.stringify(obj, null, 2)
-const formatResults = results => tagMsg(`Files Changed: \n` + printObj(getChangedRomdatas(results)))
+const formatResults = results => tagMsg(`Files Changed: \n\t` + getChangedRomdatas(results).join('\n\t'))
 
 const synctoolFolderFlip = (startFolder, configFileName) =>
   configFileName
@@ -93,8 +92,9 @@ const synctoolFolderFlip = (startFolder, configFileName) =>
           to: `¬` + config.remoteRoot,
           encoding: `latin1`
         }
-        log(`starting folder is ${startFolder}`)
+        log(`starting folder is: \n\t${startFolder}`)
 
+        //remote to local is the most likely user action, so do that first
         return task(
           r => (
             log(`changing all Remote to Local:`, remoteToLocal),
