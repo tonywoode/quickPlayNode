@@ -1,5 +1,5 @@
 const os = require('os')
-const { of, rejected } = require('folktale/concurrency/task')
+const { task, of, rejected } = require('folktale/concurrency/task')
 const replace = require('replace-in-file')
 const {
   checkLocalPath,
@@ -68,7 +68,14 @@ const synctoolEnable = configFileName =>
       )
     : rejected('[synctoolEnable] - no config filename passed')
 
-const { task } = require('folktale/concurrency/task')
+const tagMsg = msg => `[Synctool Folder Flip] - ${msg}`
+const log = (message, obj) => console.log(`${tagMsg(message)}: \n`, obj || '')
+const haveRomdatasChanged = results => results.filter(result => result.hasChanged).length !== 0
+const getChangedRomdatas = results =>
+  results.filter(result => result.hasChanged).map(result => result.file)
+const printObj = obj => JSON.stringify(obj, null, 2)
+const formatResults = results => tagMsg(`Files Changed: \n` + printObj(getChangedRomdatas(results)))
+
 const synctoolFolderFlip = (startFolder, configFileName) =>
   configFileName
     ? loadConfig(configFileName)
@@ -76,44 +83,39 @@ const synctoolFolderFlip = (startFolder, configFileName) =>
       .chain(config => {
         const remoteToLocal = {
           files: `${startFolder}/**/romdata.dat`,
-          from: new RegExp(`¬` + config.remoteRoot, 'g'),
+          from: new RegExp(`¬` + config.remoteRoot, 'g'), // its root node so don't remove trailing path
           to: `¬` + config.localRoot,
-           encoding: `latin1` 
+          encoding: `latin1`
         }
         const localToRemote = {
           files: `${startFolder}/**/romdata.dat`,
           from: new RegExp('¬' + config.localRoot, 'g'),
           to: `¬` + config.remoteRoot,
-          encoding: `latin1` 
+          encoding: `latin1`
         }
-        const tagMsg = msg => `[Synctool Folder Flip] - ${msg}`
-        const log = (message, obj) => console.log(`${tagMsg(message)}: \n`, obj? obj : '')
-        const haveRomdatasChanged =  results => results.filter(result => result.hasChanged).length !== 0
-        const printObj = obj => JSON.stringify(obj, null,2)
         log(`starting folder is ${startFolder}`)
 
-        return task(r =>
-          ( 
-          log(`changing all Remote to Local:`, remoteToLocal),
-          replace( remoteToLocal, (err, results) => err
-                ? r.reject(tagMsg(err)) 
+        return task(
+          r => (
+            log(`changing all Remote to Local:`, remoteToLocal),
+            replace(remoteToLocal, (err, results) =>
+              err
+                ? r.reject(tagMsg(err))
                 : haveRomdatasChanged(results)
-                  ?  r.resolve(printObj(results))
-                  : (
-                    log(`no changes for Remote to Local, try Local to Remote:`, localToRemote),
-                    replace( localToRemote, (err, results) => err
+                  ? r.resolve(formatResults(results))
+                  : (log(`no changes for Remote to Local, try Local to Remote:`, localToRemote),
+                  replace(localToRemote, (err, results) =>
+                    err
                       ? r.reject(tagMsg(err))
-                      : haveRomdatasChanged(results) 
-                  ?  r.resolve((printObj(results)))
-                      : r.resolve(tagMsg(`found nothing trying to change Local to Remote either`))
-                    
-                    
-                    )
-                  )
-          )
+                      : haveRomdatasChanged(results)
+                        ? r.resolve(formatResults(results))
+                        : r.resolve(tagMsg(`found nothing trying to change Local to Remote either`)
+                        )
+                  ))
+            ) // prettier-ignore
           )
         )
       })
-    : rejected('[synctoolEnable] - no config filename passed')
+    : rejected(tagMsg('no config filename passed'))
 
 module.exports = { synctool, synctoolEnable, synctoolFolderFlip }
