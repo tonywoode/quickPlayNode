@@ -173,12 +173,10 @@ const synctoolRomdataFlip = (startFolder, configFileName) => {
     .run()
     .listen({
       onRejected: rej => {
-        console.error(rej)
-        process.exit(1)
+        console.error(rej) || setTimeout(() => process.exit(1), 3000)
       },
       onResolved: res => {
-        console.log(res)
-        process.exit(0)
+        console.log(res) || setTimeout(() => process.exit(0), 3000)
       }
     })
 }

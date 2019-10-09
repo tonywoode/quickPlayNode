@@ -1,5 +1,6 @@
 const os = require('os')
 const { of, rejected } = require('folktale/concurrency/task')
+const replace = require('replace-in-file')
 const {
   checkLocalPath,
   loadConfig,
@@ -33,18 +34,19 @@ const synctool = (localPath, configFileName) =>
             // remote exists
             .chain(remoteStat =>
               // we potentially need the real local path now for fs methods in case a symlink is sitting at the localPath, but we DON'T want it when statting
-              getRealPath(localPath).chain(realLocalPath =>
-                checkLocalFile(localPath) // statting one more time
-                  .chain(
-                    localStat =>
+              getRealPath(localPath).chain(
+                realLocalPath =>
+                  checkLocalFile(localPath) // statting one more time
+                    .chain(
+                      localStat =>
                       // the files in both places, check dest is smaller, or maybe they are same file
-                      equal(remoteStat.size, localStat.size) // filesize is equal, but check really same before deciding
-                        ? copyIfNotEqual(remotePath, realLocalPath, remoteStat, localStat, config)
-                        : copyIfLocalSmaller(realLocalPath, remotePath, remoteStat, localStat, config)  // prettier-ignore
-                  )
+                        equal(remoteStat.size, localStat.size) // filesize is equal, but check really same before deciding
+                          ? copyIfNotEqual(remotePath, realLocalPath, remoteStat, localStat, config)
+                          : copyIfLocalSmaller(realLocalPath, remotePath, remoteStat, localStat, config) // prettier-ignore
+                    )
                   /* we need to put a sad path on the happy path (failed local stat), we're now
                    * responsible for making sure that's why we got here */
-                  .orElse(err => copyIfLocalNotFound(err, realLocalPath, remotePath, remoteStat, config)) //prettier-ignore
+                    .orElse(err => copyIfLocalNotFound(err, realLocalPath, remotePath, remoteStat, config)) // prettier-ignore
               )
             )
         )
@@ -65,8 +67,53 @@ const synctoolEnable = configFileName =>
               : of('[syncToolEnable] - SyncTool is Disabled')
       )
     : rejected('[synctoolEnable] - no config filename passed')
-      
-const synctoolFolderFlip = startFolder => {}
 
+const { task } = require('folktale/concurrency/task')
+const synctoolFolderFlip = (startFolder, configFileName) =>
+  configFileName
+    ? loadConfig(configFileName)
+      .orElse(rej => rejected(`[syncToolEnable] - ${rej}`))
+      .chain(config => {
+        const remoteToLocal = {
+          files: `${startFolder}/**/romdata.dat`,
+          from: new RegExp(`¬` + config.remoteRoot, 'g'),
+          to: `¬` + config.localRoot,
+           encoding: `latin1` 
+        }
+        const localToRemote = {
+          files: `${startFolder}/**/romdata.dat`,
+          from: new RegExp('¬' + config.localRoot, 'g'),
+          to: `¬` + config.remoteRoot,
+          encoding: `latin1` 
+        }
+        const tagMsg = msg => `[Synctool Folder Flip] - ${msg}`
+        const log = (message, obj) => console.log(`${tagMsg(message)}: \n`, obj? obj : '')
+        const haveRomdatasChanged =  results => results.filter(result => result.hasChanged).length !== 0
+        const printObj = obj => JSON.stringify(obj, null,2)
+        log(`starting folder is ${startFolder}`)
 
-module.exports = { synctool, synctoolEnable, synctoolFolderFlip}
+        return task(r =>
+          ( 
+          log(`changing all Remote to Local:`, remoteToLocal),
+          replace( remoteToLocal, (err, results) => err
+                ? r.reject(tagMsg(err)) 
+                : haveRomdatasChanged(results)
+                  ?  r.resolve(printObj(results))
+                  : (
+                    log(`no changes for Remote to Local, try Local to Remote:`, localToRemote),
+                    replace( localToRemote, (err, results) => err
+                      ? r.reject(tagMsg(err))
+                      : haveRomdatasChanged(results) 
+                  ?  r.resolve((printObj(results)))
+                      : r.resolve(tagMsg(`found nothing trying to change Local to Remote either`))
+                    
+                    
+                    )
+                  )
+          )
+          )
+        )
+      })
+    : rejected('[synctoolEnable] - no config filename passed')
+
+module.exports = { synctool, synctoolEnable, synctoolFolderFlip }
