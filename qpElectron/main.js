@@ -1,5 +1,5 @@
 const { app, BrowserWindow, dialog } = require('electron')
-
+const path = require('path')
 const fs = require('fs')
 const configFileName = '../synctool_config.json'
 const config = fs.existsSync(configFileName) ? require(configFileName) : makeConfigFile()
@@ -35,6 +35,7 @@ function createWindow () {
     width: 800,
     height: 600,
     webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: true
     }
   })

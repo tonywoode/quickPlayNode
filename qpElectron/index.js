@@ -1,6 +1,8 @@
 const remote = require('electron').remote
 const main = remote.require('./main.js')
 
+const config = main.getConfig()
+const localPath = document.getElementById('localPath').value = config.localRoot
 function cancelEvent () {
   var window = remote.getCurrentWindow()
   window.close()
@@ -29,21 +31,13 @@ const displayArray = () => {
 
 function add_element_to_array () {
   const hostnameBox = document.getElementById('hostname')
-  hostname.value && (
-    array.push(hostnameBox.value), 
-    (hostnameBox.value = ''), 
-    displayArray()
-  )
+  hostname.value && (array.push(hostnameBox.value), (hostnameBox.value = ''), displayArray())
 }
 
-function print_config() {
-  alert(JSON.stringify(main.getConfig(), null,2))
+function print_config () {
+  alert(JSON.stringify(main.getConfig(), null, 2))
 }
 function delete_array () {
   array.length = 0
   displayArray()
-}
-
-function openLocal () {
-  main.showOpenDialog()
 }
