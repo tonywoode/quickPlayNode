@@ -22,7 +22,16 @@
     "test": "mocha --  ./specs/init.js $(eval $npm_package_config_getSpecs)",
     "test-synctool": "mocha --  ./specs/init.js $(eval $npm_package_config_getSpecsSynctool)",
     "package": "pkg src/QPNode.js -t win --out-path $npm_package_directories_binOutputDir",
-    "packageParallels": "pkg src/QPNode.js -t win --out-path /Volumes/[C]\\ My\\ Boot\\ Camp/Emulators/QUICKPLAY/QuickPlayFrontend/qp/bin"
+    "packageParallels": "pkg src/QPNode.js -t win --out-path /Volumes/[C]\\ My\\ Boot\\ Camp/Emulators/QUICKPLAY/QuickPlayFrontend/qp/bin",
+    "dist": "electron-builder --win --x64"
+  },
+  "build": {
+    "win": {
+      "target": "portable"
+    },
+    "directories": {
+      "app": "./qpElectron"
+    }
   },
   "author": "",
   "license": "ISC",
@@ -46,6 +55,8 @@
   "devDependencies": {
     "chai": "^4.1.0",
     "chai-as-promised": "^7.1.1",
+    "electron": "^6.0.12",
+    "electron-builder": "^21.2.0",
     "into-stream": "^3.1.0",
     "mocha": "^3.4.2",
     "mock-fs": "^4.4.1",

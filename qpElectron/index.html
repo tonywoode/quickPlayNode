@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="./index.js"></script>
+    <link rel="stylesheet" type="text/css" href="index.css" />
+    <meta charset="UTF-8" />
+    <title>Synctool Settings</title>
+  </head>
+  <body>
+    <h1>Synctool Settings</h1>
+    We are using Node.js <span id="node-version"></span>, Chromium
+    <span id="chrome-version"></span>, and Electron
+    <span id="electron-version"></span>.
+    <form>
+      <fieldset>
+        <legend>Enable</legend>
+        <p>
+          We can enable just for this or for that
+        </p>
+        <input type="checkbox" name="globalEnable" value="GlobalEnable" />
+        Global Enable<br />
+       <p>
+          <label>Enable on Hostname (one per line)</label>
+<input type="text" id="hostname">
+<input type="button" id="button1" value="Add" onclick="add_element_to_array();">
+<input type="button" id="button2" value="Delete All" onclick="delete_array();">
+<div id="Result"></div> 
+          </p>
+        
+      </fieldset>
+    </form>
+<p>
+          <label>Local Path</label>
+          <input type="text" id="myText" value="text here" />
+        </p>
+        <p>
+          <label>Remote Path</label>
+          <input type="password" id="myPwd" value="secret" />
+        </p>
+    <div style="text-align: center"></div>
+    <button id="lopen" onclick="openLocal()">select Local Directory</button>
+    <div style="text-align: center"></div>
+    <button id="ropen" onclick="openRemote()">select Remote Directory</button>
+    <div style="text-align: right"></div>
+    <button id="cancel" onclick="cancelEvent()">cancel</button>
+    <button id="ok" onclick="okEvent()">ok</button>
+    <!-- You can also require other files to run in this process -->
+  </body>
+</html>

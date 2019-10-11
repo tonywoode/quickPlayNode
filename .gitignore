@@ -1,5 +1,6 @@
 inputs
 outputs
+dist
 *.rc
 mametool_logfile.txt
 specs/synctool/integration/localRoot/realfiles/*
