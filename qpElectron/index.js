@@ -12,11 +12,11 @@ function okEvent () {
 }
 
 function openLocal () {
-  main.showOpenDialog()
+  const result = main.showOpenDialog()
 }
 
 function openRemote () {
-  main.showOpenDialog()
+  const result = main.showOpenDialog()
 }
 
 const array = []

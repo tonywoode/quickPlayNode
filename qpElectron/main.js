@@ -1,6 +1,29 @@
 const { app, BrowserWindow, dialog } = require('electron')
 
+const fs = require('fs')
+const configFileName = '../synctool_config.json'
+const config = fs.existsSync(configFileName) ? require(configFileName) : makeConfigFile()
+
 let win
+
+function makeConfigFile () {
+  const config = {
+    localRoot: '',
+    remoteRoot: '',
+    timeout: 10000,
+    timeTolerance: 1000,
+    globalEnable: false,
+    enableOnHostName: [],
+    useCopyOrCopyStream: 'copy'
+  }
+  const content = JSON.stringify(config)
+  fs.writeFile(
+    configFileName,
+    content,
+    'utf8',
+    err => (err ? process.exit("can't get you that config file sorry") : require(configFileName))
+  )
+}
 
 function createWindow () {
   // Create the browser window.
@@ -17,7 +40,7 @@ function createWindow () {
 }
 
 app.on('ready', () => {
-  createWindow() 
+  createWindow()
   win.webContents.openDevTools()
 })
 
@@ -25,4 +48,5 @@ exports.showOpenDialog = () => {
   const result = dialog.showOpenDialogSync(win, {
     properties: ['openFile', 'openDirectory']
   })
+  console.log(result)
 }
