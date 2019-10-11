@@ -21,8 +21,12 @@ function makeConfigFile () {
     configFileName,
     content,
     'utf8',
-    err => (err ? process.exit("can't get you that config file sorry") : require(configFileName))
+    err => (err ? process.exit(1) : require(configFileName))
   )
+}
+
+exports.getConfig = () => {
+  return config
 }
 
 function createWindow () {

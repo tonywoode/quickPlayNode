@@ -36,6 +36,9 @@ function add_element_to_array () {
   )
 }
 
+function print_config() {
+  alert(JSON.stringify(main.getConfig(), null,2))
+}
 function delete_array () {
   array.length = 0
   displayArray()
