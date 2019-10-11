@@ -2,7 +2,8 @@ const remote = require('electron').remote
 const main = remote.require('./main.js')
 
 const config = main.getConfig()
-const localPath = document.getElementById('localPath').value = config.localRoot
+document.getElementById('localPath').value = config.localRoot
+document.getElementById('remotePath').value = config.remoteRoot
 function cancelEvent () {
   var window = remote.getCurrentWindow()
   window.close()

@@ -8,9 +8,6 @@
   </head>
   <body>
     <h1>Synctool Settings</h1>
-    We are using Node.js <span id="node-version"></span>, Chromium
-    <span id="chrome-version"></span>, and Electron
-    <span id="electron-version"></span>.
     <form>
       <fieldset>
         <legend>Enable</legend>
@@ -25,25 +22,25 @@
         <input type="text" id="hostname" value=""/>
         <input type="button" id="addHost" value="Add" onclick="add_element_to_array()" />
         <input type="button" id="deleteHost" value="Delete All" onclick="delete_array()" />
-<input type="button" id="printconfig" value="print config" onclick="print_config()" />
         <div id="Result"></div>
+
       </fieldset>
     </form>
     <p>
       <label>Local Path</label>
-      <input type="text" id="localPath" value=""/>
+      <input type="text" id="localPath" value="" style="width:300px" />
     <button id="lopen" onclick="openLocal()">select Local Directory</button>
     </p>
     <p>
       <label>Remote Path</label>
-      <input type="text" id="remotePath" value="" />
+      <input type="text" id="remotePath" value="" style="width:300px"/>
     <button id="ropen" onclick="openRemote()">select Remote Directory</button>
     </p>
-    <div style="text-align: center"></div>
-    <div style="text-align: center"></div>
-    <div style="text-align: right"></div>
+    <div style="text-align: right">
     <button id="cancel" onclick="cancelEvent()">cancel</button>
     <button id="ok" onclick="okEvent()">ok</button>
+    </div>
     <!-- You can also require other files to run in this process -->
+<input type="button" id="printconfig" value="print config" onclick="print_config()" />
   </body>
 </html>
