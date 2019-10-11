@@ -1,8 +1,10 @@
-const { app, BrowserWindow } = require('electron')
+const { app, BrowserWindow, dialog } = require('electron')
+
+let win
 
 function createWindow () {
   // Create the browser window.
-  let win = new BrowserWindow({
+  win = new BrowserWindow({
     width: 800,
     height: 600,
     webPreferences: {
@@ -14,4 +16,13 @@ function createWindow () {
   win.loadFile('index.html')
 }
 
-app.on('ready', createWindow)
+app.on('ready', () => {
+  createWindow() 
+  win.webContents.openDevTools()
+})
+
+exports.showOpenDialog = () => {
+  const result = dialog.showOpenDialogSync(win, {
+    properties: ['openFile', 'openDirectory']
+  })
+}

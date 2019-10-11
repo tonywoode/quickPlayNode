@@ -40,3 +40,7 @@ function delete_array () {
   array.length = 0
   displayArray()
 }
+
+function openLocal () {
+  main.showOpenDialog()
+}

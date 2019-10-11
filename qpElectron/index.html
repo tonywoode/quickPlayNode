@@ -19,28 +19,27 @@
         </p>
         <input type="checkbox" name="globalEnable" value="GlobalEnable" />
         Global Enable<br />
-       <p>
+        <p>
           <label>Enable on Hostname (one per line)</label>
-<input type="text" id="hostname">
-<input type="button" id="button1" value="Add" onclick="add_element_to_array();">
-<input type="button" id="button2" value="Delete All" onclick="delete_array();">
-<div id="Result"></div> 
-          </p>
-        
+        </p>
+        <input type="text" id="hostname" value=""/>
+        <input type="button" id="addHost" value="Add" onclick="add_element_to_array()" />
+        <input type="button" id="deleteHost" value="Delete All" onclick="delete_array()" />
+        <div id="Result"></div>
       </fieldset>
     </form>
-<p>
-          <label>Local Path</label>
-          <input type="text" id="myText" value="text here" />
-        </p>
-        <p>
-          <label>Remote Path</label>
-          <input type="password" id="myPwd" value="secret" />
-        </p>
-    <div style="text-align: center"></div>
+    <p>
+      <label>Local Path</label>
+      <input type="text" id="localPath" value="" />
     <button id="lopen" onclick="openLocal()">select Local Directory</button>
-    <div style="text-align: center"></div>
+    </p>
+    <p>
+      <label>Remote Path</label>
+      <input type="text" id="remotePath" value="" />
     <button id="ropen" onclick="openRemote()">select Remote Directory</button>
+    </p>
+    <div style="text-align: center"></div>
+    <div style="text-align: center"></div>
     <div style="text-align: right"></div>
     <button id="cancel" onclick="cancelEvent()">cancel</button>
     <button id="ok" onclick="okEvent()">ok</button>
