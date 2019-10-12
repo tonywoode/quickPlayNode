@@ -43,8 +43,8 @@ exports.saveConfig = () => {
 
 function createWindow () {
   win = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 770,
+    height: 435,
     webPreferences: {
       nodeIntegration: true
     }
@@ -54,7 +54,7 @@ function createWindow () {
 
 app.on('ready', () => {
   createWindow()
-  win.webContents.openDevTools()
+  //win.webContents.openDevTools()
 })
 
 exports.showOpenDialog = () => {
