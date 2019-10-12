@@ -16,7 +16,7 @@ function makeConfigFile () {
     enableOnHostName: [],
     useCopyOrCopyStream: 'copy'
   }
-  const content = JSON.stringify(config)
+  const content = JSON.stringify(config, null, 2)
   fs.writeFile(
     configFileName,
     content,
@@ -27,6 +27,16 @@ function makeConfigFile () {
 
 exports.getConfig = () => {
   return config
+}
+
+exports.saveConfig = () => {
+  const content = JSON.stringify(config, null, 2)
+  fs.writeFile(
+    configFileName,
+    content,
+    'utf8',
+    err => (err ? process.exit(1) : console.log('config saved'))
+  )
 }
 
 function createWindow () {

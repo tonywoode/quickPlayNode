@@ -22,6 +22,7 @@ function okEvent () {
   config.remoteRoot = document.getElementById('remotePath').value
   config.enableOnHostName = enabledOnMachines //in case it wasn't an array when we started
   var window = remote.getCurrentWindow()
+  main.saveConfig()
   window.close()
 }
 
