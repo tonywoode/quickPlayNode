@@ -59,7 +59,7 @@ app.on('ready', () => {
 
 exports.showOpenDialog = () => {
   const result = dialog.showOpenDialogSync(win, {
-    properties: ['openFile', 'openDirectory']
+    properties: ['openDirectory']
   })
   return result
 }

@@ -1,5 +1,22 @@
-.divider {
-  width: 5px;
-  height: auto;
+.enable {
+  float: left;
+  padding: 10px;
+}
+
+.pathLabel {
   display: inline-block;
+  width: 11%;
+  text-align: right;
+  margin-top: 10px;
+}
+
+.pathButton {
+  width: 180px;
+}
+
+.leaveButtons {
+  margin-top: 20px;
+  height: 30px;
+  width: 50px;
+  font-weight: 700;
 }

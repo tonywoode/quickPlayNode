@@ -10,37 +10,67 @@
     <h1>Synctool Settings</h1>
     <form>
       <fieldset>
-        <legend>Enable</legend>
-        <p>
-          You can always enable or just on certain machines<br>(in case you keep your emulators in sync)
-        </p>
-        <input type="checkbox" id="globalEnable">
-        Global Enable<br />
-        <p>
-          <label>Enable on Hostname (one per line)</label>
-        </p>
-        <input type="text" id="hostname" value=""/>
-        <input type="button" id="addHost" value="Add" onclick="add_element_to_array()" />
-        <input type="button" id="deleteHost" value="Delete All" onclick="delete_array()" />
-        <div id="Result"></div>
-
+        <div class="enable">
+          <legend>Enable</legend>
+          <p>
+            You can always enable or just on certain machines<br />(in case you
+            keep your emulators in sync)
+          </p>
+          <input type="checkbox" id="globalEnable" />
+          Global Enable<br />
+          <p>
+            <label>Enable on Hostname (one per line)</label>
+          </p>
+          <input type="text" id="hostname" value="" />
+          <input
+            type="button"
+            id="addHost"
+            value="Add"
+            onclick="add_element_to_array()"
+          />
+          <input
+            type="button"
+            id="deleteHost"
+            value="Delete All"
+            onclick="delete_array()"
+          />
+        </div>
+        <!--form left -->
+        <div class="enable" id="Result"></div>
       </fieldset>
     </form>
-    <p>
-      <label>Local Path</label>
-      <input type="text" id="localPath" value="" style="width:300px" onfocus="this.blur()" readonly />
-    <button id="lopen" onclick="openLocal()">select Local Directory</button>
-    </p>
-    <p>
-      <label>Remote Path</label>
-      <input type="text" id="remotePath" value="" style="width:300px" onfocus="this.blur()" readonly />
-    <button id="ropen" onclick="openRemote()">select Remote Directory</button>
-    </p>
-    <div style="text-align: right">
-    <button id="cancel" onclick="cancelEvent()">cancel</button>
-    <button id="ok" onclick="okEvent()">ok</button>
+    <div>
+      <label class="pathLabel">Local Path</label>
+      <input
+        type="text"
+        id="localPath"
+        value=""
+        style="width:300px"
+        onfocus="this.blur()"
+        readonly
+      />
+      <button class="pathButton" id="lopen" onclick="openLocal()">
+        select Local Directory
+      </button>
     </div>
-    <!-- You can also require other files to run in this process -->
-<input type="button" id="printconfig" value="print config" onclick="print_config()" />
+    <div>
+      <label class="pathLabel">Remote Path</label>
+      <input
+        type="text"
+        id="remotePath"
+        value=""
+        style="width:300px"
+        onfocus="this.blur()"
+        readonly
+      />
+      <button class="pathButton" id="ropen" onclick="openRemote()">
+        select Remote Directory
+      </button>
+    </div>
+    <div  style="text-align: right">
+      <button class="leaveButtons" id="cancel" onclick="cancelEvent()">cancel</button>
+      <button class="leaveButtons" id="ok" onclick="okEvent()">ok</button>
+    </div>
+    <!--input type="button" id="printconfig" value="print config" onclick="print_config()" /-->
   </body>
 </html>

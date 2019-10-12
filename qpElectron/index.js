@@ -16,19 +16,23 @@ function cancelEvent () {
 }
 
 function okEvent () {
-
   const globalEnabled = document.getElementById('globalEnable').checked
   const localRoot = document.getElementById('localPath').value
   const remoteRoot = document.getElementById('remotePath').value
 
-  const synctoolIsEnabled = (Array.isArray(enabledOnMachines) && enabledOnMachines.length !== 0) || globalEnabled
-  if ( synctoolIsEnabled && !(localRoot && remoteRoot) ) { return alert('Both Local Root and Remote Root must be selected when Synctool is Enabled')}
-  if ( synctoolIsEnabled && localRoot === remoteRoot) { return alert('Local Root and Remote Root cannot be the same')}
+  const synctoolIsEnabled =
+    (Array.isArray(enabledOnMachines) && enabledOnMachines.length !== 0) || globalEnabled
+  if (synctoolIsEnabled && !(localRoot && remoteRoot)) {
+    return alert('Both Local Root and Remote Root must be selected when Synctool is Enabled')
+  }
+  if (synctoolIsEnabled && localRoot === remoteRoot) {
+    return alert('Local Root and Remote Root cannot be the same')
+  }
   config.globalEnable = globalEnabled
-  //i'd like to do path.normalize here, but that saves a dot instead of ''
+  // i'd like to do path.normalize here, but that saves a dot instead of ''
   config.localRoot = localRoot
   config.remoteRoot = remoteRoot
-  config.enableOnHostName = enabledOnMachines //in the unlikely case it wasn't an array when we started
+  config.enableOnHostName = enabledOnMachines // in the unlikely case it wasn't an array when we started
   var window = remote.getCurrentWindow()
   main.saveConfig()
   window.close()
@@ -45,9 +49,8 @@ function openRemote () {
 }
 
 function displayArray () {
-  let e = '<hr/>'
-  for (const val of enabledOnMachines) e += `Enabled on Host: ${val}<br/>`
-  document.getElementById('Result').innerHTML = e
+  const printHosts = (accum, val) => accum + `Enabled on Host: ${val}<br/>`
+  document.getElementById('Result').innerHTML = enabledOnMachines.reduce(printHosts, '')
 }
 
 function add_element_to_array () {
