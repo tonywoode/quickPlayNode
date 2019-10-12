@@ -1,6 +1,7 @@
 const { app, BrowserWindow, dialog } = require('electron')
 const fs = require('fs')
-const configFileName = '../synctool_config.json'
+const path = require('path')
+const configFileName =  path.resolve('synctool_config.json')
 //always write a config file on first run, irrespective of what happens...
 let config = fs.existsSync(configFileName) ? require(configFileName) : makeConfigFile()
 const _throw       = m => { throw new Error(m) }
@@ -43,12 +44,13 @@ exports.saveConfig = () => {
 
 function createWindow () {
   win = new BrowserWindow({
-    width: 770,
-    height: 435,
+    width: 800,
+    height: 460,
     webPreferences: {
       nodeIntegration: true
-    }
+    },
   })
+  win.setMenuBarVisibility(false)
   win.loadFile('index.html')
 }
 
