@@ -31,7 +31,8 @@
     },
     "directories": {
       "app": "./qpElectron"
-    }
+    },
+    "electronVersion": "6.0.12"
   },
   "author": "",
   "license": "ISC",
@@ -55,7 +56,6 @@
   "devDependencies": {
     "chai": "^4.1.0",
     "chai-as-promised": "^7.1.1",
-    "electron": "^6.0.12",
     "electron-builder": "^21.2.0",
     "into-stream": "^3.1.0",
     "mocha": "^3.4.2",
