@@ -4,7 +4,7 @@ const join = (...paths) => path.join(...paths)
 const { synctool } = require('../../../src/synctool/index.js')
 const localRoot = 'the/local/root'
 const remoteRoot = 'the/remote/root'
-const pathToConfig = 'synctool_config.json'
+const pathToConfig = 'qpnode_config.json'
 const newError = msg => {
   throw new Error(msg)
 }
@@ -47,7 +47,7 @@ describe('synctool: states', () => {
 
   describe('InvalidJson', () => {
     it('errors if JSON config file isnt valid JSON', done => {
-      mock({ 'synctool_config.json': `{#!}` })
+      mock({ 'qpnode_config.json': `{#!}` })
       synctool('_', pathToConfig)
         .run()
         .listen({

@@ -4,7 +4,7 @@ const join = (...paths) => path.join(...paths)
 const { synctoolEnable } = require('../../../src/synctool/index.js')
 const localRoot = 'the/local/root'
 const remoteRoot = 'the/remote/root'
-const pathToConfig = 'synctool_config.json'
+const pathToConfig = 'qpnode_config.json'
 const newError = msg => {
   throw new Error(msg)
 }
@@ -48,7 +48,7 @@ describe('synctoolEnable', () => {
   // TODO: once require has loaded some json, which it did in previous test, it won't let it go again, subsequent tests fail
   describe('InvalidJson', () => {
     it.skip('errors if JSON config file isnt valid JSON', done => {
-      mock({ 'synctool_config.json': `{#!}` })
+      mock({ 'qpnode_config.json': `{#!}` })
       synctoolEnable(pathToConfig)
         .run()
         .listen({

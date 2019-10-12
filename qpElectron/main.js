@@ -1,7 +1,7 @@
 const { app, BrowserWindow, dialog } = require('electron')
 const fs = require('fs')
 const path = require('path')
-const configFileName =  path.resolve('synctool_config.json')
+const configFileName =  path.resolve('qpnode_config.json')
 //always write a config file on first run, irrespective of what happens...
 let config = fs.existsSync(configFileName) ? require(configFileName) : makeConfigFile()
 const _throw       = m => { throw new Error(m) }
