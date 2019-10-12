@@ -17,6 +17,10 @@
 .leaveButtons {
   margin-top: 20px;
   height: 30px;
-  width: 50px;
+  width: 55px;
+  font-weight: 700;
+}
+
+legend {
   font-weight: 700;
 }
