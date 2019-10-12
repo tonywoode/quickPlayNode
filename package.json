@@ -23,7 +23,7 @@
     "test-synctool": "mocha --  ./specs/init.js $(eval $npm_package_config_getSpecsSynctool)",
     "package": "pkg src/QPNode.js -t win --out-path $npm_package_directories_binOutputDir",
     "packageParallels": "pkg src/QPNode.js -t win --out-path /Volumes/[C]\\ My\\ Boot\\ Camp/Emulators/QUICKPLAY/QuickPlayFrontend/qp/bin",
-    "dist": "electron-builder --win --x64"
+    "dist": "electron-builder --win --x64; \\cp -f -R dist/win-unpacked/ /Volumes/[C]\\ My\\ Boot\\ Camp/Emulators/QUICKPLAY/QuickPlayFrontend/qp/bin/QPElectron"
   },
   "build": {
     "win": {
