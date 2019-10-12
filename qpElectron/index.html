@@ -28,12 +28,12 @@
     </form>
     <p>
       <label>Local Path</label>
-      <input type="text" id="localPath" value="" style="width:300px" />
+      <input type="text" id="localPath" value="" style="width:300px" onfocus="this.blur()" readonly />
     <button id="lopen" onclick="openLocal()">select Local Directory</button>
     </p>
     <p>
       <label>Remote Path</label>
-      <input type="text" id="remotePath" value="" style="width:300px"/>
+      <input type="text" id="remotePath" value="" style="width:300px" onfocus="this.blur()" readonly />
     <button id="ropen" onclick="openRemote()">select Remote Directory</button>
     </p>
     <div style="text-align: right">

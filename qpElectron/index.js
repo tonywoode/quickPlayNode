@@ -1,6 +1,5 @@
 const remote = require('electron').remote
 const main = remote.require('./main.js')
-
 const config = main.getConfig()
 
 let enabledOnMachines = []
@@ -17,10 +16,19 @@ function cancelEvent () {
 }
 
 function okEvent () {
-  config.globalEnable = document.getElementById('globalEnable').checked
-  config.localRoot = document.getElementById('localPath').value
-  config.remoteRoot = document.getElementById('remotePath').value
-  config.enableOnHostName = enabledOnMachines //in case it wasn't an array when we started
+
+  const globalEnabled = document.getElementById('globalEnable').checked
+  const localRoot = document.getElementById('localPath').value
+  const remoteRoot = document.getElementById('remotePath').value
+
+  const synctoolIsEnabled = (Array.isArray(enabledOnMachines) && enabledOnMachines.length !== 0) || globalEnabled
+  if ( synctoolIsEnabled && !(localRoot && remoteRoot) ) { return alert('Both Local Root and Remote Root must be selected when Synctool is Enabled')}
+  if ( synctoolIsEnabled && localRoot === remoteRoot) { return alert('Local Root and Remote Root cannot be the same')}
+  config.globalEnable = globalEnabled
+  //i'd like to do path.normalize here, but that saves a dot instead of ''
+  config.localRoot = localRoot
+  config.remoteRoot = remoteRoot
+  config.enableOnHostName = enabledOnMachines //in the unlikely case it wasn't an array when we started
   var window = remote.getCurrentWindow()
   main.saveConfig()
   window.close()

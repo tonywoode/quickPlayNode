@@ -1,13 +1,15 @@
 const { app, BrowserWindow, dialog } = require('electron')
-const path = require('path')
 const fs = require('fs')
 const configFileName = '../synctool_config.json'
-const config = fs.existsSync(configFileName) ? require(configFileName) : makeConfigFile()
+//always write a config file on first run, irrespective of what happens...
+let config = fs.existsSync(configFileName) ? require(configFileName) : makeConfigFile()
+const _throw       = m => { throw new Error(m) }
 
 let win
 
 function makeConfigFile () {
-  const config = {
+  const newconfig = {
+    'NOTE:OnWindows': '...use forward slashes for these paths, or double backslashes if you insist on backslashes',
     localRoot: '',
     remoteRoot: '',
     timeout: 10000,
@@ -16,12 +18,12 @@ function makeConfigFile () {
     enableOnHostName: [],
     useCopyOrCopyStream: 'copy'
   }
-  const content = JSON.stringify(config, null, 2)
+  const content = JSON.stringify(newconfig, null, 2)
   fs.writeFile(
     configFileName,
     content,
     'utf8',
-    err => (err ? process.exit(1) : require(configFileName))
+    err => (err ? _throw(err) : config = require(configFileName))
   )
 }
 
@@ -35,12 +37,11 @@ exports.saveConfig = () => {
     configFileName,
     content,
     'utf8',
-    err => (err ? process.exit(1) : console.log('config saved'))
+    err => (err ? _throw(err) : console.log('[synctool] config saved'))
   )
 }
 
 function createWindow () {
-  // Create the browser window.
   win = new BrowserWindow({
     width: 800,
     height: 600,
@@ -48,8 +49,6 @@ function createWindow () {
       nodeIntegration: true
     }
   })
-
-  // and load the index.html of the app.
   win.loadFile('index.html')
 }
 
@@ -62,6 +61,5 @@ exports.showOpenDialog = () => {
   const result = dialog.showOpenDialogSync(win, {
     properties: ['openFile', 'openDirectory']
   })
-  console.log(result)
   return result
 }
