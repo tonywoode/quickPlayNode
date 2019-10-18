@@ -18,7 +18,7 @@ const { mfm } = require('./mfm')
 const { testArcadeRun } = require('./testing')
 const { softlists } = require('./softlists')
 const { synctool, synctoolEnable, synctoolFolderFlip } = require('./synctool')
-const configFileName = 'qpnode_config.json'
+const configFileName = path.join('dats', 'qpnode_config.json')
 
 // tee output to console and to a logfile https://stackoverflow.com/a/30578473/3536094
 const logFile = './mametool_logfile.txt'
