@@ -62,7 +62,7 @@ const synctoolEnable = configFileName =>
           config.globalEnable
             ? of('[syncToolEnable] - SyncTool is Enabled')
             : config.enableOnHostName &&
-                config.enableOnHostName.map(hostName => hostName === os.hostname())
+                config.enableOnHostName.includes(os.hostname())
               ? of('[syncToolEnable] - SyncTool is Enabled')
               : of('[syncToolEnable] - SyncTool is Disabled')
       )

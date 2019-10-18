@@ -3,25 +3,31 @@ const path = require('path')
 const join = (...paths) => path.join(...paths)
 const { synctoolEnable } = require('../../../src/synctool/index.js')
 const localRoot = 'the/local/root'
+const os = require('os') //why is this necessary?
 const remoteRoot = 'the/remote/root'
 const pathToConfig = 'qpnode_config.json'
 const newError = msg => {
   throw new Error(msg)
 }
-
+let fakeHostName = 'pepper'
 describe('synctoolEnable', () => {
   // mockfs won't affect Module.resolveFilename in require calls:  //https://github.com/tschaub/mock-fs/issues/145
   // so config path here has to agree with config path on the file system (the contents of the file, however, are changeable here)
   // if this test runs after the synctool test, the below mock will be ignored, we already required a config, require is sticky....
+  let sandbox
   beforeEach(() => {
     mock({
-      [pathToConfig]: `{ "localRoot" : "the/local/root", "remoteRoot": "the/remote/root", "globalEnable": true }`,
+      [pathToConfig]: `{ "localRoot" : "the/local/root", "remoteRoot": "the/remote/root", "globalEnable": false, "enableOnHostName": ["pepper"] }`,
       [localRoot]: { directory: {} },
       [remoteRoot]: { directory: {} }
     })
+    sandbox = sinon.sandbox.create()
   })
 
-  afterEach(() => mock.restore())
+  afterEach(() => {
+    mock.restore()
+    sandbox.restore()
+  })
 
   describe('NoFileGiven', () => {
     it('errors if a path to a file wasnt provided over cli', done => {
@@ -45,7 +51,7 @@ describe('synctoolEnable', () => {
     })
   })
 
-  // TODO: once require has loaded some json, which it did in previous test, it won't let it go again, subsequent tests fail
+  // TODO: once require has loaded some json, which it did in previous test, it won't let it go again, subsequent tests fail. Until i can fix, these tests have to be run in isolation
   describe('InvalidJson', () => {
     it.skip('errors if JSON config file isnt valid JSON', done => {
       mock({ 'qpnode_config.json': `{#!}` })
@@ -108,7 +114,29 @@ describe('synctoolEnable', () => {
   })
 
   describe('EnableOnHostName key', () => {
-    it.skip('is enabled if host key matches hostname')
-    it.skip("is disabled if host key doesn't match hostname")
+    it.skip('is enabled if host key matches hostname', done => {
+      sandbox.stub(os, `hostname`).returns(fakeHostName)
+      synctoolEnable(pathToConfig)
+        .run()
+        .listen({
+          onResolved: res => expect(res).to.match(/SyncTool is Enabled/) && done(),
+          onRejected: rej => {
+            expect(rej).to.match(newError(`synctoolEnable should have succeeded: ${rej}`)) && done()
+          }
+        })
+    })
+  })
+
+  it.skip("is disabled if host key doesn't match hostname", done => {
+    fakeHostName = 'popper'
+    sandbox.stub(os, `hostname`).returns(fakeHostName)
+    synctoolEnable(pathToConfig)
+      .run()
+      .listen({
+        onResolved: res => expect(res).to.match(/SyncTool is Disabled/) && done(),
+        onRejected: rej => {
+          expect(rej).to.match(newError(`synctoolEnable should have succeeded: ${rej}`)) && done()
+        }
+      })
   })
 })
