@@ -42,7 +42,7 @@ const addMameFilePathsToSettings = (settings, devMode, log) => {
         console.log(
           `we have only one path in your mame ini, so make it all the params: ${romPathSplit[0]}`
         )
-      settings.mameRoms = romPathSplit[1]
+      settings.mameRoms = romPathSplit[0]
       settings.mameChds = ''
       settings.mameSoftwareListRoms = ''
       settings.mameSoftwareListChds = ''

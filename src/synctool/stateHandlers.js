@@ -61,7 +61,7 @@ const doRootPathsExist = ({ localRoot, remoteRoot }) => {
 }
 
 // Path -> Object -> Path
-/* when given a path, a subpath, and a new submpath, return path under new subpath
+/* when given a path, a subpath, and a new subpath, return path under new subpath
  * path.join is safe: we've shown both constituents are safe */
 const calculateRemotePath = (localPath, { localRoot, remoteRoot }) =>
   getSubDir(localPath)(localRoot).chain(relativePath => join(remoteRoot, relativePath))
