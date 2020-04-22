@@ -35,23 +35,35 @@ const addMameFilePathsToSettings = (settings, devMode, log) => {
       : fs.existsSync(standardMessIniPath) ? standardMessIniPath : '' // no ini path, no paths get (safely) printed
   const mameRomPath = mameIniPath ? getMamePath(mameIniPath) : ''
   const romPathSplit = mameRomPath.split(';')
-  log.filePaths && console.log(`MAME ini file:          found in ${mameIniPath}\nMAME ini Rompath:       ${romPathSplit}`)
+  // cater for the possibility that mame's rompath variable contains relative paths meaning they will be relative to mame's directory, any number of the paths may or may not be relative
+  const romPathSplitAbsolute = romPathSplit.map(
+    romPathPart =>
+    // note the win32 here, without this my tests always failed on nix, if you 
+    // ever need to make this cross platform the tests will have to fail
+      path.win32.isAbsolute(romPathPart) ? romPathPart : path.join(path.resolve(mameEmuDir), romPathPart)
+  )
+  log.filePaths &&
+    console.log(
+      `MAME ini file:          found in ${mameIniPath}\nMAME ini Rompath:       ${romPathSplit}\n         Absolute:     ${romPathSplitAbsolute}`
+    )
   if (mameRomPath) {
-    if (romPathSplit.length === 1) {
+    if (romPathSplitAbsolute.length === 1) {
       log.filePaths &&
         console.log(
-          `we have only one path in your mame ini, so make it all the params: ${romPathSplit[0]}`
+          `we have only one path in your mame ini, so make it all the params: ${
+            romPathSplitAbsolute[0]
+          }`
         )
-      settings.mameRoms = romPathSplit[0]
+      settings.mameRoms = romPathSplitAbsolute[0]
       settings.mameChds = ''
       settings.mameSoftwareListRoms = ''
       settings.mameSoftwareListChds = ''
     } else {
-      const romsRegex = /^.*\\ROMS$/i
-      const chdsRegex = /^.*\\CHDs$/i
-      const softListRomsRegex = /^.*\\Software List ROMS$/i
-      const softListChdsRegex = /^.*\\Software List CHDs$/i
-      romPathSplit.forEach(rompath => {
+      const romsRegex = /^.*[/\\]ROMS$/i
+      const chdsRegex = /^.*[/\\]CHDs$/i
+      const softListRomsRegex = /^.*[/\\]Software List ROMS$/i
+      const softListChdsRegex = /^.*[/\\]Software List CHDs$/i
+      romPathSplitAbsolute.forEach(rompath => {
         romsRegex.test(rompath) && (settings.mameRoms = rompath)
         chdsRegex.test(rompath) && (settings.mameChds = rompath)
         softListRomsRegex.test(rompath) && (settings.mameSoftwareListRoms = rompath)
@@ -62,10 +74,8 @@ const addMameFilePathsToSettings = (settings, devMode, log) => {
 
   log.filePaths && console.log(`MAME roms path:         ${settings.mameRoms}`)
   log.filePaths && console.log(`MAME chds path:         ${settings.mameChds}`)
-  log.filePaths &&
-    console.log(`MAME software list roms path: ${settings.mameSoftwareListRoms}`)
-  log.filePaths &&
-    console.log(`MAME software list chds path: ${settings.mameSoftwareListChds}`)
+  log.filePaths && console.log(`MAME software list roms path: ${settings.mameSoftwareListRoms}`)
+  log.filePaths && console.log(`MAME software list chds path: ${settings.mameSoftwareListChds}`)
 }
 
 module.exports = addMameFilePathsToSettings
