@@ -38,9 +38,8 @@ const addMameFilePathsToSettings = (settings, devMode, log) => {
   // cater for the possibility that mame's rompath variable contains relative paths meaning they will be relative to mame's directory, any number of the paths may or may not be relative
   const romPathSplitAbsolute = romPathSplit.map(
     romPathPart =>
-    // note the win32 here, without this my tests always failed on nix, if you 
-    // ever need to make this cross platform the tests will have to fail
-      path.win32.isAbsolute(romPathPart) ? romPathPart : path.join(path.resolve(mameEmuDir), romPathPart)
+    // node will NOT test both for us, only the one on the OS this imp is running on, which is not helpful for running the tests or potentially dealing with win or nix mame inis
+      path.win32.isAbsolute(romPathPart) || path.posix.isAbsolute(romPathPart)? romPathPart : path.resolve(mameEmuDir, romPathPart)
   )
   log.filePaths &&
     console.log(

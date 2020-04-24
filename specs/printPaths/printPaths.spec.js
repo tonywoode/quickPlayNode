@@ -41,5 +41,17 @@ describe('printPaths', () => {
       expect(settings.mameRoms).to.equal(path.join(absoluteExePath, 'ROMS'))
       expect(settings.mameChds).to.equal(path.join(absoluteExePath, 'CHDs'))
     })
+
+    it('does not alter a windows absolute path, despite the tests possibly running on nix', () => {
+      const relativeExePath = `./specs/printPaths/mameIniAbsolute`
+      const absoluteExePath = path.resolve(relativeExePath)
+      const expectedWinPath = 'F:\\MAME'
+      const settings = { mameExePath: `${absoluteExePath}/mame.exe` }
+      let devMode = false
+      addMameFilePathsToSettings(settings, devMode, log)
+      // win32 join because otherwise our path separator would be nix
+      expect(settings.mameRoms).to.equal(path.win32.join(expectedWinPath, 'ROMS'))
+      // ideally we'd have 4 mame.inis so we can check all combos of single path, all paths, and abs relative
+    })
   })
 })
