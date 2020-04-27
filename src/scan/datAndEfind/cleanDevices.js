@@ -14,9 +14,9 @@ module.exports = systems => {
   const template = R.applySpec({
     type       : R.path(['$', 'type']),
     tag        : R.path(['$', 'tag']),
-    name       : R.path(['instance', '$', 'name']),
-    briefname  : R.path(['instance', '$', 'briefname']),
-    extensions : R.pipe(R.prop('extension'), flattenExtensions )
+    name       : R.path(['instance', '$', 'name']), //TODO: see the dtd, there aren't necessarily instances of all devices
+    briefname  : R.path(['instance', '$', 'briefname']), //TODO:  ditto
+    extensions : R.pipe(R.prop('extension'), flattenExtensions ) //TODO: lots of these end up null
   })
 
   //Note that we fundamentally scrape the MAME xml for things that have devices so we don't need to check if they have a device element again

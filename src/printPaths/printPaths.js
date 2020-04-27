@@ -43,7 +43,7 @@ const addMameFilePathsToSettings = (settings, devMode, log) => {
   )
   log.filePaths &&
     console.log(
-      `MAME ini file:          found in ${mameIniPath}\nMAME ini Rompath:       ${romPathSplit}\n         Absolute:     ${romPathSplitAbsolute}`
+      `MAME ini file:          found in ${mameIniPath}\nMAME ini Rompath:       ${romPathSplit}\n         Absolute:      ${romPathSplitAbsolute}`
     )
   if (mameRomPath) {
     if (romPathSplitAbsolute.length === 1) {
