@@ -67,7 +67,7 @@ MAME ini dir:           ${settings.iniDir}`
       //post process the embedded json - here we pair down the imp elsewhere to print us a set of embedded systems in mess
       const interestingEmbedded = R.pipe(mungeCompanyAndSystemNamesEmbedded, removeBoringSystemsEmbedded)(mungedEmbedded)
 
-      //this will be the json that gets printed and used
+      //this will be the json that gets printed and used, remember btw that JSON.stringify will remove any fields that have the value undefined
       const newSysObj = {versionInfo, arcade: mungedArcade, messSystems: mungedMessSystems, embedded: interestingEmbedded}
       console.log(`Printing mame.json for version ${sysObj.versionInfo.mameVersion} to ${jsonOutPath}`) 
       fs.writeFileSync(jsonOutPath, JSON.stringify(newSysObj, null, `\t`))

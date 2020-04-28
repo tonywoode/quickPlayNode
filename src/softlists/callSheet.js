@@ -44,11 +44,8 @@ module.exports = log => systems => {
   const replaceDevice = R.map(
     obj => R.assoc(`device`, 
       R.pipe(
-        //bugfix, the MAME DTD says devices may not have an instance
-        // and if it doesn't, it doesn't have a briefname, so filter that first
-        // a better fix would be to only include devices that have briefnames in the read of the xml, but problem is we 'collect' the device node, also see src/scan/dataAndEFind/cleanDevices where a R.applySpec makes it toublesome to alter
+        //after an issue (fixed upstream in cleanDevices) with device instances, first double-check we have briefnames before we rely on them
         R.filter( device => device.briefname),
-        //TODO: mutation!!!
         R.map( device => device.briefname)
         )(obj.device) 
     , obj)
