@@ -6,14 +6,13 @@ const {readFileSync, existsSync} = require('fs')
 const ini      = require('ini')
 const _throw   = m => { throw new Error(m) }
 
-module.exports = (settingsIniPath, mameInisOverridePath ) => {
+module.exports = (qpSettingsIniPath, mameInisOverridePath ) => {
 
-  const qpIni       = settingsIniPath
-  existsSync(qpIni) || _throw(`the setttings file doesn't exist at ${path}`)
-  const qpSettings  = ini.parse(readFileSync(qpIni, 'utf-8'))
+  existsSync(qpSettingsIniPath) || _throw(`the setttings file doesn't exist at ${qpSettingsIniPath}`)
+  const qpSettings  = ini.parse(readFileSync(qpSettingsIniPath, 'utf-8'))
   const s           = qpSettings.MAME
   //console.log(s) 
-  console.log(`Settings file:          ${qpIni}`)  
+  console.log(`Settings file:          ${qpSettingsIniPath}`)  
 
   return { 
       mameXMLInPath     : s.MameXMLPath
