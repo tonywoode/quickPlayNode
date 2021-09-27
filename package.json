@@ -21,8 +21,11 @@
     "fulldebug": "trash $npm_package_directories_outputDir && npm run debug --",
     "test": "mocha --  ./specs/init.js $(eval $npm_package_config_getSpecs)",
     "test-synctool": "mocha --  ./specs/init.js $(eval $npm_package_config_getSpecsSynctool)",
+    "monkeyPatchIconv": "mv node_modules/iconv/build/Release/iconv.node node_modules/iconv/build/Release/iconv.node_MACOS && cp /Volumes/[C]\\ My\\ Boot\\ Camp/Emulators/QUICKPLAY/QuickPlayFrontend/qp/bin/iconv.node node_modules/iconv/build/Release/iconv.node",
+    "unMonkeyPatchIconv": "cp -f node_modules/iconv/build/Release/iconv.node_MACOS node_modules/iconv/build/Release/iconv.node",
     "package": "pkg src/QPNode.js -t win --out-path $npm_package_directories_binOutputDir",
     "packageParallels": "pkg src/QPNode.js -t win --out-path /Volumes/[C]\\ My\\ Boot\\ Camp/Emulators/QUICKPLAY/QuickPlayFrontend/qp/bin",
+    "packageParallelsWithPatch": "npm run monkeyPatchIconv && npm run packageParallels && npm run unMonkeyPatchIconv",
     "dist": "electron-builder --win --x64; \\cp -f -R dist/win-unpacked/ /Volumes/[C]\\ My\\ Boot\\ Camp/Emulators/QUICKPLAY/QuickPlayFrontend/qp/bin/QPElectron"
   },
   "build": {
