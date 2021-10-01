@@ -25,7 +25,7 @@
     "unMonkeyPatchIconv": "cp -f node_modules/iconv/build/Release/iconv.node_MACOS node_modules/iconv/build/Release/iconv.node",
     "package": "pkg src/QPNode.js -t win --out-path $npm_package_directories_binOutputDir",
     "packageParallels": "pkg src/QPNode.js -t win --out-path /Volumes/[C]\\ My\\ Boot\\ Camp/Emulators/QUICKPLAY/QuickPlayFrontend/qp/bin",
-    "packageParallelsWithPatch": "npm run monkeyPatchIconv && npm run packageParallels && npm run unMonkeyPatchIconv",
+    "packageParallelsWithPatch": "mkdir node_modules/pkg/node_modules/.bin && ln -s node_modules/prebuild-install/bin.js node_modules/pkg/node_modules/.bin/prebuild-install && npm run monkeyPatchIconv && npm run packageParallels && npm run unMonkeyPatchIconv",
     "dist": "electron-builder --win --x64; \\cp -f -R dist/win-unpacked/ /Volumes/[C]\\ My\\ Boot\\ Camp/Emulators/QUICKPLAY/QuickPlayFrontend/qp/bin/QPElectron"
   },
   "build": {
