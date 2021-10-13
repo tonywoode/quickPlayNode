@@ -1,7 +1,7 @@
 const path = require('path')
 const fs = require('fs')
 
-const getMamePath = mameIniPath => {
+const getMameIniRomPath = mameIniPath => {
   try {
     const mameIni = fs.readFileSync(mameIniPath, 'utf-8')
     const match = /^rompath\s+(.*)$/m.exec(mameIni)
@@ -12,35 +12,51 @@ const getMamePath = mameIniPath => {
   }
 }
 
-// determine the location of the mame.ini, this is only for printing filepaths, we just print a default if anything goes wrong...
-const addMameFilePathsToSettings = (settings, devMode, log) => {
-  const mameEmuDir = path.dirname(settings.mameExePath)
-  settings.mameRoms = ''
-  settings.mameChds = ''
-  settings.mameSoftwareListRoms = ''
-  settings.mameSoftwareListChds = ''
+const determinePathToMameIni = (mameEmuDir, isItRetroArch, devMode) => {
   const mameIniFileName = `./mame.ini`
-  const standardMameIniPath = settings.isItRetroArch
+  const standardMameIniPath = isItRetroArch
     ? path.join(mameEmuDir, `system`, `mame`, mameIniFileName)
     : path.join(mameEmuDir, mameIniFileName)
   const messIniFileName = `./mess.ini`
-  const standardMessIniPath = settings.isItRetroArch
+  const standardMessIniPath = isItRetroArch
     ? path.join(mameEmuDir, `system`, `mess2015`, messIniFileName) // foldername at least was true in 2019, best i can do
     : path.join(mameEmuDir, messIniFileName)
 
-  const mameIniPath = devMode
+  return devMode
     ? mameIniFileName
     : fs.existsSync(standardMameIniPath)
       ? standardMameIniPath
       : fs.existsSync(standardMessIniPath) ? standardMessIniPath : '' // no ini path, no paths get (safely) printed
-  const mameRomPath = mameIniPath ? getMamePath(mameIniPath) : ''
+}
+
+// determine the location of the mame.ini, this is only for printing filepaths, we just print a default if anything goes wrong...
+
+// let's work out the different concerns we had going on in the original fn which had too many concerns:
+//   we work out the path to the mame ini based on input
+//   we read the ini
+//   we work out how the ini says to make the filepaths for mame
+//   we write those into settings for the rest of the program to use
+//
+//   there was a lot of mutating external state here!
+
+const addMameFilePathsToSettings = (settings, mameEmuDir, isItRetroArch, devMode, log) => {
+  console.log('mameEmuDir: ', mameEmuDir)
+  const mameIniPath = determinePathToMameIni(mameEmuDir, isItRetroArch, devMode)
+  const mameRomPath = mameIniPath ? getMameIniRomPath(mameIniPath) : ''
   const romPathSplit = mameRomPath.split(';')
-  // cater for the possibility that mame's rompath variable contains relative paths meaning they will be relative to mame's directory, any number of the paths may or may not be relative
-  const romPathSplitAbsolute = romPathSplit.map(
-    romPathPart =>
-    // node will NOT test both for us, only the one on the OS this imp is running on, which is not helpful for running the tests or potentially dealing with win or nix mame inis
-      path.win32.isAbsolute(romPathPart) || path.posix.isAbsolute(romPathPart)? romPathPart : path.resolve(mameEmuDir, romPathPart)
-  )
+
+  const splitMameIniRomPathIntoConstituents = mamePathSplit => {
+    // cater for the possibility that mame's rompath variable contains relative paths meaning they will be relative to mame's directory, any number of the paths may or may not be relative
+    return romPathSplit.map(
+      romPathPart =>
+        // node will NOT test both for us, only the one on the OS this imp is running on, which is not helpful for running the tests or potentially dealing with win or nix mame inis
+        path.win32.isAbsolute(romPathPart) || path.posix.isAbsolute(romPathPart)
+          ? romPathPart
+          : path.resolve(mameEmuDir, romPathPart)
+    )
+  }
+
+  const romPathSplitAbsolute = splitMameIniRomPathIntoConstituents(romPathSplit)
   log.filePaths &&
     console.log(
       `MAME ini file:          found in ${mameIniPath}\nMAME ini Rompath:       ${romPathSplit}\n         Absolute:      ${romPathSplitAbsolute}`

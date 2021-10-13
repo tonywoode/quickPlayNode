@@ -119,7 +119,11 @@ MAME exe path:          ${settings.mameExePath}`
     const hashDir = devMode ? `${devInputsDir}/hash/` : liveHashDir
 
     if (settings.mameFilePaths) {
-      addMameFilePathsToSettings(settings, devMode, log)
+      settings.mameRoms = ''
+      settings.mameChds = ''
+      settings.mameSoftwareListRoms = ''
+      settings.mameSoftwareListChds = ''
+      addMameFilePathsToSettings(settings, mameEmuDir, settings.isItRetroArch, devMode, log)
     }
 
     // TODO: promisify these so you can run combinations
