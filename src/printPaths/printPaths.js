@@ -12,21 +12,17 @@ const getMameIniRomPath = mameIniPath => {
   }
 }
 
-const determinePathToMameIni = (mameEmuDir, isItRetroArch, devMode) => {
-  const mameIniFileName = `./mame.ini`
+const determinePathToMameIni = (mameEmuDir, isItRetroArch, mameIniFileName, messIniFileName) => {
   const standardMameIniPath = isItRetroArch
     ? path.join(mameEmuDir, `system`, `mame`, mameIniFileName)
     : path.join(mameEmuDir, mameIniFileName)
-  const messIniFileName = `./mess.ini`
   const standardMessIniPath = isItRetroArch
     ? path.join(mameEmuDir, `system`, `mess2015`, messIniFileName) // foldername at least was true in 2019, best i can do
     : path.join(mameEmuDir, messIniFileName)
 
-  return devMode
-    ? mameIniFileName
-    : fs.existsSync(standardMameIniPath)
-      ? standardMameIniPath
-      : fs.existsSync(standardMessIniPath) ? standardMessIniPath : '' // no ini path, no paths get (safely) printed
+  return fs.existsSync(standardMameIniPath)
+    ? standardMameIniPath
+    : fs.existsSync(standardMessIniPath) ? standardMessIniPath : '' // no ini path, no paths get (safely) printed
 }
 
 // determine the location of the mame.ini, this is only for printing filepaths, we just print a default if anything goes wrong...
@@ -36,12 +32,17 @@ const determinePathToMameIni = (mameEmuDir, isItRetroArch, devMode) => {
 //   we read the ini
 //   we work out how the ini says to make the filepaths for mame
 //   we write those into settings for the rest of the program to use
+//   we log out what the settings are
 //
 //   there was a lot of mutating external state here!
 
 const addMameFilePathsToSettings = (settings, mameEmuDir, isItRetroArch, devMode) => {
-  const mameIniPath = determinePathToMameIni(mameEmuDir, isItRetroArch, devMode)
-  const mameRomPath = mameIniPath ? getMameIniRomPath(mameIniPath) : ''
+  const mameIniFileName = `./mame.ini`
+  const messIniFileName = `./mess.ini`
+  const mameIniPath = devMode
+    ? mameIniFileName
+    : determinePathToMameIni(mameEmuDir, isItRetroArch, mameIniFileName, messIniFileName)
+  const mameRomPath = getMameIniRomPath(mameIniPath)
   const romPathSplit = mameRomPath.split(';')
 
   const splitMameIniRomPathIntoConstituents = mamePathSplit => {
@@ -85,11 +86,6 @@ const addMameFilePathsToSettings = (settings, mameEmuDir, isItRetroArch, devMode
       })
     }
   }
-
-  log.filePaths && console.log(`MAME roms path:         ${settings.mameRoms}`)
-  log.filePaths && console.log(`MAME chds path:         ${settings.mameChds}`)
-  log.filePaths && console.log(`MAME software list roms path: ${settings.mameSoftwareListRoms}`)
-  log.filePaths && console.log(`MAME software list chds path: ${settings.mameSoftwareListChds}`)
 }
 
 module.exports = addMameFilePathsToSettings

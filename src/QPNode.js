@@ -126,6 +126,10 @@ MAME exe path:          ${settings.mameExePath}`
       settings.mameSoftwareListRoms = ''
       settings.mameSoftwareListChds = ''
       addMameFilePathsToSettings(settings, mameEmuDir, settings.isItRetroArch, devMode)
+      log.filePaths && console.log(`MAME roms path:         ${settings.mameRoms}`)
+      log.filePaths && console.log(`MAME chds path:         ${settings.mameChds}`)
+      log.filePaths && console.log(`MAME software list roms path: ${settings.mameSoftwareListRoms}`)
+      log.filePaths && console.log(`MAME software list chds path: ${settings.mameSoftwareListChds}`)
     }
 
     // TODO: promisify these so you can run combinations
