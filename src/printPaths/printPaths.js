@@ -26,16 +26,19 @@ const determinePathToMameIni = (mameEmuDir, isItRetroArch, mameIniFileName, mess
     : fs.existsSync(standardMessIniPath) ? standardMessIniPath : '' // no ini path, no paths get (safely) printed
 }
 
-// determine the location of the mame.ini, this is only for printing filepaths, we just print a default if anything goes wrong...
+const splitMameIniRomPathIntoConstituents = (mameEmuDir, romPathSplit) => {
+  // cater for the possibility that mame's rompath variable contains relative paths meaning they will be relative to mame's directory, any number of the paths may or may not be relative
+  return romPathSplit.map(
+    romPathPart =>
+      // node will NOT test both for us, only the one on the OS this imp is running on, which is not helpful for running the tests or potentially dealing with win or nix mame inis
+      path.win32.isAbsolute(romPathPart) || path.posix.isAbsolute(romPathPart)
+        ? romPathPart
+        : path.resolve(mameEmuDir, romPathPart)
+  )
+}
 
-// let's work out the different concerns we had going on in the original fn which had too many concerns:
-//   we work out the path to the mame ini based on input
-//   we read the ini
-//   we work out how the ini says to make the filepaths for mame
-//   we write those into settings for the rest of the program to use
-//   we log out what the settings are
-//
-//   there was a lot of mutating external state here!
+// determine the location of the mame.ini, this is only for printing filepaths, we just print a default if anything goes wrong...
+/** returns an object with the 4 types of mame rom paths **/
 
 const addMameFilePathsToSettings = (mameEmuDir, isItRetroArch, devMode) => {
   const paths = {
@@ -51,19 +54,7 @@ const addMameFilePathsToSettings = (mameEmuDir, isItRetroArch, devMode) => {
     : determinePathToMameIni(mameEmuDir, isItRetroArch, mameIniFileName, messIniFileName)
   const mameRomPath = getMameIniRomPath(mameIniPath)
   const romPathSplit = mameRomPath.split(';')
-
-  const splitMameIniRomPathIntoConstituents = mamePathSplit => {
-    // cater for the possibility that mame's rompath variable contains relative paths meaning they will be relative to mame's directory, any number of the paths may or may not be relative
-    return romPathSplit.map(
-      romPathPart =>
-        // node will NOT test both for us, only the one on the OS this imp is running on, which is not helpful for running the tests or potentially dealing with win or nix mame inis
-        path.win32.isAbsolute(romPathPart) || path.posix.isAbsolute(romPathPart)
-          ? romPathPart
-          : path.resolve(mameEmuDir, romPathPart)
-    )
-  }
-
-  const romPathSplitAbsolute = splitMameIniRomPathIntoConstituents(romPathSplit)
+  const romPathSplitAbsolute = splitMameIniRomPathIntoConstituents(mameEmuDir, romPathSplit)
   log.filePaths &&
     console.log(
       `MAME ini file:          found in ${mameIniPath}\nMAME ini Rompath:       ${romPathSplit}\n         Absolute:      ${romPathSplitAbsolute}`
@@ -71,18 +62,15 @@ const addMameFilePathsToSettings = (mameEmuDir, isItRetroArch, devMode) => {
   if (mameRomPath) {
     if (romPathSplitAbsolute.length === 1) {
       const theSingleRomPath = romPathSplitAbsolute[0]
-      log.filePaths && console.log(`only one path in your mame ini, make it all the params: ${theSingleRomPath}`)
+      log.filePaths &&
+        console.log(`only one path in your mame ini, make it all the params: ${theSingleRomPath}`)
       paths.mameRoms = theSingleRomPath
     } else {
-      const romsRegex = /^.*[/\\]ROMS$/i
-      const chdsRegex = /^.*[/\\]CHDs$/i
-      const softListRomsRegex = /^.*[/\\]Software List ROMS$/i
-      const softListChdsRegex = /^.*[/\\]Software List CHDs$/i
       romPathSplitAbsolute.forEach(rompath => {
-        romsRegex.test(rompath) && (paths.mameRoms = rompath)
-        chdsRegex.test(rompath) && (paths.mameChds = rompath)
-        softListRomsRegex.test(rompath) && (paths.mameSoftwareListRoms = rompath)
-        softListChdsRegex.test(rompath) && (paths.mameSoftwareListChds = rompath)
+        ;/^.*[/\\]ROMS$/i.test(rompath) && (paths.mameRoms = rompath)
+        ;/^.*[/\\]CHDs$/i.test(rompath) && (paths.mameChds = rompath)
+        ;/^.*[/\\]Software List ROMS$/i.test(rompath) && (paths.mameSoftwareListRoms = rompath)
+        ;/^.*[/\\]Software List CHDs$/i.test(rompath) && (paths.mameSoftwareListChds = rompath)
       })
     }
   }
