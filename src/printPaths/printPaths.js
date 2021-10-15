@@ -8,6 +8,7 @@ const getMameIniRomPath = mameIniPath => {
     const quotesRemoved = match[1].replace(/^["'](.*)["']$/, '$1')
     return quotesRemoved
   } catch {
+    log.filePaths(`didnt manage to get any rompaths out of mame.in path: ${mameIniPath}`)
     return ''
   }
 }
@@ -36,7 +37,13 @@ const determinePathToMameIni = (mameEmuDir, isItRetroArch, mameIniFileName, mess
 //
 //   there was a lot of mutating external state here!
 
-const addMameFilePathsToSettings = (settings, mameEmuDir, isItRetroArch, devMode) => {
+const addMameFilePathsToSettings = (mameEmuDir, isItRetroArch, devMode) => {
+  const paths = {
+    mameRoms: '',
+    mameChds: '',
+    mameSoftwareListRoms: '',
+    mameSoftwareListChds: ''
+  }
   const mameIniFileName = `./mame.ini`
   const messIniFileName = `./mess.ini`
   const mameIniPath = devMode
@@ -63,29 +70,23 @@ const addMameFilePathsToSettings = (settings, mameEmuDir, isItRetroArch, devMode
     )
   if (mameRomPath) {
     if (romPathSplitAbsolute.length === 1) {
-      log.filePaths &&
-        console.log(
-          `we have only one path in your mame ini, so make it all the params: ${
-            romPathSplitAbsolute[0]
-          }`
-        )
-      settings.mameRoms = romPathSplitAbsolute[0]
-      settings.mameChds = ''
-      settings.mameSoftwareListRoms = ''
-      settings.mameSoftwareListChds = ''
+      const theSingleRomPath = romPathSplitAbsolute[0]
+      log.filePaths && console.log(`only one path in your mame ini, make it all the params: ${theSingleRomPath}`)
+      paths.mameRoms = theSingleRomPath
     } else {
       const romsRegex = /^.*[/\\]ROMS$/i
       const chdsRegex = /^.*[/\\]CHDs$/i
       const softListRomsRegex = /^.*[/\\]Software List ROMS$/i
       const softListChdsRegex = /^.*[/\\]Software List CHDs$/i
       romPathSplitAbsolute.forEach(rompath => {
-        romsRegex.test(rompath) && (settings.mameRoms = rompath)
-        chdsRegex.test(rompath) && (settings.mameChds = rompath)
-        softListRomsRegex.test(rompath) && (settings.mameSoftwareListRoms = rompath)
-        softListChdsRegex.test(rompath) && (settings.mameSoftwareListChds = rompath)
+        romsRegex.test(rompath) && (paths.mameRoms = rompath)
+        chdsRegex.test(rompath) && (paths.mameChds = rompath)
+        softListRomsRegex.test(rompath) && (paths.mameSoftwareListRoms = rompath)
+        softListChdsRegex.test(rompath) && (paths.mameSoftwareListChds = rompath)
       })
     }
   }
+  return paths
 }
 
 module.exports = addMameFilePathsToSettings
