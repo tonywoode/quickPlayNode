@@ -15,7 +15,7 @@ const { Just, Nothing } = Maybe
  * (that's where a game exists on two seperate devices but mame wasn't good at representing this in softlists */
 
 // we are going to need to know the index of the softlist, because each is an object and we need to attach the loader call key onto one of them
-const doSoftlistsContainSoftlist = (softlistToFind, obj, log) => { 
+const doSoftlistsContainSoftlist = (softlistToFind, obj) => { 
     for (const [index, aSoftlist] of obj.softlist.entries()) { 
      log.loaderCallsVerbose && console.log(`  which has softlist ${aSoftlist.name}`)
       if (softlistToFind === aSoftlist.name && aSoftlist.status === `original`) return index
@@ -25,15 +25,15 @@ const doSoftlistsContainSoftlist = (softlistToFind, obj, log) => {
 /* as well as finding a match, we also need to make sure we have an ORIGINAL softlist not a COMPATIBLE one, 
  *   consider what would happen for Thomson TO8 with Thomson TO7's softlist, the TO8 doesn't need the basic cart, 
  *   and if it DID need a basic cart, it wouldn't need the same one as the TO7 */
-const doesSystemHaveThisSoftlist = (obj, softlistToFind, exclusions, log) => {
+const doesSystemHaveThisSoftlist = (obj, softlistToFind, exclusions) => {
   log.loaderCallsVerbose && console.log(`looking for ${softlistToFind} in ${obj.call}`)
   if  (exclusions && ( exclusions.includes(obj.call) || exclusions.includes(obj.cloneof) ) ) return -1
-  if ( obj.softlist ) {return doSoftlistsContainSoftlist(softlistToFind, obj, log)}
+  if ( obj.softlist ) {return doSoftlistsContainSoftlist(softlistToFind, obj)}
 }
 
 /* Searches for systems who have the (original) softlist we have loader rom info for, 
  * if found, inserts the call against the softlist so we can check for its existence later */
-const fillSoftlistLoaderCalls = (romLoaderItem, log) => systemsAccum => {
+const fillSoftlistLoaderCalls = (romLoaderItem) => systemsAccum => {
   log.loaderCalls && romLoaderItem['softlists'] && console.log(
     `LOADER CALLS: seeking matches for softlists ${romLoaderItem.softlists.toString()}`
   )
@@ -42,7 +42,7 @@ const fillSoftlistLoaderCalls = (romLoaderItem, log) => systemsAccum => {
     .chain(item => item.softlists? Just(romLoaderItem) : Nothing() )
     .map( ({softlists, softlistExclusions, romcall}) => R.map( obj => {
         for (const softlist of romLoaderItem.softlists) {
-          const foundIndex = doesSystemHaveThisSoftlist(obj, softlist, romLoaderItem.softlistExclusions, log)
+          const foundIndex = doesSystemHaveThisSoftlist(obj, softlist, romLoaderItem.softlistExclusions)
           if (foundIndex > -1) { 
               log.loaderCalls && console.log(`    ---> inserting a loading call for ${obj.call}'s original softlist ${softlist}`)
               obj = R.assocPath([`softlist`, foundIndex, `loaderCall`], `${obj.call} -${romLoaderItem.romcall}`, obj)
@@ -56,7 +56,7 @@ const fillSoftlistLoaderCalls = (romLoaderItem, log) => systemsAccum => {
 
 /* a subtely here is that the system's device briefname may or may not have a number at the end. There's never likely 
  *   to be much variety in briefnames so the simplest substring check is fine */
-const getIndexOfTheDevice = (obj, deviceToFind, log) => {
+const getIndexOfTheDevice = (obj, deviceToFind) => {
   for (const [index, device] of obj.device.entries()) {
     if (device.briefname.includes(deviceToFind)) {
       log.loaderCallsVerbose && console.log(`  --> found a match and the index for ${deviceToFind} in ${obj.call} is ${index}`)
@@ -65,13 +65,13 @@ const getIndexOfTheDevice = (obj, deviceToFind, log) => {
   }
 }
 
-const doesSystemHaveThisCall = (obj, callsToFind, deviceToFind, log) => {
+const doesSystemHaveThisCall = (obj, callsToFind, deviceToFind) => {
   log.loaderCallsVerbose && console.log(`looking for ${callsToFind} with ${deviceToFind} as part of ${obj.call} and its clones`)
-  if ((callsToFind.includes(obj.call)) || (callsToFind.includes(obj.cloneof) ) ) return getIndexOfTheDevice(obj, deviceToFind, log)
+  if ((callsToFind.includes(obj.call)) || (callsToFind.includes(obj.cloneof) ) ) return getIndexOfTheDevice(obj, deviceToFind)
 }
 
 
-const fillDeviceLoadingCalls = (romLoaderItem, log) => systemsAccum => {
+const fillDeviceLoadingCalls = (romLoaderItem) => systemsAccum => {
   log.loaderCalls && romLoaderItem['devices'] && console.log(
     `LOADER CALLS: seeking matches for ${romLoaderItem.devices.toString()} of ${romLoaderItem.calls.toString()}`
   )
@@ -80,7 +80,7 @@ const fillDeviceLoadingCalls = (romLoaderItem, log) => systemsAccum => {
     .chain(item => item.devices? Just(romLoaderItem) : Nothing() )
     .map( ({calls, devices, romcall}) => R.map( obj => {
         for (const device of devices) {
-          const foundIndex = doesSystemHaveThisCall(obj, calls, device, log)
+          const foundIndex = doesSystemHaveThisCall(obj, calls, device)
           if (foundIndex > -1) { 
             log.loaderCalls && console.log(`    ---> inserting a loading call for ${obj.call}'s ${device}`)
             obj = R.assocPath([`device`, foundIndex, `loaderCall`], `${obj.call} -${romcall}`, obj)
@@ -93,17 +93,17 @@ const fillDeviceLoadingCalls = (romLoaderItem, log) => systemsAccum => {
 }
 
 
-module.exports = log => systems => {
+module.exports = systems => {
   //populate the systems list with the calls to rom loading media that some softlists always need
   const insertedSoftlistLoadingCalls = needsARomToLoad.reduce( 
-    (systemsAccum, romLoaderItem) => fillSoftlistLoaderCalls(romLoaderItem, log)(systemsAccum)
+    (systemsAccum, romLoaderItem) => fillSoftlistLoaderCalls(romLoaderItem)(systemsAccum)
   , systems)
 
   /* we can use those softlist romnames to also auto-insert the loading media for non-softlist emulators
    *   the principle is much the same, but we have to be much more granular with the systems we apply it to
    *   (because we can't use system type for the call as they are too general) */
   const insertedDeviceLoadingCalls = needsARomToLoad.reduce(
-    (systemsAccum, romLoaderItem) => fillDeviceLoadingCalls(romLoaderItem, log)(systemsAccum)
+    (systemsAccum, romLoaderItem) => fillDeviceLoadingCalls(romLoaderItem)(systemsAccum)
   , insertedSoftlistLoadingCalls)
 
   return insertedDeviceLoadingCalls

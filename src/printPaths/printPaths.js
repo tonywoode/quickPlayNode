@@ -39,8 +39,7 @@ const determinePathToMameIni = (mameEmuDir, isItRetroArch, devMode) => {
 //
 //   there was a lot of mutating external state here!
 
-const addMameFilePathsToSettings = (settings, mameEmuDir, isItRetroArch, devMode, log) => {
-  console.log('mameEmuDir: ', mameEmuDir)
+const addMameFilePathsToSettings = (settings, mameEmuDir, isItRetroArch, devMode) => {
   const mameIniPath = determinePathToMameIni(mameEmuDir, isItRetroArch, devMode)
   const mameRomPath = mameIniPath ? getMameIniRomPath(mameIniPath) : ''
   const romPathSplit = mameRomPath.split(';')

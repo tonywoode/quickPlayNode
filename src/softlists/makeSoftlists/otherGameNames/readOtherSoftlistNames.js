@@ -7,7 +7,7 @@ const _throw    = m => { throw new Error(m) }
 
 const readGameNamesFromXML = require('../readGameNamesFromXML.js')
 
-module.exports = (hashDir, softlist, log, list, callback) => {
+module.exports = (hashDir, softlist, list, callback) => {
   const otherSoftlistDevices = []
   //todo: actually we aren't taking the game names from ALL softlists - maybe that would be quicker?
   const thisSoftlistsOtherGameNames = {}

@@ -1,5 +1,4 @@
 'use strict'
-
 const fs     = require('fs')
 const ini    = require('ini')
 const R      = require('ramda')
@@ -20,7 +19,7 @@ const {mungeCompanyAndSystemNamesEmbedded, removeBoringSystemsEmbedded} = requir
 
 //scanning means parse, clean and filter a mame xml, 
 //  add inis to the json, print some additional files, then make a file of it
-module.exports = (settings, jsonOutPath, qpIni, efindOutPath, datInPath, datOutPath, log) => {
+module.exports = (settings, jsonOutPath, qpIni, efindOutPath, datInPath, datOutPath) => {
   console.log(
 `MAME xml file:          ${settings.mameXMLInPath}  
 MAME ini dir:           ${settings.iniDir}`
@@ -57,11 +56,11 @@ MAME ini dir:           ${settings.iniDir}`
         ,  cleanDevices
         ,  mungeCompanyAndSystemNames
         ,  mungeCompanyForType
-        ,  makeFinalSystemTypes(log)
-        ,  removeBoringSystems(log)
-        ,  insertLoadingCalls(log)
-        ,  printEfind(efindOutPath, settings, log)
-        ,  printSystemsDat(log, existingSystemsDat, datOutPath)
+        ,  makeFinalSystemTypes
+        ,  removeBoringSystems
+        ,  insertLoadingCalls
+        ,  printEfind(efindOutPath, settings)
+        ,  printSystemsDat(existingSystemsDat, datOutPath)
         )(messSystems)
 
       //post process the embedded json - here we pair down the imp elsewhere to print us a set of embedded systems in mess

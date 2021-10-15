@@ -5,7 +5,7 @@ const R                         = require('ramda')
 const Leven                     = require('levenshtein')
 const {softlistSystemOverrides} = require('../messConfig.json')
 
-module.exports = (hashDir, log) => softlistEmus => {
+module.exports = (hashDir) => softlistEmus => {
 
   /* Sometimes a softlist exists for a device that isn't supported in the version of mess e.g.: in mess 0.163, 
    *  a2600 doesn't have a cass, but there exists a cass softlist, which will silently fail if called. 

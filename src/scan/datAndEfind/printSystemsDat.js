@@ -7,7 +7,7 @@ const {efindBoringSystems
   , systemTypesToRemove} = require('../../messConfig.json')
 
 /* Now the ini is out, print out a systems list */
-module.exports = (log, existingSystemsDat, datOutPath) => systems => {
+module.exports = (existingSystemsDat, datOutPath) => systems => {
 
   /*has the user got any systems we've later decided are boring? 
    * Go through the boring and old systems in mameTools config file, excluding them from the systems dat

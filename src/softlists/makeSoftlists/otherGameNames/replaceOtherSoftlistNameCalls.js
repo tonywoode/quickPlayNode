@@ -32,7 +32,7 @@ const partNameToDeviceCall = str => addHypen(postfixLastDigitIfNecessary(str))
  *   softlists, don't add another....this entailed adding a -cart2 call to nes_ade, when it didn't actually need it,
  *   (doesn't hurt). A proper fix would be to pass a flag for existing cart call down to here, but the data atm doesn't
  *   require this */
-const makeParameters = (systemCall, softlistName, loaderCall, firstPartsDevice, log) => {
+const makeParameters = (systemCall, softlistName, loaderCall, firstPartsDevice) => {
   const doesTheLoaderCallAlreadyIncludeASecondDeviceCall = loaderCall => loaderCall.match(/-.*-/) //two device calls 
   const result = loaderCall? 
     doesTheLoaderCallAlreadyIncludeASecondDeviceCall(loaderCall)?

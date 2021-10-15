@@ -7,7 +7,7 @@ const R = require('ramda')
  *  but that's not good enough we can't just have a bool because we need to know what the previous rating was for the softlist
  *  so we need to store an object structure liks "a2600" : "80" to know that for each softlist) */
 
-module.exports = log => softlistEmus => {
+module.exports = softlistEmus => {
  
   //TODO: this whole function is very impure, yet isn't using anything outside what's passed in....
   const softlistRatings = {}, defaultEmus = {}, logDecisions = {}, rejectedEmus = []

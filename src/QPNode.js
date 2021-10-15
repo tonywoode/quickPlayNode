@@ -1,4 +1,30 @@
 'use strict'
+// global goes first, else no modules will see it
+global.log = global.log || {
+  // datAndEfind
+  efindProblems: false,
+  loaderCalls: true,
+  loaderCallsVerbose: false,
+  // the data/efind/scan artifacts
+  dat: false,
+  efind: false,
+  json: false,
+  // softlist
+  // these probably should be printed to the user
+  printer: true, // prints softlist names as synchronously printed, leave on
+  fileProblems: true, // as of mame 187, there is persistently one file missing in mame's hash: 'squale'
+  filePaths: true, // will also print helpful 'necessary to run this rom' file info
+  // these probably shouldn't
+  deviceProblems: false,
+  otherSoftlists: false,
+  otherGameNames: false,
+  otherGameConflicts: false,
+  findRegions: false,
+  regions: false,
+  regionsGames: false,
+  exclusions: false
+}
+
 const program = require('commander')
 const fs = require('fs')
 const path = require('path')
@@ -54,11 +80,12 @@ program
           `output directory ${outputDir} doesn't exist, so Mametool can't output any romdatas`
         ))
     const devMode = mametoolObj.dev
+    devMode && (log.efindProblems = true)
     const jsonOutDir = devMode ? outputDir : `dats` // json will sit in the frontends config dir, or for dev in the passed-in dir
     const jsonOutName = `mame.json`
     const jsonOutPath = `${jsonOutDir}/${jsonOutName}`
     const qpIni = devMode ? `./settings.ini` : `dats\\settings.ini` // settings from QP's ini file, or nix dev settings
-    const devExtrasOverride = devMode ? `/Volumes/GAMES/MAME/EXTRAs/folders` : `` // on windows its specified in the settings.ini above
+    const devExtrasOverride = devMode ? `/Volumes/Untitled/GAMES/MAME/EXTRAs/folders` : `` // on windows its specified in the settings.ini above
 
     devMode && console.log(`\t*** Mametool is in Dev mode ***\n`)
     ;(mametoolObj.scan && !devMode) || console.log(`Output dir:             ${outputDir}`)
@@ -75,31 +102,6 @@ MAME icons dir:         ${settings.winIconDir}
 MAME exe:               ${settings.mameExe}
 MAME exe path:          ${settings.mameExePath}`
     )
-
-    const log = {
-      // datAndEfind
-      efindProblems: devMode,
-      loaderCalls: true,
-      loaderCallsVerbose: false,
-      // the data/efind/scan artifacts
-      dat: false,
-      efind: false,
-      json: false,
-      // softlist
-      // these probably should be printed to the user
-      printer: true, // prints softlist names as synchronously printed, leave on
-      fileProblems: true, // as of mame 187, there is persistently one file missing in mame's hash: 'squale'
-      filePaths: true, // will also print helpful 'necessary to run this rom' file info
-      // these probably shouldn't
-      deviceProblems: false,
-      otherSoftlists: false,
-      otherGameNames: false,
-      otherGameConflicts: false,
-      findRegions: false,
-      regions: false,
-      regionsGames: false,
-      exclusions: false
-    }
 
     // determine that location of the systems.dat
     const devInputsDir = `inputs/current`
@@ -123,15 +125,15 @@ MAME exe path:          ${settings.mameExePath}`
       settings.mameChds = ''
       settings.mameSoftwareListRoms = ''
       settings.mameSoftwareListChds = ''
-      addMameFilePathsToSettings(settings, mameEmuDir, settings.isItRetroArch, devMode, log)
+      addMameFilePathsToSettings(settings, mameEmuDir, settings.isItRetroArch, devMode)
     }
 
     // TODO: promisify these so you can run combinations
-    mametoolObj.scan && scan(settings, jsonOutPath, qpIni, efindOutPath, datInPath, datOutPath, log)
+    mametoolObj.scan && scan(settings, jsonOutPath, qpIni, efindOutPath, datInPath, datOutPath)
     mametoolObj.mfm && mfm(settings, readMameJson, jsonOutPath, generateRomdata, outputDir)
     mametoolObj.arcade && arcade(settings, jsonOutPath, outputDir, readMameJson, generateRomdata)
     mametoolObj.testArcadeRun && testArcadeRun(settings, readMameJson, jsonOutPath, outputDir)
-    mametoolObj.softlists && softlists(settings, jsonOutPath, hashDir, outputDir, log)
+    mametoolObj.softlists && softlists(settings, jsonOutPath, hashDir, outputDir)
   })
 
 program

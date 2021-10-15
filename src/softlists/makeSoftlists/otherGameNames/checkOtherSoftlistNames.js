@@ -18,7 +18,7 @@ const R = require('ramda')
    *   the softlist emulator definitions to include these calls instead, and introduce a 'mamename' emulator for each system
    *   for standard calls */
 
-const makeOtherSoftlists = (softlistParams, list, log) => {
+const makeOtherSoftlists = (softlistParams, list) => {
   let originalOtherSoftlists = []
   let filteredOtherSoftlists = []
   //don't do work if there are no other softlists, or if we didn't make a list of other game names
@@ -46,7 +46,7 @@ const makeOtherSoftlists = (softlistParams, list, log) => {
 const match = (otherGameName, ourGameName) => otherGameName === ourGameName
 
 //this will see if a gamename exists in a list of gamenames
-const checkMameNameInNameList = (ourGameName, gameNames, otherSoftlistBeingChecked, softlistParams, log) => {
+const checkMameNameInNameList = (ourGameName, gameNames, otherSoftlistBeingChecked, softlistParams) => {
   const result = R.any(otherGameName => match(otherGameName, ourGameName))(gameNames)
   if ( result && log.otherGameConflicts ) {
     console.log(   ` **** SOFTLIST NAME CONFLICT: ${ourGameName} in ${softlistParams.thisEmulator.name} conflicts with ${otherSoftlistBeingChecked}`)
@@ -55,16 +55,16 @@ const checkMameNameInNameList = (ourGameName, gameNames, otherSoftlistBeingCheck
 }
 
 //and this will check each original softlist in turn
-const checkOriginalSoftlistNames = (ourGameName, originalOtherSoftlists, softlistParams, log) => {
+const checkOriginalSoftlistNames = (ourGameName, originalOtherSoftlists, softlistParams) => {
   const result = R.map(otherSoftlistBeingChecked => 
-    checkMameNameInNameList(ourGameName, softlistParams.otherGameNames[otherSoftlistBeingChecked], otherSoftlistBeingChecked, softlistParams, log), originalOtherSoftlists)
+    checkMameNameInNameList(ourGameName, softlistParams.otherGameNames[otherSoftlistBeingChecked], otherSoftlistBeingChecked, softlistParams), originalOtherSoftlists)
   //result will now be an array (because each other softlist has been compared to one game name from this softlist). if any of the items is true, we return true
   return result.includes(true)
 }
 
 //for each of the softlists in originalOtherSoftlists, find that as a key in the softlist names, and see if it has our gamename
-const doWeNeedToSpecifyDevice = (originalOtherSoftlists, call, softlistParams, log) =>  
-  originalOtherSoftlists.length? checkOriginalSoftlistNames(call, originalOtherSoftlists, softlistParams, log) : false
+const doWeNeedToSpecifyDevice = (originalOtherSoftlists, call, softlistParams) =>  
+  originalOtherSoftlists.length? checkOriginalSoftlistNames(call, originalOtherSoftlists, softlistParams) : false
 
 
 module.exports = { makeOtherSoftlists, doWeNeedToSpecifyDevice }

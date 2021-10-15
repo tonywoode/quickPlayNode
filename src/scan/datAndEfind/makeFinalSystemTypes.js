@@ -2,7 +2,7 @@
 
 const R = require('ramda')
 
-module.exports = log => systems => {
+module.exports = systems => {
 
    //before we replace the clone systems with the system type they are cloned from, we need to get our type property together
   const systemsWithType = R.map(obj => 

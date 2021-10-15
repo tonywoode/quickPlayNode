@@ -8,7 +8,7 @@ const R              = require('ramda')
  *   MESS' original system name to capture what makes each system different. However there are some considerations that also apply to system munging 
  *   that need re-application, along with some new concerns regarding the output format
  */
-module.exports = (efindOutPath, settings, log) =>  systems => {
+module.exports = (efindOutPath, settings) =>  systems => {
   const spaceIsSeparator = ` `
   const oneWord          = 1
 
