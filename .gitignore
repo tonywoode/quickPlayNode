@@ -1,4 +1,5 @@
-inputs
+inputs/*
+!inputs/current
 outputs
 dist
 *.rc

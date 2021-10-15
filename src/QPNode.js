@@ -85,14 +85,15 @@ program
     const jsonOutName = `mame.json`
     const jsonOutPath = `${jsonOutDir}/${jsonOutName}`
     const qpIni = devMode ? `./settings.ini` : `dats\\settings.ini` // settings from QP's ini file, or nix dev settings
-    const devExtrasOverride = devMode ? `/Volumes/Untitled/GAMES/MAME/EXTRAs/folders` : `` // on windows its specified in the settings.ini above
+    const devInputsDir = `inputs/current`
+    const devMameInisOverridePath = devMode ? `${devInputsDir}/folders` : `` // on windows its specified in the settings.ini above
 
     devMode && console.log(`\t*** Mametool is in Dev mode ***\n`)
     ;(mametoolObj.scan && !devMode) || console.log(`Output dir:             ${outputDir}`)
     console.log(`MAME Json dir:          ${jsonOutDir}`)
 
     // read these from the ini
-    const settings = paths(qpIni, devExtrasOverride)
+    const settings = paths(qpIni, devMameInisOverridePath)
     settings.devMode = devMode
     settings.isItRetroArch = path.basename(settings.mameExePath).match(/retroarch/i) // best bet is to limit ourselves to what the emu file is called for this
 
@@ -104,7 +105,6 @@ MAME exe path:          ${settings.mameExePath}`
     )
 
     // determine that location of the systems.dat
-    const devInputsDir = `inputs/current`
     const datInPath = devMode ? `${devInputsDir}/systems.dat` : `dats\\systems.dat`
     const datOutPath = devMode ? `${outputDir}/systems.dat` : `dats\\systems.dat`
     // are we making a mess or retroarch efinder file? to make both the users has to go through the menu again and select the appropriate emu
