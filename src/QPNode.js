@@ -37,7 +37,7 @@ const paths = require('./paths.js')
 // these two are used by multiple modules and are being passed in as dependecies
 const { generateRomdata } = require('./romdata/printRomdata.js')
 const readMameJson = require('./romdata/readMameJson.js')
-const addMameFilePathsToSettings = require('./printPaths/printPaths.js')
+const {addMameFilePathsToSettings} = require('./printPaths/printPaths.js')
 const scan = require('./scan')
 const { arcade } = require('./arcade')
 const { mfm } = require('./mfm')

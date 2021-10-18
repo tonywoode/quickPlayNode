@@ -8,8 +8,9 @@ const getMameIniRomPath = mameIniPath => {
     const quotesRemoved = match[1].replace(/^["'](.*)["']$/, '$1')
     return quotesRemoved
   } catch {
-    log.filePaths(`didnt manage to get any rompaths out of mame.in path: ${mameIniPath}`)
-    return ''
+    log.filePaths &&
+      console.log(`didnt manage to get any rompaths out of mame.in path: ${mameIniPath}`)
+    return '' // TODO what does mame do, assume ./ROMS? Should we do the same?
   }
 }
 
@@ -26,20 +27,28 @@ const determinePathToMameIni = (mameEmuDir, isItRetroArch, mameIniFileName, mess
     : fs.existsSync(standardMessIniPath) ? standardMessIniPath : '' // no ini path, no paths get (safely) printed
 }
 
-const splitMameIniRomPathIntoConstituents = (mameEmuDir, romPathSplit) => {
-  // cater for the possibility that mame's rompath variable contains relative paths meaning they will be relative to mame's directory, any number of the paths may or may not be relative
-  return romPathSplit.map(
-    romPathPart =>
-      // node will NOT test both for us, only the one on the OS this imp is running on, which is not helpful for running the tests or potentially dealing with win or nix mame inis
-      path.win32.isAbsolute(romPathPart) || path.posix.isAbsolute(romPathPart)
-        ? romPathPart
-        : path.resolve(mameEmuDir, romPathPart)
-  )
-}
+// node will NOT test both for us, only the one on the OS this imp is running on, which is not helpful for running the tests or potentially dealing with win or nix mame inis
+const makeRomPathAbs = (filepath, mameEmuDir) =>
+  path.win32.isAbsolute(filepath) || path.posix.isAbsolute(filepath)
+    ? filepath
+    : path.resolve(mameEmuDir, filepath)
 
-// determine the location of the mame.ini, this is only for printing filepaths, we just print a default if anything goes wrong...
-/** returns an object with the 4 types of mame rom paths **/
+const getBasename = filepath => path.win32.basename(filepath)
+const removeMameStringFromPath = filepath => filepath.replace(/mame/i, '')
 
+// removes the string 'mame' from any rompath - TODO: should this be a pipeline with the above, or not? Why do we return the absolute path from here not the path as stated in ini? Oh god, its not that i expect it'll always be in mame's folder is it, and i add that later? surely not, since i myself keep them somewhere else.....
+// const removeMameString = romPathSplitAbsolute
+// takes your rompaths and rates each for closeness to mame's rompath types
+
+// make manual adjustments to the distance score of each rompath type
+
+// for each of mame's rompath types, returns the rompath (out of 4) that is the most likely container for that rompath type
+
+// now that each rompath is rated, if we have more than one for each type, we need to take the most likely, so returns 4 rompaths
+
+/** determine the location of the mame.ini, this is only for printing filepaths, we just print a default if anything goes wrong...
+ * path -> bool -> bool -> Object
+ * @return an object with the 4 types of mame rom paths */
 const addMameFilePathsToSettings = (mameEmuDir, isItRetroArch, devMode) => {
   const paths = {
     mameRoms: '',
@@ -53,28 +62,34 @@ const addMameFilePathsToSettings = (mameEmuDir, isItRetroArch, devMode) => {
     ? mameIniFileName
     : determinePathToMameIni(mameEmuDir, isItRetroArch, mameIniFileName, messIniFileName)
   const mameRomPath = getMameIniRomPath(mameIniPath)
-  const romPathSplit = mameRomPath.split(';')
-  const romPathSplitAbsolute = splitMameIniRomPathIntoConstituents(mameEmuDir, romPathSplit)
+  const romPaths = mameRomPath.split(';')
+  // cater for the possibility that mame's rompath variable contains relative paths meaning they will be relative to mame's directory, any number of the paths may or may not be relative, make them all absolute since we're going to be following them from an unknown root
+  const romPathsAbs = romPaths.map(romPath => makeRomPathAbs(romPath, mameEmuDir))
   log.filePaths &&
     console.log(
-      `MAME ini file:          found in ${mameIniPath}\nMAME ini Rompath:       ${romPathSplit}\n         Absolute:      ${romPathSplitAbsolute}`
+      `MAME ini file:          found in ${mameIniPath}\nMAME ini Rompath:       ${romPaths}\n         Absolute:      ${romPathsAbs}`
     )
+  const romPathsBasenames = romPaths.map(getBasename)
+  const romPathsBasenamesNoMame = romPathsBasenames.map(removeMameStringFromPath)
+  console.log(romPathsBasenames)
   if (mameRomPath) {
-    if (romPathSplitAbsolute.length === 1) {
-      const theSingleRomPath = romPathSplitAbsolute[0]
+    if (romPathsAbs.length === 1) {
+      const theSingleRomPath = romPathsAbs[0]
       log.filePaths &&
         console.log(`only one path in your mame ini, make it all the params: ${theSingleRomPath}`)
       paths.mameRoms = theSingleRomPath
     } else {
-      romPathSplitAbsolute.forEach(rompath => {
-        ;/^.*[/\\]ROMS$/i.test(rompath) && (paths.mameRoms = rompath)
-        ;/^.*[/\\]CHDs$/i.test(rompath) && (paths.mameChds = rompath)
-        ;/^.*[/\\]Software List ROMS$/i.test(rompath) && (paths.mameSoftwareListRoms = rompath)
-        ;/^.*[/\\]Software List CHDs$/i.test(rompath) && (paths.mameSoftwareListChds = rompath)
+      // array order will be the same, test against basename but return absolute path
+      romPathsBasenamesNoMame.forEach((rompath, idx) => {
+        console.log(rompath, idx)
+        ;/^.*Software List ROMS$/i.test(rompath) && (paths.mameSoftwareListRoms = romPathsAbs[idx])
+        ;/^.*Software List CHDs$/i.test(rompath) && (paths.mameSoftwareListChds = romPathsAbs[idx])
+        ;/^.*(?<!Software List )ROMS$/i.test(rompath) && (paths.mameRoms = romPathsAbs[idx])
+        ;/^.*(?<!Software List )CHDs$/i.test(rompath) && (paths.mameChds = romPathsAbs[idx])
       })
     }
   }
   return paths
 }
 
-module.exports = addMameFilePathsToSettings
+module.exports = { addMameFilePathsToSettings, getBasename }
