@@ -38,7 +38,7 @@ module.exports = (existingSystemsDat, datOutPath) => systems => {
   const joinedUnionDat  = orderedUnionDat.join(`\n`) 
 
   console.log(`Printing systems dat to ${datOutPath}`)
-  if (log.dat) console.log(joinedUnionDat)
+  log.dat(joinedUnionDat)
   //i don't dare to overwrite the users systems.dat the first time
   fs.existsSync(datOutPath) && fs.copySync(datOutPath, `${datOutPath}.old`)
   fs.writeFileSync(datOutPath, joinedUnionDat, `latin1`)  //utf8 isn't possible at this time

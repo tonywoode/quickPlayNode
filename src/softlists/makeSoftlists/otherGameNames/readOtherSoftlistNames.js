@@ -14,7 +14,7 @@ module.exports = (hashDir, softlist, list, callback) => {
   //make a list of the other softlists for this system, but don't bother including softlists already filtered out
   R.map( emu => emu.name in list && otherSoftlistDevices.push(emu.name), softlist.otherSoftlists)
   if (otherSoftlistDevices.length) { 
-    if (log.otherSoftlists) console.log(`${softlist.name} on same system: ${JSON.stringify(otherSoftlistDevices)}`)
+    log.otherSoftlists(`${softlist.name} on same system: ${JSON.stringify(otherSoftlistDevices)}`)
     var num = 0
     R.map( name => {
       //since we're now adhering to 'list' the filter that created that already did the below check

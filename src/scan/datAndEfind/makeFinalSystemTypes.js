@@ -18,7 +18,7 @@ module.exports = systems => {
     const originalSystem = R.find( R.propEq(`call`, call)    )(systemsWithType)
     
     return referredSystem === undefined ? ( 
-        log.efindProblems && console.log(`PROBLEM: ${call} says its a (working) cloneof ${cloneof} but ${cloneof} is emulated badly. Setting system type to ${originalSystem.systemType}`) 
+        log.efindProblems(`PROBLEM: ${call} says its a (working) cloneof ${cloneof} but ${cloneof} is emulated badly. Setting system type to ${originalSystem.systemType}`) 
       , originalSystem.systemType
     ): referredSystem.systemType
   }

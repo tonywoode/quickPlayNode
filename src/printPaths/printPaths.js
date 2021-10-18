@@ -8,9 +8,8 @@ const getMameIniRomPath = mameIniPath => {
     const quotesRemoved = match[1].replace(/^["'](.*)["']$/, '$1')
     return quotesRemoved
   } catch {
-    log.filePaths &&
-      console.log(`didnt manage to get any rompaths out of mame.in path: ${mameIniPath}`)
-    return '' // TODO what does mame do, assume ./ROMS? Should we do the same?
+    log.filePaths(`didnt manage to get any rompaths out of mame.in path: ${mameIniPath}`)
+    return '' // TODO what does mame do, assume './roms'? Should we do the same?
   }
 }
 
@@ -65,23 +64,19 @@ const addMameFilePathsToSettings = (mameEmuDir, isItRetroArch, devMode) => {
   const romPaths = mameRomPath.split(';')
   // cater for the possibility that mame's rompath variable contains relative paths meaning they will be relative to mame's directory, any number of the paths may or may not be relative, make them all absolute since we're going to be following them from an unknown root
   const romPathsAbs = romPaths.map(romPath => makeRomPathAbs(romPath, mameEmuDir))
-  log.filePaths &&
-    console.log(
-      `MAME ini file:          found in ${mameIniPath}\nMAME ini Rompath:       ${romPaths}\n         Absolute:      ${romPathsAbs}`
-    )
+  log.filePaths(`MAME ini file:          found in ${mameIniPath}\nMAME ini Rompath:       ${romPaths}\n         Absolute:      ${romPathsAbs}`) // prettier-ignore
   const romPathsBasenames = romPaths.map(getBasename)
   const romPathsBasenamesNoMame = romPathsBasenames.map(removeMameStringFromPath)
-  console.log(romPathsBasenames)
+
+  // imperative bit
   if (mameRomPath) {
     if (romPathsAbs.length === 1) {
       const theSingleRomPath = romPathsAbs[0]
-      log.filePaths &&
-        console.log(`only one path in your mame ini, make it all the params: ${theSingleRomPath}`)
+      log.filePaths(`only one path in your mame ini, make it all the params: ${theSingleRomPath}`)
       paths.mameRoms = theSingleRomPath
     } else {
       // array order will be the same, test against basename but return absolute path
       romPathsBasenamesNoMame.forEach((rompath, idx) => {
-        console.log(rompath, idx)
         ;/^.*Software List ROMS$/i.test(rompath) && (paths.mameSoftwareListRoms = romPathsAbs[idx])
         ;/^.*Software List CHDs$/i.test(rompath) && (paths.mameSoftwareListChds = romPathsAbs[idx])
         ;/^.*(?<!Software List )ROMS$/i.test(rompath) && (paths.mameRoms = romPathsAbs[idx])

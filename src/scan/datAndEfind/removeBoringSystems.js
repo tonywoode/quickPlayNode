@@ -8,7 +8,7 @@ const {efindBoringSystems} = require('../../messConfig.json')
 module.exports = systems => {
 
   const isItBoring = systemType => { 
-    if ( efindBoringSystems.includes(systemType) ) log.efindProblems && console.log( `removing an emu of type ${systemType} - there will likely never be any games`)
+    if ( efindBoringSystems.includes(systemType) ) log.efindProblems( `removing an emu of type ${systemType} - there will likely never be any games`)
     return efindBoringSystems.includes(systemType) 
   }
   

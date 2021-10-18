@@ -11,7 +11,7 @@ module.exports = systems => {
 
    const isThisSoftlistBoring = (list, machine) => {
     if (softlistsWithNoGames.includes(list.name)) { 
-      if (log.exclusions) console.log(`INFO: Removing  ${list.name} from ${machine} because there are no games in the list`) 
+      log.exclusions(`INFO: Removing  ${list.name} from ${machine} because there are no games in the list`) 
       return softlistsWithNoGames.includes(list.name)
     }   
     return false

@@ -39,7 +39,7 @@ const makeParameters = (systemCall, softlistName, loaderCall, firstPartsDevice) 
         `${loaderCall} %ROMMAME%` 
       : `${loaderCall} ${partNameToDeviceCall(firstPartsDevice)} %ROMMAME%`
   : `${systemCall} ${partNameToDeviceCall(firstPartsDevice)} %ROMMAME%` 
-  log.otherGameConflicts && console.log(`   ---> disambiguate by printing overwrite params: ${result}`)
+  log.otherGameConflicts(`   ---> disambiguate by printing overwrite params: ${result}`)
   return result
 }
 

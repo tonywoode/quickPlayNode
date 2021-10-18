@@ -58,7 +58,7 @@ module.exports = (hashDir) => softlistEmus => {
 
   //make exception or remove those softlists that say that the softlist device doesn't actually exist
   const alertProblemDevices = R.map( 
-    obj => obj.doesSoftlistExist? obj : log.deviceProblems && console.log(
+    obj => obj.doesSoftlistExist? obj : log.deviceProblems(
         `DEVICE PROBLEM: ${obj.displayMachine} has a softlist called ${obj.name} but doesn't have a ${obj.deviceTypeFromName}`
       )
   , deviceExists)
@@ -75,7 +75,7 @@ module.exports = (hashDir) => softlistEmus => {
   //alert those that dont exist
   const alertNonExistentSoftlistFile = R.map( 
     obj => obj.doesSoftlistFileExist === true? 
-      obj : log.fileProblems && console.log(
+      obj : log.fileProblems(
         `FILE PROBLEM: ${obj.displayMachine} has a softlist called ${obj.name} but there's no file called "${hashDir}${obj.name}.xml`
       )
     , softlistFileExists)

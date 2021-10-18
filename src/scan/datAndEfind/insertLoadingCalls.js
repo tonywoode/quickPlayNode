@@ -17,7 +17,7 @@ const { Just, Nothing } = Maybe
 // we are going to need to know the index of the softlist, because each is an object and we need to attach the loader call key onto one of them
 const doSoftlistsContainSoftlist = (softlistToFind, obj) => { 
     for (const [index, aSoftlist] of obj.softlist.entries()) { 
-     log.loaderCallsVerbose && console.log(`  which has softlist ${aSoftlist.name}`)
+     log.loaderCallsVerbose(`  which has softlist ${aSoftlist.name}`)
       if (softlistToFind === aSoftlist.name && aSoftlist.status === `original`) return index
     }   
   }
@@ -26,7 +26,7 @@ const doSoftlistsContainSoftlist = (softlistToFind, obj) => {
  *   consider what would happen for Thomson TO8 with Thomson TO7's softlist, the TO8 doesn't need the basic cart, 
  *   and if it DID need a basic cart, it wouldn't need the same one as the TO7 */
 const doesSystemHaveThisSoftlist = (obj, softlistToFind, exclusions) => {
-  log.loaderCallsVerbose && console.log(`looking for ${softlistToFind} in ${obj.call}`)
+  log.loaderCallsVerbose(`looking for ${softlistToFind} in ${obj.call}`)
   if  (exclusions && ( exclusions.includes(obj.call) || exclusions.includes(obj.cloneof) ) ) return -1
   if ( obj.softlist ) {return doSoftlistsContainSoftlist(softlistToFind, obj)}
 }
@@ -34,7 +34,7 @@ const doesSystemHaveThisSoftlist = (obj, softlistToFind, exclusions) => {
 /* Searches for systems who have the (original) softlist we have loader rom info for, 
  * if found, inserts the call against the softlist so we can check for its existence later */
 const fillSoftlistLoaderCalls = (romLoaderItem) => systemsAccum => {
-  log.loaderCalls && romLoaderItem['softlists'] && console.log(
+   romLoaderItem['softlists'] && log.loaderCalls(
     `LOADER CALLS: seeking matches for softlists ${romLoaderItem.softlists.toString()}`
   )
 
@@ -44,7 +44,7 @@ const fillSoftlistLoaderCalls = (romLoaderItem) => systemsAccum => {
         for (const softlist of romLoaderItem.softlists) {
           const foundIndex = doesSystemHaveThisSoftlist(obj, softlist, romLoaderItem.softlistExclusions)
           if (foundIndex > -1) { 
-              log.loaderCalls && console.log(`    ---> inserting a loading call for ${obj.call}'s original softlist ${softlist}`)
+              log.loaderCalls(`    ---> inserting a loading call for ${obj.call}'s original softlist ${softlist}`)
               obj = R.assocPath([`softlist`, foundIndex, `loaderCall`], `${obj.call} -${romLoaderItem.romcall}`, obj)
           }
         }
@@ -59,20 +59,20 @@ const fillSoftlistLoaderCalls = (romLoaderItem) => systemsAccum => {
 const getIndexOfTheDevice = (obj, deviceToFind) => {
   for (const [index, device] of obj.device.entries()) {
     if (device.briefname.includes(deviceToFind)) {
-      log.loaderCallsVerbose && console.log(`  --> found a match and the index for ${deviceToFind} in ${obj.call} is ${index}`)
+      log.loaderCallsVerbose(`  --> found a match and the index for ${deviceToFind} in ${obj.call} is ${index}`)
       return index
     }
   }
 }
 
 const doesSystemHaveThisCall = (obj, callsToFind, deviceToFind) => {
-  log.loaderCallsVerbose && console.log(`looking for ${callsToFind} with ${deviceToFind} as part of ${obj.call} and its clones`)
+  log.loaderCallsVerbose(`looking for ${callsToFind} with ${deviceToFind} as part of ${obj.call} and its clones`)
   if ((callsToFind.includes(obj.call)) || (callsToFind.includes(obj.cloneof) ) ) return getIndexOfTheDevice(obj, deviceToFind)
 }
 
 
 const fillDeviceLoadingCalls = (romLoaderItem) => systemsAccum => {
-  log.loaderCalls && romLoaderItem['devices'] && console.log(
+  romLoaderItem['devices'] && log.loaderCalls(
     `LOADER CALLS: seeking matches for ${romLoaderItem.devices.toString()} of ${romLoaderItem.calls.toString()}`
   )
   
@@ -82,7 +82,7 @@ const fillDeviceLoadingCalls = (romLoaderItem) => systemsAccum => {
         for (const device of devices) {
           const foundIndex = doesSystemHaveThisCall(obj, calls, device)
           if (foundIndex > -1) { 
-            log.loaderCalls && console.log(`    ---> inserting a loading call for ${obj.call}'s ${device}`)
+            log.loaderCalls(`    ---> inserting a loading call for ${obj.call}'s ${device}`)
             obj = R.assocPath([`device`, foundIndex, `loaderCall`], `${obj.call} -${romcall}`, obj)
           }
        }

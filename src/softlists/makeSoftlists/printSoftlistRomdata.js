@@ -12,12 +12,11 @@ const { makeParameters } = require('./otherGameNames')
 module.exports = (settings, softlistParams, softlist, list) => {
   // don't make a dat or folder if all of the games for a softlist aren't supported
   if (!softlist.length) {
-    log.exclusions &&
-      console.log(`INFO: Not printing softlist for ${softlistParams.name} : no working games`)
+    log.exclusions(`INFO: Not printing softlist for ${softlistParams.name} : no working games`)
     return softlist
   }
 
-  log.printer && console.log(`INFO: printing softlist for ${softlistParams.name}`)
+  log.printer(`INFO: printing softlist for ${softlistParams.name}`)
   const romdataHeader = `ROM DataFile Version : 1.1`
   const noPath = `./qp.exe` // we don't need a path for softlist romdatas, they don't use it, we just need to point to a valid file
   const romdataLine = (

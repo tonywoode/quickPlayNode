@@ -43,14 +43,13 @@ const softlists = (settings, jsonOutPath, hashDir, outputDir) => {
         readOtherSoftlistNames(hashDir, emu, list, thisSoftlistsOtherGameNames => {
           let softlistParamsPlusNames = softlistParams // TODO: done to not make an empty object key if there arent otherSoftlists
           R.isEmpty(thisSoftlistsOtherGameNames) ||
-            (log.otherSoftlists &&
-              console.log(
-                `Made otherGames list for ${emu.name}: ${JSON.stringify(
-                  thisSoftlistsOtherGameNames,
-                  null,
-                  ''
-                )}`
-              ),
+            (log.otherSoftlists(
+              `Made otherGames list for ${emu.name}: ${JSON.stringify(
+                thisSoftlistsOtherGameNames,
+                null,
+                ''
+              )}`
+            ),
             (softlistParamsPlusNames = R.assoc(
               `otherGameNames`,
               thisSoftlistsOtherGameNames,

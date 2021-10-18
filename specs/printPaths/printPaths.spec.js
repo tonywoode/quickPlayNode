@@ -2,9 +2,10 @@
 
 const path = require('path')
 const {addMameFilePathsToSettings, getBasename} = require('../../src/printPaths/printPaths.js')
-
+const no = _ => false
+const yes = console.log
 global.log = global.log || {
-  filePaths: true // to keep test output clean feel free to change it
+  filePaths: no // to keep test output clean feel free to change it
 }
 
 describe('printPaths', () => {

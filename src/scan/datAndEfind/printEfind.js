@@ -102,7 +102,7 @@ Compression=2E7A69703D2D310D0A2E7261723D300D0A2E6163653D300D0A2E377A3D2D310D0A
  
   const joinedDevices = devices.join(`\n`)
   console.log(`Printing efind inis to ${efindOutPath}`)
-  if (log.efind) console.log(joinedDevices)
+  log.efind(joinedDevices)
   fs.writeFileSync(efindOutPath, joinedDevices, `latin1`) //utf8 isn't possible at this time
   
   return efinder

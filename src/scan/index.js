@@ -72,7 +72,7 @@ MAME ini dir:           ${settings.iniDir}`
       fs.writeFileSync(jsonOutPath, JSON.stringify(newSysObj, null, `\t`))
 
 
-      log.json && console.log(fs.readFileSync(jsonOutPath, `utf-8`)) 
+      log.json(fs.readFileSync(jsonOutPath, `utf-8`)) 
 
       //save the version information into quickplay's ini file, do it last then a throw will end up least contradictory
       const config = ini.parse(fs.readFileSync(qpIni, `utf-8`))

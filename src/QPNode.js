@@ -1,28 +1,31 @@
 'use strict'
+
+const no = _ => false
+const yes = console.log
 // global goes first, else no modules will see it
 global.log = global.log || {
   // datAndEfind
-  efindProblems: false,
-  loaderCalls: true,
-  loaderCallsVerbose: false,
+  efindProblems: no,
+  loaderCalls: yes,
+  loaderCallsVerbose: no,
   // the data/efind/scan artifacts
-  dat: false,
-  efind: false,
-  json: false,
+  dat: no,
+  efind: no,
+  json: no,
   // softlist
   // these probably should be printed to the user
-  printer: true, // prints softlist names as synchronously printed, leave on
-  fileProblems: true, // as of mame 187, there is persistently one file missing in mame's hash: 'squale'
-  filePaths: true, // will also print helpful 'necessary to run this rom' file info
+  printer: yes, // prints softlist names as synchronously printed, leave on
+  fileProblems: yes, // as of mame 187, there is persistently one file missing in mame's hash: 'squale'
+  filePaths: yes, // will also print helpful 'necessary to run this rom' file info
   // these probably shouldn't
-  deviceProblems: false,
-  otherSoftlists: false,
-  otherGameNames: false,
-  otherGameConflicts: false,
-  findRegions: false,
-  regions: false,
-  regionsGames: false,
-  exclusions: false
+  deviceProblems: no,
+  otherSoftlists: no,
+  otherGameNames: no,
+  otherGameConflicts: no,
+  findRegions: no,
+  regions: no,
+  regionsGames: no,
+  exclusions: no
 }
 
 const program = require('commander')
@@ -37,7 +40,7 @@ const paths = require('./paths.js')
 // these two are used by multiple modules and are being passed in as dependecies
 const { generateRomdata } = require('./romdata/printRomdata.js')
 const readMameJson = require('./romdata/readMameJson.js')
-const {addMameFilePathsToSettings} = require('./printPaths/printPaths.js')
+const { addMameFilePathsToSettings } = require('./printPaths/printPaths.js')
 const scan = require('./scan')
 const { arcade } = require('./arcade')
 const { mfm } = require('./mfm')
@@ -80,7 +83,7 @@ program
           `output directory ${outputDir} doesn't exist, so Mametool can't output any romdatas`
         ))
     const devMode = mametoolObj.dev
-    devMode && (log.efindProblems = true)
+    devMode && (log.efindProblems = yes)
     const jsonOutDir = devMode ? outputDir : `dats` // json will sit in the frontends config dir, or for dev in the passed-in dir
     const jsonOutName = `mame.json`
     const jsonOutPath = `${jsonOutDir}/${jsonOutName}`
@@ -126,10 +129,10 @@ MAME exe path:          ${settings.mameExePath}`
       settings.mameChds = paths.mameChds || ''
       settings.mameSoftwareListRoms = paths.mameSoftwareListRoms || ''
       settings.mameSoftwareListChds = paths.mameSoftwareListChds || ''
-      log.filePaths && console.log(`MAME roms path:         ${settings.mameRoms}`)
-      log.filePaths && console.log(`MAME chds path:         ${settings.mameChds}`)
-      log.filePaths && console.log(`MAME software list roms path: ${settings.mameSoftwareListRoms}`)
-      log.filePaths && console.log(`MAME software list chds path: ${settings.mameSoftwareListChds}`)
+      log.filePaths(`MAME roms path:         ${settings.mameRoms}`)
+      log.filePaths(`MAME chds path:         ${settings.mameChds}`)
+      log.filePaths(`MAME software list roms path: ${settings.mameSoftwareListRoms}`)
+      log.filePaths(`MAME software list chds path: ${settings.mameSoftwareListChds}`)
     }
 
     // TODO: promisify these so you can run combinations

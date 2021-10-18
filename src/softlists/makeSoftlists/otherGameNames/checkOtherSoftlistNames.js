@@ -23,20 +23,16 @@ const makeOtherSoftlists = (softlistParams, list) => {
   let filteredOtherSoftlists = []
   //don't do work if there are no other softlists, or if we didn't make a list of other game names
   if (softlistParams.thisEmulator.otherSoftlists.length && softlistParams.otherGameNames) { 
-    if (log.otherGameNames) {
-      console.log(`   ----> ${softlistParams.thisEmulator.name} other softlists: ${R.keys(softlistParams.otherGameNames)}`)
-    }
+    log.otherGameNames(`   ----> ${softlistParams.thisEmulator.name} other softlists: ${R.keys(softlistParams.otherGameNames)}`)
     //remove the 'compatible' softlists for this system
     const isOriginal = softlist => softlist.status === `original`
     originalOtherSoftlists = R.pluck('name', R.filter(isOriginal, softlistParams.thisEmulator.otherSoftlists))
     const nameIsInMyFilteredSoftlistList = name => !!list[name]
     filteredOtherSoftlists = originalOtherSoftlists.filter(nameIsInMyFilteredSoftlistList, originalOtherSoftlists )
-    if (log.otherGameNames) {
       filteredOtherSoftlists.length?  
-        console.log(`        ----> ${softlistParams.thisEmulator.name}: Filtered Original softlists ${filteredOtherSoftlists}`) 
+        log.otherGameNames(`        ----> ${softlistParams.thisEmulator.name}: Filtered Original softlists ${filteredOtherSoftlists}`) 
        : 
-        console.log(`      ----> ${softlistParams.thisEmulator.name}: No Filtered Original Softlists`)
-    }
+        log.otherGameNames(`      ----> ${softlistParams.thisEmulator.name}: No Filtered Original Softlists`)
   }
   return filteredOtherSoftlists
 }
@@ -48,9 +44,7 @@ const match = (otherGameName, ourGameName) => otherGameName === ourGameName
 //this will see if a gamename exists in a list of gamenames
 const checkMameNameInNameList = (ourGameName, gameNames, otherSoftlistBeingChecked, softlistParams) => {
   const result = R.any(otherGameName => match(otherGameName, ourGameName))(gameNames)
-  if ( result && log.otherGameConflicts ) {
-    console.log(   ` **** SOFTLIST NAME CONFLICT: ${ourGameName} in ${softlistParams.thisEmulator.name} conflicts with ${otherSoftlistBeingChecked}`)
-  }
+  result && log.otherGameConflicts(   ` **** SOFTLIST NAME CONFLICT: ${ourGameName} in ${softlistParams.thisEmulator.name} conflicts with ${otherSoftlistBeingChecked}`)
   return result
 }
 
