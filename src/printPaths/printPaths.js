@@ -34,7 +34,7 @@ const makeRomPathAbs = (filepath, mameEmuDir) =>
     : path.resolve(mameEmuDir, filepath)
 
 /** basenames -> paths -> [] */
-const fillRompaths = romPathsAbs => {
+const fillRomPaths = romPathsAbs => {
   const getBasename = filepath => path.win32.basename(filepath)
   const removeMameStringFromPath = filepath => filepath.replace(/mame/i, '')
   const romPathsBasenamesNoMame = romPathsAbs.map(getBasename).map(removeMameStringFromPath)
@@ -86,7 +86,7 @@ const addMameFilePathsToSettings = (mameEmuDir, isItRetroArch, devMode) => {
   const romPathsAbs = romPaths.map(romPath => makeRomPathAbs(romPath, mameEmuDir))
   log.filePaths(`MAME ini file:          found in ${mameIniPath}\nMAME ini Rompath:       ${romPaths}\n         Absolute:      ${romPathsAbs}`) // prettier-ignore
   // and array is returned of the 4 romtypes
-  return fillRompaths(romPathsAbs)
+  return fillRomPaths(romPathsAbs)
 }
 
-module.exports = { addMameFilePathsToSettings }
+module.exports = { addMameFilePathsToSettings, fillRomPaths }

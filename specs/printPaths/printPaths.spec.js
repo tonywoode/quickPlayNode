@@ -1,7 +1,7 @@
 'use strict'
 
 const path = require('path')
-const {addMameFilePathsToSettings, getBasename} = require('../../src/printPaths/printPaths.js')
+const { addMameFilePathsToSettings, fillRomPaths } = require('../../src/printPaths/printPaths.js')
 const no = _ => false
 const yes = console.log
 global.log = global.log || {
@@ -15,7 +15,7 @@ describe('printPaths', () => {
     // internally, we later will get the foldername of this exe, that's why we pass in a nonexistent exe
     const mameEmuDir = './specs/printPaths/mameIniAbsolute'
 
-   it('looks up a real ini file from the filesystem', () => {
+    it('looks up a real ini file from the filesystem', () => {
       const devMode = false // regrettable, otherwise we look at test mame.ini in root
       const paths = addMameFilePathsToSettings(mameEmuDir, isItRetroArch, devMode)
       expect(paths.mameRoms).to.equal('F:\\MAME\\ROMS')
@@ -23,17 +23,19 @@ describe('printPaths', () => {
     })
 
     it('fills in just settings.mameRoms if mame.ini has only one rompath', () => {
-      const devMode = false // regrettable, otherwise we look at test mame.ini in root
-      const paths = addMameFilePathsToSettings(mameEmuDir, isItRetroArch, devMode)
-      expect(paths.mameRoms).to.equal('F:\\MAME\\ROMS')
+      const romPath = 'F:\\MAME\\ROMS'
+      const paths = fillRomPaths([romPath])
+      expect(paths.mameRoms).to.equal(romPath)
       expect(paths.mameChds).to.equal('')
     })
     // now use the mame.ini in root, the one that has all 4 paths, quoted and absolute
     it('fills in individual paths to different content types if more than one rompath in mame ini', () => {
-      const devMode = true
-      const paths = addMameFilePathsToSettings(mameEmuDir, isItRetroArch, devMode)
-      expect(paths.mameRoms).to.equal('F:\\MAME\\ROMS')
-      expect(paths.mameChds).to.equal('F:\\MAME\\CHDs')
+      const romPath1 = 'F:\\MAME\\ROMS'
+      const romPath2 = 'F:\\MAME\\CHDs'
+      const romPaths = [romPath1, romPath2]
+      const paths = fillRomPaths(romPaths)
+      expect(paths.mameRoms).to.equal(romPath1)
+      expect(paths.mameChds).to.equal(romPath2)
     })
     // it('detects if one rompath is of the expected type but others are not, and tries to use them as appropriate', () => {
     //   expect(false).to.equal(true)
