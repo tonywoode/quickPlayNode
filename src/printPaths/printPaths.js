@@ -33,12 +33,11 @@ const makeRomPathAbs = (filepath, mameEmuDir) =>
     ? filepath
     : path.resolve(mameEmuDir, filepath)
 
-const getBasename = filepath => path.win32.basename(filepath)
-const removeMameStringFromPath = filepath => filepath.replace(/mame/i, '')
-
 /** basenames -> paths -> [] */
-const fillRompaths = (romPathsBasenamesNoMame, romPathsAbs) => {
-  // imperative bit
+const fillRompaths = romPathsAbs => {
+  const getBasename = filepath => path.win32.basename(filepath)
+  const removeMameStringFromPath = filepath => filepath.replace(/mame/i, '')
+  const romPathsBasenamesNoMame = romPathsAbs.map(getBasename).map(removeMameStringFromPath)
   const paths = {
     mameRoms: '',
     mameChds: '',
@@ -61,6 +60,7 @@ const fillRompaths = (romPathsBasenamesNoMame, romPathsAbs) => {
   }
   return paths
 }
+
 // removes the string 'mame' from any rompath - TODO: should this be a pipeline with the above, or not? Why do we return the absolute path from here not the path as stated in ini? Oh god, its not that i expect it'll always be in mame's folder is it, and i add that later? surely not, since i myself keep them somewhere else.....
 // const removeMameString = romPathSplitAbsolute
 // takes your rompaths and rates each for closeness to mame's rompath types
@@ -85,8 +85,8 @@ const addMameFilePathsToSettings = (mameEmuDir, isItRetroArch, devMode) => {
   // cater for the possibility that mame's rompath variable contains relative paths meaning they will be relative to mame's directory, any number of the paths may or may not be relative, make them all absolute since we're going to be following them from an unknown root
   const romPathsAbs = romPaths.map(romPath => makeRomPathAbs(romPath, mameEmuDir))
   log.filePaths(`MAME ini file:          found in ${mameIniPath}\nMAME ini Rompath:       ${romPaths}\n         Absolute:      ${romPathsAbs}`) // prettier-ignore
-  const romPathsBasenamesNoMame = romPaths.map(getBasename).map(removeMameStringFromPath)
-  return fillRompaths(romPathsBasenamesNoMame, romPathsAbs)
+  // and array is returned of the 4 romtypes
+  return fillRompaths(romPathsAbs)
 }
 
-module.exports = { addMameFilePathsToSettings, getBasename }
+module.exports = { addMameFilePathsToSettings }

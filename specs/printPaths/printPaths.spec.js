@@ -15,6 +15,13 @@ describe('printPaths', () => {
     // internally, we later will get the foldername of this exe, that's why we pass in a nonexistent exe
     const mameEmuDir = './specs/printPaths/mameIniAbsolute'
 
+   it('looks up a real ini file from the filesystem', () => {
+      const devMode = false // regrettable, otherwise we look at test mame.ini in root
+      const paths = addMameFilePathsToSettings(mameEmuDir, isItRetroArch, devMode)
+      expect(paths.mameRoms).to.equal('F:\\MAME\\ROMS')
+      expect(paths.mameChds).to.equal('')
+    })
+
     it('fills in just settings.mameRoms if mame.ini has only one rompath', () => {
       const devMode = false // regrettable, otherwise we look at test mame.ini in root
       const paths = addMameFilePathsToSettings(mameEmuDir, isItRetroArch, devMode)
@@ -59,13 +66,6 @@ describe('printPaths', () => {
     })
   })
 
-  describe('basname', () => {
-    it('turns a windows absolute path into a windows basename', () => {
-      const path = 'F:\\MAME\\Roms'
-      const basename = getBasename(path) 
-      expect(basename).to.equal('Roms')
-    })
-  })
   describe('distance', () => {
     it.skip('removes the string "mame" from anywhere in a rompath, so that we disregard it for any comparisons', () => {
       expect(false).to.equal(true)
