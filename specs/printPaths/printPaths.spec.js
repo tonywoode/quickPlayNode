@@ -1,7 +1,13 @@
 'use strict'
 
 const path = require('path')
-const { addMameFilePathsToSettings, fillRomPaths } = require('../../src/printPaths/printPaths.js')
+const {
+  addMameFilePathsToSettings,
+  fillRomPaths,
+  sanitiseRomPaths,
+  rateEachFolderForEachType,
+  getLowestDistanceForTypes
+} = require('../../src/printPaths/printPaths.js')
 const no = _ => false
 const yes = console.log
 global.log = global.log || {
@@ -68,9 +74,92 @@ describe('printPaths', () => {
     })
   })
 
-  describe('distance', () => {
-    it.skip('removes the string "mame" from anywhere in a rompath, so that we disregard it for any comparisons', () => {
-      expect(false).to.equal(true)
+  describe('sanitiseRomPath', () => {
+    it('when supplied an array of paths, returns the basenames, with dupes removed', () => {
+      const pretendPaths = ['/pretend/roms', '/me/mine/roms', 'hello', 'rubbish']
+      const sanitised = sanitiseRomPaths(pretendPaths)
+      expect(sanitised)
+        .to.be.an('array')
+        .with.length(3)
     })
+
+    it('when supplied an array of paths, removes the string "mame" from the basename', () => {
+      const pretendPaths = ['/mameroms', '/me/mine/romsmame']
+      const sanitised = sanitiseRomPaths(pretendPaths)
+      expect(sanitised).to.deep.equal(['roms'])
+    })
+  })
+  
+  describe('duplicaateFoldernames', () =>  {
+    it('alerts us that we have a duplicate basename in our santised list', () => {
+      expect(false).to.be.true
+    })
+  })
+
+  describe('distance', () => {
+    it('when supplied a list of path types and a path, rates the path for the types', () => {
+      const romPathTypes = ['Roms', 'Chds', 'SoftwareListRoms', 'SoftwareListChds']
+      const romPath = 'roms'
+      const distances = rateEachFolderForEachType(romPath, romPathTypes)
+      expect(distances)
+        .to.be.an('array')
+        .of.length(4)
+    })
+  })
+
+  // we could do with snapshots now. Here's what distances i got with these inputs
+  // 'roms' [ 1, 3, 12, 14 ]
+  // 'chds' [ 3, 1, 15, 13 ]
+  // 'softlist_roms' [ 10, 11, 9, 10 ]
+  // 'softlist_chd' [ 10, 11, 10, 9 ]
+
+  it('when supplied ratings for each folder, picks the best for a romtype', () => {
+    const yourRomPathBasenames = ['roms', 'chds', 'softlist_roms', 'softlist_chd']
+    const romPathTypes = ['Roms', 'Chds', 'SoftwareListRoms', 'SoftwareListChds']
+    const allDistances = [[1, 3, 12, 14], [3, 1, 15, 13], [10, 11, 9, 10], [10, 11, 10, 9]]
+    const allDistancesObj = [
+      {
+        name: 'Roms',
+        roms: 1,
+        chds: 3,
+        softwareListRoms: 12,
+        softwareListChds: 14
+      },
+      {
+        name: 'Chds',
+        roms: 3,
+        chds: 1,
+        softwareListRoms: 15,
+        softwareListChds: 13
+      },
+      {
+        name: 'SoftwareListRoms',
+        roms: 10,
+        chds: 11,
+        softwareListRoms: 9,
+        softwareListChds: 10
+      },
+      {
+        name: 'mameSoftwareListChds',
+        roms: 10,
+        chds: 11,
+        softwareListRoms: 10,
+        softwareListChds: 9
+      }
+    ]
+
+    // so we get an array of objects with the name of each basename
+    const bases = yourRomPathBasenames.map(basename => ({ name: basename }))
+    // now we need to give each object a field for each type
+    //  const things = bases.map( base => ({ name: base.name, romPathTypes }))
+    const addArrAsObjKeys = (arr, obj) =>
+      arr.reduce((obj, key, idx) => ({ ...obj, [key]: '' }), obj)
+    const inserted = bases.map(base => addArrAsObjKeys(romPathTypes, base))
+    // now we use Object.keys to do our differences on....
+    console.log(inserted)
+    // process.exit()
+    const answer = getLowestDistanceForTypes(romPathTypes, allDistances)
+    // what answer do we want?
+    console.log(answer)
   })
 })
