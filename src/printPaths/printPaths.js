@@ -1,7 +1,7 @@
 const path = require('path')
 const fs = require('fs')
 const Leven = require('levenshtein')
-const { uniq } = require('ramda')
+const { curry, map, pipe, uniq } = require('ramda')
 
 const getMameIniRomPath = (mameIniPath, mameEmuDir) => {
   try {
@@ -34,14 +34,12 @@ const makeRomPathAbs = (filepath, mameEmuDir) =>
   path.win32.isAbsolute(filepath) || path.posix.isAbsolute(filepath)
     ? filepath
     : path.resolve(mameEmuDir, filepath)
-
 // basename is the final rightmost segment of file path; usually a file, but can also be directory
 const getBasename = filepath => path.win32.basename(filepath)
 const removeMameStringFromPath = filepath => filepath.replace(/mame/i, '')
-
 // takes your rompaths and rates each for closeness to mame's rompath types
 const rateRomPath = (romPath, romPathType) => new Leven(romPath, romPathType).distance
-// make manual adjustments to the distance score of each rompath type
+
 
 // for each of mame's rompath types, returns the rompath (out of 4) that is the most likely container for that rompath type
 const rateEachFolderForEachType = (romPath, romPathTypes) =>
@@ -51,6 +49,8 @@ const getLowestDistanceWithIdx = distances => {
   const lowest = Math.min(...distances)
   return [lowest, distances.indexOf(lowest)]
 }
+
+// make manual adjustments to the distance score of each rompath type
 
 const getLowestDistanceForTypes = (romPathTypes, allDistances) => {
   return allDistances.reduce((acc, distances) => {
@@ -63,24 +63,23 @@ const getLowestDistanceForTypes = (romPathTypes, allDistances) => {
   }, [])
 }
 
-
-// now that each rompath is rated, if we have more than one for each type, we need to take the most likely, so returns 4 rompaths
-
-// get your rompaths ready for difference comparison: turn into basenames, check for duplicates (warning if so), remove the string 'mame'
-const sanitiseRomPaths = romPathsAbs => {
-  const romPathBasenames = romPathsAbs.map(getBasename)
-  const noMameString = romPathBasenames.map(removeMameStringFromPath)
-  // if >1 sanitised basename is the same, first wins and warn user to symlink if they want it fixed (should test absolute names in this event)
+// if >1 sanitised basename is the same, first wins and warn user to symlink if they want it fixed (should test absolute names in this event)
+const checkForDupes = romPathsAbs => noMameString => {
   const basesNoDupes = uniq(noMameString)
-  const inAnotB = (a, b) => a.filter(item => !b.includes(item))
-  const removed = inAnotB(romPathBasenames, basesNoDupes)
-  removed.length !== 0 &&
+  const removedIdxs = idxsOfDupes(noMameString)
+  removedIdxs.length !== 0 &&
     console.log(
-      `Warning: Mame filepath printing may not work properly: identical foldernames found that look like: ${removed.toString()} - we're going to use the first path found. You can make all rompaths work by symlinking the files from the second folder into the first`
+      `Print Paths - Warning: Mame filepath printing may not work properly: identical rompath foldernames found that look like: ${removedIdxs.map(
+        idx => romPathsAbs[idx]
+      )} - we're going to use the first path found. You can make all rompaths work by symlinking the files from the non-chosen folders into the chosen ones`
     )
-  // conumdrum: we don't want to remove 'mame' first incase we have 'mameroms' and 'romsmame', but if we don't we get two dupes 'roms'
   return basesNoDupes
 }
+
+// get your rompaths ready for difference comparison: turn into basenames, check for duplicates (warning if so), remove the string 'mame'
+// conumdrum: we don't want to remove 'mame' first incase we have 'mameroms' and 'romsmame', but if we don't we get two dupes 'roms', we've got little choice but to compare post-removal
+const sanitiseRomPaths = romPathsAbs =>
+  pipe(map(getBasename), map(removeMameStringFromPath), checkForDupes(romPathsAbs))(romPathsAbs)
 
 const makeDifferenceObjects = basenames => {
   const romPathTypes = ['Roms', 'Chds', 'SoftwareListRoms', 'SoftwareListChds']
@@ -90,6 +89,8 @@ const makeDifferenceObjects = basenames => {
   const romPathsReadyToBeRated = bases.map(base => addArrAsObjKeys(romPathTypes, base))
   return romPathsReadyToBeRated
 }
+
+// now that each rompath is rated, if we have more than one for each type, we need to take the most likely, so returns 4 rompaths
 
 /** basenames -> paths -> [] */
 const fillRomPaths = romPathsAbs => {
@@ -137,9 +138,25 @@ const addMameFilePathsToSettings = (mameEmuDir, isItRetroArch, devMode) => {
   return fillRomPaths(romPathsAbs)
 }
 
+// utility fn returns the idxs of dupes in an array
+const idxsOfDupes = arr =>
+  arr
+    .map((element, idx) => {
+      if (arr.indexOf(element) !== idx) {
+        return idx
+      }
+    })
+    .filter(e => e != null)
+
+const trace = curry((tag, x) => {
+  console.log(tag, x)
+  return x
+})
+
 module.exports = {
   addMameFilePathsToSettings,
   fillRomPaths,
+  checkForDupes,
   sanitiseRomPaths,
   rateEachFolderForEachType,
   getLowestDistanceForTypes

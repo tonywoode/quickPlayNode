@@ -4,6 +4,7 @@ const path = require('path')
 const {
   addMameFilePathsToSettings,
   fillRomPaths,
+  checkForDupes,
   sanitiseRomPaths,
   rateEachFolderForEachType,
   getLowestDistanceForTypes
@@ -15,7 +16,7 @@ global.log = global.log || {
 }
 
 describe('printPaths', () => {
-  const isItRetroArch = false // TODO: if true, things start to equl undefined?
+  const isItRetroArch = false // TODO: if true, things start to equal undefined?
 
   describe('rompath splitting', () => {
     // internally, we later will get the foldername of this exe, that's why we pass in a nonexistent exe
@@ -75,24 +76,19 @@ describe('printPaths', () => {
   })
 
   describe('sanitiseRomPath', () => {
-    it('when supplied an array of paths, returns the basenames, with dupes removed', () => {
-      const pretendPaths = ['/pretend/roms', '/me/mine/roms', 'hello', 'rubbish']
-      const sanitised = sanitiseRomPaths(pretendPaths)
-      expect(sanitised)
-        .to.be.an('array')
-        .with.length(3)
-    })
-
     it('when supplied an array of paths, removes the string "mame" from the basename', () => {
-      const pretendPaths = ['/mameroms', '/me/mine/romsmame']
+      const pretendPaths = ['/mamechds', '/me/mine/romsmame']
       const sanitised = sanitiseRomPaths(pretendPaths)
-      expect(sanitised).to.deep.equal(['roms'])
+      expect(sanitised).to.deep.equal(['chds', 'roms'])
     })
   })
-  
-  describe('duplicaateFoldernames', () =>  {
-    it('alerts us that we have a duplicate basename in our santised list', () => {
-      expect(false).to.be.true
+
+  describe('duplicateFoldernames', () => {
+    it('removes duplicate basename in our santised list, and alerts us', () => {
+      // note arrays expected to always match arity/order
+      const romPathsAbs = ['/pathA/roms', '/pathB/roms', '/pathC/mamechds', '/pathD/chds']
+      const noMameString = ['roms', 'roms', 'chds', 'chds']
+      expect(checkForDupes(romPathsAbs)(noMameString)).to.deep.equal(['roms', 'chds'])
     })
   })
 
