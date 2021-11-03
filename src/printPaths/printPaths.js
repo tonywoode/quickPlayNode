@@ -3,19 +3,7 @@ const fs = require('fs')
 const Leven = require('levenshtein')
 const { curry, map, pipe, uniq } = require('ramda')
 
-const getMameIniRomPath = (mameIniPath, mameEmuDir) => {
-  try {
-    const mameIni = fs.readFileSync(mameIniPath, 'utf-8')
-    const match = /^rompath\s+(.*)$/m.exec(mameIni)
-    const quotesRemoved = match[1].replace(/^["'](.*)["']$/, '$1')
-    return quotesRemoved
-  } catch {
-    log.filePaths(`didnt manage to get any rompaths out of mame.in path: ${mameIniPath}`)
-    const defaultRomsDir = path.win32.join(mameEmuDir, 'roms')
-    return [defaultRomsDir] // now we're pure we always return an array
-  }
-}
-
+// work out where the mame ini file is on your filesystem
 const determinePathToMameIni = (mameEmuDir, isItRetroArch, mameIniFileName, messIniFileName) => {
   const standardMameIniPath = isItRetroArch
     ? path.join(mameEmuDir, `system`, `mame`, mameIniFileName)
@@ -29,17 +17,52 @@ const determinePathToMameIni = (mameEmuDir, isItRetroArch, mameIniFileName, mess
     : fs.existsSync(standardMessIniPath) ? standardMessIniPath : '' // no ini path, no paths get (safely) printed
 }
 
-// why win32? node will NOT test both for us, only the one on the OS this imp is running on, which is not helpful for running the tests or potentially dealing with win or nix mame inis
-const makeRomPathAbs = (filepath, mameEmuDir) =>
-  path.win32.isAbsolute(filepath) || path.posix.isAbsolute(filepath)
-    ? filepath
-    : path.resolve(mameEmuDir, filepath)
-// basename is the final rightmost segment of file path; usually a file, but can also be directory
-const getBasename = filepath => path.win32.basename(filepath)
-const removeMameStringFromPath = filepath => filepath.replace(/mame/i, '')
+// get the actual contents of the rompath array in mame's ini file on your filesystem
+const getMameIniRomPath = (mameIniPath, mameEmuDir) => {
+  try {
+    const mameIni = fs.readFileSync(mameIniPath, 'utf-8')
+    const match = /^rompath\s+(.*)$/m.exec(mameIni)
+    const quotesRemoved = match[1].replace(/^["'](.*)["']$/, '$1')
+    return quotesRemoved
+  } catch {
+    log.filePaths(`didnt manage to get any rompaths out of mame.in path: ${mameIniPath}`)
+    const defaultRomsDir = path.win32.join(mameEmuDir, 'roms')
+    return [defaultRomsDir] // now we're pure we always return an array
+  }
+}
+
+// if >1 sanitised basename is the same, first wins and warn user to symlink if they want it fixed (should test absolute names in this event)
+const checkForDupes = romPathsAbs => noMameString => {
+  const basesNoDupes = uniq(noMameString)
+  const removedIdxs = idxsOfDupes(noMameString)
+  removedIdxs.length !== 0 &&
+    console.log(
+      `Print Paths - Warning: Mame filepath printing may not work properly: identical rompath foldernames found that look like: ${removedIdxs.map(
+        idx => romPathsAbs[idx]
+      )} - we're going to use the first path found. You can make all rompaths work by symlinking the files from the non-chosen folders into the chosen ones`
+    )
+  return basesNoDupes
+}
+
+// get your rompaths ready for difference comparison: turn into basenames, check for duplicates (warning if so), remove the string 'mame'
+// conumdrum: we don't want to remove 'mame' first incase we have 'mameroms' and 'romsmame', but if we don't we get two dupes 'roms', we've got little choice but to compare post-removal
+const sanitiseRomPaths = romPathsAbs =>
+  pipe(map(getBasename), map(removeMameStringFromPath), checkForDupes(romPathsAbs))(romPathsAbs)
+
+/* DISTANCE FNS */ 
+
+const makeDifferenceObjects = basenames => {
+  const romPathTypes = ['Roms', 'Chds', 'SoftwareListRoms', 'SoftwareListChds']
+  const bases = basenames.map(basename => ({ name: basename }))
+  // now we need to give each object a field for each type
+  const addArrAsObjKeys = (arr, obj) => arr.reduce((obj, key, idx) => ({ ...obj, [key]: '' }), obj)
+  const romPathsReadyToBeRated = bases.map(base => addArrAsObjKeys(romPathTypes, base))
+  return romPathsReadyToBeRated
+}
+
+// now that each rompath is rated, if we have more than one for each type, we need to take the most likely, so returns 4 rompaths
 // takes your rompaths and rates each for closeness to mame's rompath types
 const rateRomPath = (romPath, romPathType) => new Leven(romPath, romPathType).distance
-
 
 // for each of mame's rompath types, returns the rompath (out of 4) that is the most likely container for that rompath type
 const rateEachFolderForEachType = (romPath, romPathTypes) =>
@@ -62,35 +85,6 @@ const getLowestDistanceForTypes = (romPathTypes, allDistances) => {
     // return lowestIdx
   }, [])
 }
-
-// if >1 sanitised basename is the same, first wins and warn user to symlink if they want it fixed (should test absolute names in this event)
-const checkForDupes = romPathsAbs => noMameString => {
-  const basesNoDupes = uniq(noMameString)
-  const removedIdxs = idxsOfDupes(noMameString)
-  removedIdxs.length !== 0 &&
-    console.log(
-      `Print Paths - Warning: Mame filepath printing may not work properly: identical rompath foldernames found that look like: ${removedIdxs.map(
-        idx => romPathsAbs[idx]
-      )} - we're going to use the first path found. You can make all rompaths work by symlinking the files from the non-chosen folders into the chosen ones`
-    )
-  return basesNoDupes
-}
-
-// get your rompaths ready for difference comparison: turn into basenames, check for duplicates (warning if so), remove the string 'mame'
-// conumdrum: we don't want to remove 'mame' first incase we have 'mameroms' and 'romsmame', but if we don't we get two dupes 'roms', we've got little choice but to compare post-removal
-const sanitiseRomPaths = romPathsAbs =>
-  pipe(map(getBasename), map(removeMameStringFromPath), checkForDupes(romPathsAbs))(romPathsAbs)
-
-const makeDifferenceObjects = basenames => {
-  const romPathTypes = ['Roms', 'Chds', 'SoftwareListRoms', 'SoftwareListChds']
-  const bases = basenames.map(basename => ({ name: basename }))
-  // now we need to give each object a field for each type
-  const addArrAsObjKeys = (arr, obj) => arr.reduce((obj, key, idx) => ({ ...obj, [key]: '' }), obj)
-  const romPathsReadyToBeRated = bases.map(base => addArrAsObjKeys(romPathTypes, base))
-  return romPathsReadyToBeRated
-}
-
-// now that each rompath is rated, if we have more than one for each type, we need to take the most likely, so returns 4 rompaths
 
 /** basenames -> paths -> [] */
 const fillRomPaths = romPathsAbs => {
@@ -148,6 +142,15 @@ const idxsOfDupes = arr =>
     })
     .filter(e => e != null)
 
+// why win32? node will NOT test both for us, only the one on the OS this imp is running on, which is not helpful for running the tests or potentially dealing with win or nix mame inis
+const makeRomPathAbs = (filepath, mameEmuDir) =>
+  path.win32.isAbsolute(filepath) || path.posix.isAbsolute(filepath)
+    ? filepath
+    : path.resolve(mameEmuDir, filepath)
+// basename is the final rightmost segment of file path; usually a file, but can also be directory
+const getBasename = filepath => path.win32.basename(filepath)
+const removeMameStringFromPath = filepath => filepath.replace(/mame/i, '')
+
 const trace = curry((tag, x) => {
   console.log(tag, x)
   return x
@@ -158,6 +161,7 @@ module.exports = {
   fillRomPaths,
   checkForDupes,
   sanitiseRomPaths,
+  makeDifferenceObjects,
   rateEachFolderForEachType,
   getLowestDistanceForTypes
 }

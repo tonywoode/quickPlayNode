@@ -6,6 +6,7 @@ const {
   fillRomPaths,
   checkForDupes,
   sanitiseRomPaths,
+  makeDifferenceObjects,
   rateEachFolderForEachType,
   getLowestDistanceForTypes
 } = require('../../src/printPaths/printPaths.js')
@@ -93,6 +94,34 @@ describe('printPaths', () => {
   })
 
   describe('distance', () => {
+    it('makes a distance object for each basename given, from its hardcoded list of 4 RomPathTypes', () => {
+      // when might we need to change the rompathtypes - well theres a hard disk type but no softlists made yet
+      const basenames = ['Mo', 'Larry', 'Curly']
+      expect(makeDifferenceObjects(basenames)).to.deep.equal([
+        {
+          name: 'Mo',
+          Roms: '',
+          Chds: '',
+          SoftwareListRoms: '',
+          SoftwareListChds: ''
+        },
+        {
+          name: 'Larry',
+          Roms: '',
+          Chds: '',
+          SoftwareListRoms: '',
+          SoftwareListChds: ''
+        },
+        {
+          name: 'Curly',
+          Roms: '',
+          Chds: '',
+          SoftwareListRoms: '',
+          SoftwareListChds: ''
+        }
+      ])
+    })
+
     it('when supplied a list of path types and a path, rates the path for the types', () => {
       const romPathTypes = ['Roms', 'Chds', 'SoftwareListRoms', 'SoftwareListChds']
       const romPath = 'roms'
