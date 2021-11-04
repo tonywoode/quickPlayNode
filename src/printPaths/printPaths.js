@@ -50,14 +50,13 @@ const sanitiseRomPaths = romPathsAbs =>
   pipe(map(getBasename), map(removeMameStringFromPath), checkForDupes(romPathsAbs))(romPathsAbs)
 
 /* DISTANCE FNS */ 
+const romPathTypes = ['Roms', 'Chds', 'SoftwareListRoms', 'SoftwareListChds']
 
 const makeDifferenceObjects = basenames => {
-  const romPathTypes = ['Roms', 'Chds', 'SoftwareListRoms', 'SoftwareListChds']
   const bases = basenames.map(basename => ({ name: basename }))
-  // now we need to give each object a field for each type
-  const addArrAsObjKeys = (arr, obj) => arr.reduce((obj, key, idx) => ({ ...obj, [key]: '' }), obj)
-  const romPathsReadyToBeRated = bases.map(base => addArrAsObjKeys(romPathTypes, base))
-  return romPathsReadyToBeRated
+  // now we need to give each object a field for each type TODO: mutation
+  bases.map(base => base.distances = addArrAsObjKeys(romPathTypes, base.distances))
+  return bases
 }
 
 // now that each rompath is rated, if we have more than one for each type, we need to take the most likely, so returns 4 rompaths
@@ -68,6 +67,21 @@ const rateRomPath = (romPath, romPathType) => new Leven(romPath, romPathType).di
 const rateEachFolderForEachType = (romPath, romPathTypes) =>
   romPathTypes.map(pathType => rateRomPath(romPath, pathType))
 
+// difference object as in { name: 'foo', Roms: '', Chds: '', ... }
+const rateADifferenceObject = (romPathTypes, differenceObject) => {
+  const o = differenceObject
+  const types = romPathTypes
+  types.map( type => o[type] = rateRomPath(o.name, type) )
+}
+
+const rateAllRomPaths = (romPathTypes, differenceObjects) => {
+  differenceObjects.map( differenceObject => rateADifferenceObject(romPathTypes, differenceObject))
+}
+
+////////////////
+////////////////
+/////////////////
+// trying not to do with arrays now
 const getLowestDistanceWithIdx = distances => {
   const lowest = Math.min(...distances)
   return [lowest, distances.indexOf(lowest)]
@@ -150,6 +164,7 @@ const makeRomPathAbs = (filepath, mameEmuDir) =>
 // basename is the final rightmost segment of file path; usually a file, but can also be directory
 const getBasename = filepath => path.win32.basename(filepath)
 const removeMameStringFromPath = filepath => filepath.replace(/mame/i, '')
+const addArrAsObjKeys = (arr, obj) => arr.reduce((obj, key) => ({ ...obj, [key]: '' }), obj)
 
 const trace = curry((tag, x) => {
   console.log(tag, x)
@@ -162,6 +177,7 @@ module.exports = {
   checkForDupes,
   sanitiseRomPaths,
   makeDifferenceObjects,
+rateADifferenceObject,
   rateEachFolderForEachType,
   getLowestDistanceForTypes
 }
