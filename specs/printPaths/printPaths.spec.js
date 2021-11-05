@@ -107,13 +107,13 @@ describe('printPaths', () => {
       }
     ]
 
-    it.only('makes a distance object for each basename given, from its hardcoded list of 4 RomPathTypes', () => {
+    it('makes a distance object for each basename given, from its hardcoded list of 4 RomPathTypes', () => {
       // when might we need to change the rompathtypes - well theres a hard disk type but no softlists made yet
       const basenames = ['Mo', 'Larry', 'Curly']
       expect(makeDifferenceObjects(basenames)).to.deep.equal(stoogesDiffObj)
     })
 
-    it.only('rates a difference object', () => {
+    it('rates a difference object', () => {
       const obj1 = stoogesDiffObj[0]
       const romPathTypes = ['Roms', 'Chds', 'SoftwareListRoms', 'SoftwareListChds']
       const rated = rateADifferenceObject(romPathTypes, obj1)

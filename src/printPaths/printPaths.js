@@ -56,24 +56,21 @@ const makeDifferenceObjects = basenames => basenames.map(basename => ({ name: ba
 
 // now that each rompath is rated, if we have more than one for each type, we need to take the most likely, so returns 4 rompaths
 // takes your rompaths and rates each for closeness to mame's rompath types
-const rateRomPath = romPath => romPathType => new Leven(romPath, romPathType).distance
+const rateRomPath = (romPath, romPathType) => new Leven(romPath, romPathType).distance
 
 // for each of mame's rompath types, returns the rompath (out of 4) that is the most likely container for that rompath type
 const rateEachFolderForEachType = (romPath, romPathTypes) =>
   romPathTypes.map(pathType => rateRomPath(romPath, pathType))
 
-// difference object as in { name: 'foo', Roms: '', Chds: '', ... }
-const rateADifferenceObject = (romPathTypes, differenceObject) => 
-//  romPathTypes.forEach(type => (differenceObject[type] = rateRomPath(differenceObject.name, type)))
-//  return differenceObject
-  objWithArrKeysAndFnVals(romPathTypes, differenceObject, rateRomPath(differenceObject.name) )
-
-
+// difference object will become { name: 'foo', Roms: '3', Chds: '6', ... }
+const rateADifferenceObject = (romPathTypes, differenceObject) => ({
+  ...differenceObject,
+  ...Object.fromEntries(romPathTypes.map(key => [key, rateRomPath(differenceObject.name, key)]))
+})
 
 // TODO: this isn't a map, it returns an array, the problem is the fn we call maps over an array, we need to return the OBJECT from that fn
-const rateAllRomPaths = (romPathTypes, differenceObjects) => 
+const rateAllRomPaths = (romPathTypes, differenceObjects) =>
   differenceObjects.map(differenceObject => rateADifferenceObject(romPathTypes, differenceObject))
-
 
 /// /////////////
 /// /////////////
@@ -162,10 +159,6 @@ const makeRomPathAbs = (filepath, mameEmuDir) =>
 const getBasename = filepath => path.win32.basename(filepath)
 const removeMameStringFromPath = filepath => filepath.replace(/mame/i, '')
 const addArrAsObjKeys = (arr, obj) => arr.reduce((obj, key) => ({ ...obj, [key]: '' }), obj)
-
-// for some existing object, loop through an array and use its values as new object keys, setting the vlue of each key by applying the key string itself to some function. Return the new object. Note we pass the arrays values to the fn
-const objWithArrKeysAndFnVals = ( arr, obj, f ) => ({...obj, ...Object.fromEntries(arr.map( k => [k, f(k) ] ) )}) 
-
 
 const trace = curry((tag, x) => {
   console.log(tag, x)
