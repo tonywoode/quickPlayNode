@@ -8,6 +8,8 @@ const {
   sanitiseRomPaths,
   makeDifferenceObjects,
   rateADifferenceObject,
+  rateAllRomPaths,
+  rateUsersRompaths,
   rateEachFolderForEachType,
   getLowestDistanceForTypes
 } = require('../../src/printPaths/printPaths.js')
@@ -126,8 +128,78 @@ describe('printPaths', () => {
       })
     })
 
-    it('when supplied a list of path types and a path, rates the path for the types', () => {
+    it(`rates an Object Array of difference objects`, () => {
       const romPathTypes = ['Roms', 'Chds', 'SoftwareListRoms', 'SoftwareListChds']
+      const rated = rateAllRomPaths(romPathTypes)(stoogesDiffObj)
+      expect(rated).to.deep.equal([
+        {
+          name: 'Mo',
+          Roms: 3,
+          Chds: 4,
+          SoftwareListRoms: 15,
+          SoftwareListChds: 15
+        },
+        {
+          name: 'Larry',
+          Roms: 5,
+          Chds: 5,
+          SoftwareListRoms: 14,
+          SoftwareListChds: 14
+        },
+        {
+          name: 'Curly',
+          Roms: 5,
+          Chds: 4,
+          SoftwareListRoms: 15,
+          SoftwareListChds: 15
+        }
+      ])
+    })
+
+    it(`rates an Object Array of difference objects`, () => {
+      // these should be absolute paths
+      const romPaths = ['mameRomFolders', 'mameChdFolder', 'mameSoftlists', 'mameSoftChds']
+      const romPathTypes = ['Roms', 'Chds', 'SoftwareListRoms', 'SoftwareListChds']
+      const result = rateUsersRompaths(romPathTypes, romPaths)
+      expect(result).to.deep.equal([
+        {
+          name: 'RomFolders',
+          Roms: 6,
+          Chds: 8,
+          SoftwareListRoms: 13,
+          SoftwareListChds: 13
+        },
+        {
+          name: 'ChdFolder',
+          Roms: 8,
+          Chds: 6,
+          SoftwareListRoms: 15,
+          SoftwareListChds: 15
+        },
+        {
+          name: 'Softlists',
+          Roms: 7,
+          Chds: 8,
+          SoftwareListRoms: 8,
+          SoftwareListChds: 8
+        },
+        {
+          name: 'SoftChds',
+          Roms: 6,
+          Chds: 4,
+          SoftwareListRoms: 11,
+          SoftwareListChds: 8
+        }
+      ])
+    })
+
+    it('when supplied a list of path types and a path, rates the path for the types', () => {
+      const romPathTypes = [
+        'C:/me/Roms',
+        'D:/ROMS/SO_ROMS/Chds',
+        'X:/Child/Chad/Ched/SoftwareListRoms',
+        'P:/SoftwareListChds'
+      ]
       const romPath = 'roms'
       const distances = rateEachFolderForEachType(romPath, romPathTypes)
       expect(distances)

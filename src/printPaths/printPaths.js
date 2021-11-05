@@ -68,10 +68,15 @@ const rateADifferenceObject = (romPathTypes, differenceObject) => ({
   ...Object.fromEntries(romPathTypes.map(key => [key, rateRomPath(differenceObject.name, key)]))
 })
 
-// TODO: this isn't a map, it returns an array, the problem is the fn we call maps over an array, we need to return the OBJECT from that fn
-const rateAllRomPaths = (romPathTypes, differenceObjects) =>
+const rateAllRomPaths = romPathTypes => differenceObjects =>
   differenceObjects.map(differenceObject => rateADifferenceObject(romPathTypes, differenceObject))
 
+const rateUsersRompaths = (romPathTypes, romPaths) => 
+    pipe(
+      sanitiseRomPaths,
+      makeDifferenceObjects,
+      rateAllRomPaths(romPathTypes)
+    )(romPaths) 
 /// /////////////
 /// /////////////
 /// //////////////
@@ -172,6 +177,8 @@ module.exports = {
   sanitiseRomPaths,
   makeDifferenceObjects,
   rateADifferenceObject,
+rateAllRomPaths,
+rateUsersRompaths,
   rateEachFolderForEachType,
   getLowestDistanceForTypes
 }
