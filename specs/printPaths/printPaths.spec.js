@@ -94,34 +94,16 @@ describe('printPaths', () => {
     })
   })
 
-  describe.only('distance', () => {
+  describe('distance', () => {
     const stoogesDiffObj = [
       {
-        name: 'Mo',
-        distances: {
-          Roms: '',
-          Chds: '',
-          SoftwareListRoms: '',
-          SoftwareListChds: ''
-        }
+        name: 'Mo'
       },
       {
-        name: 'Larry',
-        distances: {
-          Roms: '',
-          Chds: '',
-          SoftwareListRoms: '',
-          SoftwareListChds: ''
-        }
+        name: 'Larry'
       },
       {
-        name: 'Curly',
-        distances: {
-          Roms: '',
-          Chds: '',
-          SoftwareListRoms: '',
-          SoftwareListChds: ''
-        }
+        name: 'Curly'
       }
     ]
 
@@ -131,9 +113,17 @@ describe('printPaths', () => {
       expect(makeDifferenceObjects(basenames)).to.deep.equal(stoogesDiffObj)
     })
 
-    it('rates a difference object', () => {
+    it.only('rates a difference object', () => {
       const obj1 = stoogesDiffObj[0]
-      console.log(obj1)
+      const romPathTypes = ['Roms', 'Chds', 'SoftwareListRoms', 'SoftwareListChds']
+      const rated = rateADifferenceObject(romPathTypes, obj1)
+      expect(rated).to.deep.equal({
+        name: 'Mo',
+        Roms: 3,
+        Chds: 4,
+        SoftwareListRoms: 15,
+        SoftwareListChds: 15
+      })
     })
 
     it('when supplied a list of path types and a path, rates the path for the types', () => {
