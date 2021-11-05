@@ -121,10 +121,10 @@ describe('printPaths', () => {
       const rated = rateADifferenceObject(romPathTypes, obj1)
       expect(rated).to.deep.equal({
         name: 'Mo',
-        Roms: 3,
-        Chds: 4,
-        SoftwareListRoms: 15,
-        SoftwareListChds: 15
+        Roms: 0,
+        Chds: 0,
+        SoftwareListRoms: 0,
+        SoftwareListChds: 0
       })
     })
 
@@ -134,24 +134,24 @@ describe('printPaths', () => {
       expect(rated).to.deep.equal([
         {
           name: 'Mo',
-          Roms: 3,
-          Chds: 4,
-          SoftwareListRoms: 15,
-          SoftwareListChds: 15
+          Roms: 0,
+          Chds: 0,
+          SoftwareListRoms: 0,
+          SoftwareListChds: 0
         },
         {
           name: 'Larry',
-          Roms: 5,
-          Chds: 5,
-          SoftwareListRoms: 14,
-          SoftwareListChds: 14
+          Roms: 0,
+          Chds: 0,
+          SoftwareListRoms: 0.10526315789473684,
+          SoftwareListChds: 0.10526315789473684
         },
         {
           name: 'Curly',
-          Roms: 5,
-          Chds: 4,
-          SoftwareListRoms: 15,
-          SoftwareListChds: 15
+          Roms: 0,
+          Chds: 0,
+          SoftwareListRoms: 0,
+          SoftwareListChds: 0
         }
       ])
     })
@@ -164,31 +164,31 @@ describe('printPaths', () => {
       expect(result).to.deep.equal([
         {
           name: 'RomFolders',
-          Roms: 6,
-          Chds: 8,
-          SoftwareListRoms: 13,
-          SoftwareListChds: 13
+          Roms: 0.3333333333333333,
+          Chds: 0,
+          SoftwareListRoms: 0.16666666666666666,
+          SoftwareListChds: 0
         },
         {
           name: 'ChdFolder',
-          Roms: 8,
-          Chds: 6,
-          SoftwareListRoms: 15,
-          SoftwareListChds: 15
+          Roms: 0,
+          Chds: 0.36363636363636365,
+          SoftwareListRoms: 0,
+          SoftwareListChds: 0.17391304347826086
         },
         {
           name: 'Softlists',
-          Roms: 7,
-          Chds: 8,
-          SoftwareListRoms: 8,
-          SoftwareListChds: 8
+          Roms: 0,
+          Chds: 0,
+          SoftwareListRoms: 0.43478260869565216,
+          SoftwareListChds: 0.43478260869565216
         },
         {
           name: 'SoftChds',
-          Roms: 6,
-          Chds: 4,
-          SoftwareListRoms: 11,
-          SoftwareListChds: 8
+          Roms: 0,
+          Chds: 0.6,
+          SoftwareListRoms: 0.2727272727272727,
+          SoftwareListChds: 0.6363636363636364
         }
       ])
     })

@@ -1,6 +1,7 @@
 const path = require('path')
 const fs = require('fs')
 const Leven = require('levenshtein')
+var stringSimilarity = require('string-similarity')
 const { curry, map, pipe, uniq } = require('ramda')
 
 // work out where the mame ini file is on your filesystem
@@ -56,7 +57,8 @@ const makeDifferenceObjects = basenames => basenames.map(basename => ({ name: ba
 
 // now that each rompath is rated, if we have more than one for each type, we need to take the most likely, so returns 4 rompaths
 // takes your rompaths and rates each for closeness to mame's rompath types
-const rateRomPath = (romPath, romPathType) => new Leven(romPath, romPathType).distance
+const rateRomPath = (romPath, romPathType) =>
+  stringSimilarity.compareTwoStrings(romPath, romPathType)
 
 // for each of mame's rompath types, returns the rompath (out of 4) that is the most likely container for that rompath type
 const rateEachFolderForEachType = (romPath, romPathTypes) =>
@@ -71,12 +73,8 @@ const rateADifferenceObject = (romPathTypes, differenceObject) => ({
 const rateAllRomPaths = romPathTypes => differenceObjects =>
   differenceObjects.map(differenceObject => rateADifferenceObject(romPathTypes, differenceObject))
 
-const rateUsersRompaths = (romPathTypes, romPaths) => 
-    pipe(
-      sanitiseRomPaths,
-      makeDifferenceObjects,
-      rateAllRomPaths(romPathTypes)
-    )(romPaths) 
+const rateUsersRompaths = (romPathTypes, romPaths) =>
+  pipe(sanitiseRomPaths, makeDifferenceObjects, rateAllRomPaths(romPathTypes))(romPaths)
 /// /////////////
 /// /////////////
 /// //////////////
@@ -177,8 +175,8 @@ module.exports = {
   sanitiseRomPaths,
   makeDifferenceObjects,
   rateADifferenceObject,
-rateAllRomPaths,
-rateUsersRompaths,
+  rateAllRomPaths,
+  rateUsersRompaths,
   rateEachFolderForEachType,
   getLowestDistanceForTypes
 }
