@@ -65,8 +65,6 @@ const sanitiseRomPaths = romPathsAbs =>
 /* DISTANCE FNS */
 const romPathTypes = ['Roms', 'Chds', 'SoftwareListRoms', 'SoftwareListChds']
 
-const makeDifferenceObjects = basenames => basenames.map(basename => ({ name: basename }))
-
 // now that each rompath is rated, if we have more than one for each type, we need to take the most likely, so returns 4 rompaths
 // takes your rompaths and rates each for closeness to mame's rompath types
 const rateRomPath = (romPath, romPathType) =>
@@ -79,14 +77,14 @@ const rateEachFolderForEachType = (romPath, romPathTypes) =>
 // difference object will become { name: 'foo', Roms: '3', Chds: '6', ... }
 const rateADifferenceObject = (romPathTypes, differenceObject) => ({
   ...differenceObject,
-  ...Object.fromEntries(romPathTypes.map(key => [key, rateRomPath(differenceObject.name, key)]))
+  ...Object.fromEntries(romPathTypes.map(key => [key, rateRomPath(differenceObject.basenameNoMame, key)]))
 })
 
 const rateAllRomPaths = romPathTypes => differenceObjects =>
   differenceObjects.map(differenceObject => rateADifferenceObject(romPathTypes, differenceObject))
 
 const rateUsersRompaths = (romPathTypes, romPaths) =>
-  pipe(sanitiseRomPaths, makeDifferenceObjects, rateAllRomPaths(romPathTypes))(romPaths)
+  pipe(sanitiseRomPaths, rateAllRomPaths(romPathTypes))(romPaths)
 /// /////////////
 /// /////////////
 /// //////////////
@@ -112,8 +110,9 @@ const getLowestDistanceForTypes = (romPathTypes, allDistances) => {
 /** basenames -> paths -> [] */
 const fillRomPaths = romPathsAbs => {
   // first make a list of each of your rompaths, with slots for each of the rompathTypes for a rating of distance
-  const romPathsSanitised = sanitiseRomPaths(romPathsAbs)
-  const romPathsReadyToBeRated = makeDifferenceObjects(romPathsSanitised)
+  // this just to get this test to pass atm, the imp needs replacing
+  const romPathsSanitised = sanitiseRomPaths(romPathsAbs).map( romPathObj => romPathObj.basenameNoMame)
+  console.log(romPathsSanitised)
   const paths = {
     mameRoms: '',
     mameChds: '',
@@ -176,7 +175,6 @@ module.exports = {
   fillRomPaths,
   checkForDupes,
   sanitiseRomPaths,
-  makeDifferenceObjects,
   rateADifferenceObject,
   rateAllRomPaths,
   rateUsersRompaths,

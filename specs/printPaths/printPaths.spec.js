@@ -6,7 +6,6 @@ const {
   fillRomPaths,
   checkForDupes,
   sanitiseRomPaths,
-  makeDifferenceObjects,
   rateADifferenceObject,
   rateAllRomPaths,
   rateUsersRompaths,
@@ -84,84 +83,77 @@ describe('printPaths', () => {
       const pretendPaths = ['/mamechds', '/me/mine/romsmame']
       const sanitised = sanitiseRomPaths(pretendPaths)
       expect(sanitised).to.deep.equal([
-         {
-           basename: "mamechds",
-           basenameNoMame: "chds",
-           romPathAbs: "/mamechds"
-         },
-         {
-           basename: "romsmame",
-           basenameNoMame: "roms",
-           romPathAbs: "/me/mine/romsmame"
-         }
-      ]
-)
+        {
+          basename: 'mamechds',
+          basenameNoMame: 'chds',
+          romPathAbs: '/mamechds'
+        },
+        {
+          basename: 'romsmame',
+          basenameNoMame: 'roms',
+          romPathAbs: '/me/mine/romsmame'
+        }
+      ])
     })
   })
 
   describe('duplicateFoldernames', () => {
     it('removes duplicate basename in our santitised list, and alerts us', () => {
       // note arrays expected to always match arity/order
-    //  const romPathsAbs = ['/pathA/roms', '/pathB/roms', '/pathC/mamechds', '/pathD/chds']
-    //  const noMameString = ['roms', 'roms', 'chds', 'chds']
-      
+      //  const romPathsAbs = ['/pathA/roms', '/pathB/roms', '/pathC/mamechds', '/pathD/chds']
+      //  const noMameString = ['roms', 'roms', 'chds', 'chds']
+
       const romPathsObjArr = [
         {
-         basenameNoMame: 'roms',
-         romPathAbs: '/pathA/roms'
+          basenameNoMame: 'roms',
+          romPathAbs: '/pathA/roms'
         },
         {
-         basenameNoMame: 'roms',
-         romPathAbs:  '/pathB/roms'
+          basenameNoMame: 'roms',
+          romPathAbs: '/pathB/roms'
         },
         {
-         basenameNoMame: 'chds',
-         romPathAbs:  '/pathC/mamechds'
+          basenameNoMame: 'chds',
+          romPathAbs: '/pathC/mamechds'
         },
         {
-         basenameNoMame: 'chds',
-         romPathAbs:  '/pathD/chds'
+          basenameNoMame: 'chds',
+          romPathAbs: '/pathD/chds'
         }
-      ] 
+      ]
 
       expect(checkForDupes(romPathsObjArr)).to.deep.equal([
         {
-         basenameNoMame: 'roms',
-         romPathAbs: '/pathA/roms'
+          basenameNoMame: 'roms',
+          romPathAbs: '/pathA/roms'
         },
         {
-         basenameNoMame: 'chds',
-         romPathAbs:  '/pathC/mamechds'
-        },
-      ] )
+          basenameNoMame: 'chds',
+          romPathAbs: '/pathC/mamechds'
+        }
+      ])
     })
   })
 
   describe('distance', () => {
     const stoogesDiffObj = [
       {
-        name: 'Mo'
+        basenameNoMame: 'Mo'
       },
       {
-        name: 'Larry'
+        basenameNoMame: 'Larry'
       },
       {
-        name: 'Curly'
+        basenameNoMame: 'Curly'
       }
     ]
-
-    it('makes a distance object for each basename given, from its hardcoded list of 4 RomPathTypes', () => {
-      // when might we need to change the rompathtypes - well theres a hard disk type but no softlists made yet
-      const basenames = ['Mo', 'Larry', 'Curly']
-      expect(makeDifferenceObjects(basenames)).to.deep.equal(stoogesDiffObj)
-    })
 
     it('rates a difference object', () => {
       const obj1 = stoogesDiffObj[0]
       const romPathTypes = ['Roms', 'Chds', 'SoftwareListRoms', 'SoftwareListChds']
       const rated = rateADifferenceObject(romPathTypes, obj1)
       expect(rated).to.deep.equal({
-        name: 'Mo',
+        basenameNoMame: 'Mo',
         Roms: 0,
         Chds: 0,
         SoftwareListRoms: 0,
@@ -174,21 +166,21 @@ describe('printPaths', () => {
       const rated = rateAllRomPaths(romPathTypes)(stoogesDiffObj)
       expect(rated).to.deep.equal([
         {
-          name: 'Mo',
+          basenameNoMame: 'Mo',
           Roms: 0,
           Chds: 0,
           SoftwareListRoms: 0,
           SoftwareListChds: 0
         },
         {
-          name: 'Larry',
+          basenameNoMame: 'Larry',
           Roms: 0,
           Chds: 0,
           SoftwareListRoms: 0.10526315789473684,
           SoftwareListChds: 0.10526315789473684
         },
         {
-          name: 'Curly',
+          basenameNoMame: 'Curly',
           Roms: 0,
           Chds: 0,
           SoftwareListRoms: 0,
@@ -197,35 +189,43 @@ describe('printPaths', () => {
       ])
     })
 
-    it(`rates an Object Array of difference objects`, () => {
+    it(`rates an Object Array of user difference objects`, () => {
       // these should be absolute paths
       const romPaths = ['mameRomFolders', 'mameChdFolder', 'mameSoftlists', 'mameSoftChds']
       const romPathTypes = ['Roms', 'Chds', 'SoftwareListRoms', 'SoftwareListChds']
       const result = rateUsersRompaths(romPathTypes, romPaths)
       expect(result).to.deep.equal([
         {
-          name: 'RomFolders',
+          romPathAbs: 'mameRomFolders',
+          basename: 'mameRomFolders',
+          basenameNoMame: 'RomFolders',
           Roms: 0.3333333333333333,
           Chds: 0,
           SoftwareListRoms: 0.16666666666666666,
           SoftwareListChds: 0
         },
         {
-          name: 'ChdFolder',
+          romPathAbs: 'mameChdFolder',
+          basename: 'mameChdFolder',
+          basenameNoMame: 'ChdFolder',
           Roms: 0,
           Chds: 0.36363636363636365,
           SoftwareListRoms: 0,
           SoftwareListChds: 0.17391304347826086
         },
         {
-          name: 'Softlists',
+          romPathAbs: 'mameSoftlists',
+          basename: 'mameSoftlists',
+          basenameNoMame: 'Softlists',
           Roms: 0,
           Chds: 0,
           SoftwareListRoms: 0.43478260869565216,
           SoftwareListChds: 0.43478260869565216
         },
         {
-          name: 'SoftChds',
+          romPathAbs: 'mameSoftChds',
+          basename: 'mameSoftChds',
+          basenameNoMame: 'SoftChds',
           Roms: 0,
           Chds: 0.6,
           SoftwareListRoms: 0.2727272727272727,
