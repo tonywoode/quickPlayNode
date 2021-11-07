@@ -83,16 +83,57 @@ describe('printPaths', () => {
     it('when supplied an array of paths, removes the string "mame" from the basename', () => {
       const pretendPaths = ['/mamechds', '/me/mine/romsmame']
       const sanitised = sanitiseRomPaths(pretendPaths)
-      expect(sanitised).to.deep.equal(['chds', 'roms'])
+      expect(sanitised).to.deep.equal([
+         {
+           basename: "mamechds",
+           basenameNoMame: "chds",
+           romPathAbs: "/mamechds"
+         },
+         {
+           basename: "romsmame",
+           basenameNoMame: "roms",
+           romPathAbs: "/me/mine/romsmame"
+         }
+      ]
+)
     })
   })
 
   describe('duplicateFoldernames', () => {
-    it('removes duplicate basename in our santised list, and alerts us', () => {
+    it('removes duplicate basename in our santitised list, and alerts us', () => {
       // note arrays expected to always match arity/order
-      const romPathsAbs = ['/pathA/roms', '/pathB/roms', '/pathC/mamechds', '/pathD/chds']
-      const noMameString = ['roms', 'roms', 'chds', 'chds']
-      expect(checkForDupes(romPathsAbs)(noMameString)).to.deep.equal(['roms', 'chds'])
+    //  const romPathsAbs = ['/pathA/roms', '/pathB/roms', '/pathC/mamechds', '/pathD/chds']
+    //  const noMameString = ['roms', 'roms', 'chds', 'chds']
+      
+      const romPathsObjArr = [
+        {
+         basenameNoMame: 'roms',
+         romPathAbs: '/pathA/roms'
+        },
+        {
+         basenameNoMame: 'roms',
+         romPathAbs:  '/pathB/roms'
+        },
+        {
+         basenameNoMame: 'chds',
+         romPathAbs:  '/pathC/mamechds'
+        },
+        {
+         basenameNoMame: 'chds',
+         romPathAbs:  '/pathD/chds'
+        }
+      ] 
+
+      expect(checkForDupes(romPathsObjArr)).to.deep.equal([
+        {
+         basenameNoMame: 'roms',
+         romPathAbs: '/pathA/roms'
+        },
+        {
+         basenameNoMame: 'chds',
+         romPathAbs:  '/pathC/mamechds'
+        },
+      ] )
     })
   })
 

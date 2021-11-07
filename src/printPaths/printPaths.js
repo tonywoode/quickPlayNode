@@ -1,8 +1,7 @@
 const path = require('path')
 const fs = require('fs')
-const Leven = require('levenshtein')
 var stringSimilarity = require('string-similarity')
-const { curry, map, pipe, uniq } = require('ramda')
+const { map, pipe } = require('ramda')
 
 // work out where the mame ini file is on your filesystem
 const determinePathToMameIni = (mameEmuDir, isItRetroArch, mameIniFileName, messIniFileName) => {
@@ -32,23 +31,36 @@ const getMameIniRomPath = (mameIniPath, mameEmuDir) => {
   }
 }
 
+const makeRomPathsObjArr = romPathAbs => ({ romPathAbs})
+// basename is the final rightmost segment of file path; usually a file, but can also be directory
+const addBasename = ({romPathAbs}) => ({ romPathAbs, basename: path.win32.basename(romPathAbs) })
+const removeMameStringFromPath = romPathObj => ({...romPathObj, basenameNoMame: romPathObj.basename.replace(/mame/i, '') })
+
+
 // if >1 sanitised basename is the same, first wins and warn user to symlink if they want it fixed (should test absolute names in this event)
-const checkForDupes = romPathsAbs => noMameString => {
-  const basesNoDupes = uniq(noMameString)
-  const removedIdxs = idxsOfDupes(noMameString)
+// so we need to make a list of the basenames on each object and check they are unique, we can indedc use the index of the object made to get back to each object because we have an array of objects
+const checkForDupes = romPathsObjArr => {
+  // we can match up idxs on this
+  const basenamesNoMame = romPathsObjArr.map( romPathsObj => romPathsObj.basenameNoMame)
+  const removedIdxs = idxsOfDupes(basenamesNoMame)
   removedIdxs.length !== 0 &&
     console.log(
-      `Print Paths - Warning: Mame filepath printing may not work properly: identical rompath foldernames found that look like: ${removedIdxs.map(
-        idx => romPathsAbs[idx]
-      )} - we're going to use the first path found. You can make all rompaths work by symlinking the files from the non-chosen folders into the chosen ones`
+      `Print Paths - Warning: Mame filepath printing may not work properly: found more than one Mame Rompath that seems to deal with the same content. We're going to use the first path found - removed: ${removedIdxs.map(
+        idx => romPathsObjArr[idx].romPathAbs
+      )} . You can make all rompaths work by symlinking the files from the non-chosen folders into the chosen ones`
     )
-  return basesNoDupes
+  return romPathsObjArr.filter( (el, idx) => !removedIdxs.includes(idx) )
 }
 
 // get your rompaths ready for difference comparison: turn into basenames, check for duplicates (warning if so), remove the string 'mame'
 // conumdrum: we don't want to remove 'mame' first incase we have 'mameroms' and 'romsmame', but if we don't we get two dupes 'roms', we've got little choice but to compare post-removal
 const sanitiseRomPaths = romPathsAbs =>
-  pipe(map(getBasename), map(removeMameStringFromPath), checkForDupes(romPathsAbs))(romPathsAbs)
+  pipe(
+    map(makeRomPathsObjArr),
+    map(addBasename),
+    map(removeMameStringFromPath),
+    checkForDupes
+  )(romPathsAbs)
 
 /* DISTANCE FNS */
 const romPathTypes = ['Roms', 'Chds', 'SoftwareListRoms', 'SoftwareListChds']
@@ -125,6 +137,12 @@ const fillRomPaths = romPathsAbs => {
   return paths
 }
 
+// why win32? node will NOT test both for us, only the one on the OS this imp is running on, which is not helpful for running the tests or potentially dealing with win or nix mame inis
+const makeRomPathAbs = (filepath, mameEmuDir) =>
+  path.win32.isAbsolute(filepath) || path.posix.isAbsolute(filepath)
+    ? filepath
+    : path.resolve(mameEmuDir, filepath)
+
 /** determine the location of the mame.ini, this is only for printing filepaths, we just print a default if anything goes wrong...
  * path -> bool -> bool -> Object
  * @return an object with the 4 types of mame rom paths */
@@ -152,21 +170,6 @@ const idxsOfDupes = arr =>
       }
     })
     .filter(e => e != null)
-
-// why win32? node will NOT test both for us, only the one on the OS this imp is running on, which is not helpful for running the tests or potentially dealing with win or nix mame inis
-const makeRomPathAbs = (filepath, mameEmuDir) =>
-  path.win32.isAbsolute(filepath) || path.posix.isAbsolute(filepath)
-    ? filepath
-    : path.resolve(mameEmuDir, filepath)
-// basename is the final rightmost segment of file path; usually a file, but can also be directory
-const getBasename = filepath => path.win32.basename(filepath)
-const removeMameStringFromPath = filepath => filepath.replace(/mame/i, '')
-const addArrAsObjKeys = (arr, obj) => arr.reduce((obj, key) => ({ ...obj, [key]: '' }), obj)
-
-const trace = curry((tag, x) => {
-  console.log(tag, x)
-  return x
-})
 
 module.exports = {
   addMameFilePathsToSettings,
