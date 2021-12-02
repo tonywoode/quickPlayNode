@@ -75,7 +75,13 @@ program
   .option(`--testArcadeRun`)
   // messTool options
   .option(`--softlists [rompath]`) // todo, []=optional, <>=required, surely latter
+  .option(`--getRomPath <mameExeDir>`)
   .action(mametoolObj => {
+    if (mametoolObj.getRomPath) {
+      console.log(getRomPath(mametoolObj.getRomPath))
+//console.log(mametoolObj )
+      process.exit(1)
+    }
     const outputDir = mametoolObj.outputDir
     !mametoolObj.scan &&
       (fs.existsSync(outputDir) ||
@@ -142,6 +148,10 @@ MAME exe path:          ${settings.mameExePath}`
     mametoolObj.testArcadeRun && testArcadeRun(settings, readMameJson, jsonOutPath, outputDir)
     mametoolObj.softlists && softlists(settings, jsonOutPath, hashDir, outputDir)
   })
+
+const getRomPath = mameRomPath => {
+ return "Your mame rom path " + mameRomPath
+}
 
 program
   .command(`synctool`)
