@@ -174,6 +174,8 @@ module.exports = {
   addMameFilePathsToSettings,
   fillRomPaths,
   checkForDupes,
+  determinePathToMameIni,
+  getMameIniRomPath,
   sanitiseRomPaths,
   rateADifferenceObject,
   rateAllRomPaths,

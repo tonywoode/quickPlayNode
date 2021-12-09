@@ -40,7 +40,7 @@ const paths = require('./paths.js')
 // these two are used by multiple modules and are being passed in as dependecies
 const { generateRomdata } = require('./romdata/printRomdata.js')
 const readMameJson = require('./romdata/readMameJson.js')
-const { addMameFilePathsToSettings } = require('./printPaths/printPaths.js')
+const { addMameFilePathsToSettings, determinePathToMameIni, getMameIniRomPath } = require('./printPaths/printPaths.js')
 const scan = require('./scan')
 const { arcade } = require('./arcade')
 const { mfm } = require('./mfm')
@@ -78,9 +78,14 @@ program
   .option(`--getRomPath <mameExeDir>`)
   .action(mametoolObj => {
     if (mametoolObj.getRomPath) {
-      console.log(getRomPath(mametoolObj.getRomPath))
-//console.log(mametoolObj )
-      process.exit(1)
+      const mameIniFileName = `./mame.ini`
+      const messIniFileName = `./mess.ini`
+      const isItRetroArch = path.basename(mametoolObj.getRomPath).match(/retroarch/i) 
+      const mameEmuDir = path.dirname(mametoolObj.getRomPath) //or should I look this up from the settings? see belows mameEmuDir! is it important to have this saved in settings first, or more important to have this passed from Delphi? Ultimately we need a check for if no mame emu is selected in the mame options in Delphi, and if its not maybe default to all 'roms;?
+      const mameIniPath = determinePathToMameIni(mameEmuDir, isItRetroArch, mameIniFileName, messIniFileName)
+      const mameRomPaths = getMameIniRomPath(mameIniPath, mameEmuDir)
+      console.log(mameRomPaths)
+      process.exit(1) //we want this call part of mametool, but its not part of the mametool flow
     }
     const outputDir = mametoolObj.outputDir
     !mametoolObj.scan &&
@@ -148,10 +153,6 @@ MAME exe path:          ${settings.mameExePath}`
     mametoolObj.testArcadeRun && testArcadeRun(settings, readMameJson, jsonOutPath, outputDir)
     mametoolObj.softlists && softlists(settings, jsonOutPath, hashDir, outputDir)
   })
-
-const getRomPath = mameRomPath => {
- return "Your mame rom path " + mameRomPath
-}
 
 program
   .command(`synctool`)
