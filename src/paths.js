@@ -14,12 +14,13 @@ module.exports = (qpSettingsIniPath, mameInisOverridePath ) => {
   //console.log(s) 
   console.log(`Settings file:          ${qpSettingsIniPath}`)  
 
+  //TODO: see the parseInt below, it should also be in all the 'tick' settings, don't parseInt in the callsites, do it here!
   return { 
       mameXMLInPath     : s.MameXMLPath
     , mfmTextFileInPath : s.MameFileManagerFilePath
     , mameExtrasPath    : s.MameExtrasPath 
     , winIconDir        : `${s.MameExtrasPath}\\icons`
-    , mameFilePaths     : s.MameFilePaths
+    , mameFilePaths     : parseInt(s.MameFilePaths)
     , mameFilePathsRomsType :s.MameFilePathsRomsType
     , mameZipType       : s.MameZipType
     , mameExe           : s.MametoolMameExeName
