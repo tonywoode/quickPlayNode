@@ -21,8 +21,13 @@ module.exports = (qpSettingsIniPath, mameInisOverridePath ) => {
     , mameExtrasPath    : s.MameExtrasPath 
     , winIconDir        : `${s.MameExtrasPath}\\icons`
     , mameFilePaths     : parseInt(s.MameFilePaths)
-    , mameFilePathsRomsType :s.MameFilePathsRomsType
     , mameZipType       : s.MameZipType
+    , mameFilePathsRomsType :s.MameFilePathsRomsType
+    , mameRomPath       : s.MameRomPath //may not need this actually...
+    , mameRomPathTypeRomsPath : s.MameRomPathTypeRomsPath
+    , mameRomPathTypeChdsPath : s.MameRomPathTypeChdsPath
+    , mameRomPathTypeSoftlistRomsPath : s.MameRomPathTypeSoftlistRomsPath
+    , mameRomPathTypeSoftlistChdsPath : s.MameRomPathTypeSoftlistChdsPath
     , mameExe           : s.MametoolMameExeName
     , mameExePath       : s.MametoolMameExePath
     , iniDir            : mameInisOverridePath? mameInisOverridePath : `${s.MameExtrasPath}\\folders`
