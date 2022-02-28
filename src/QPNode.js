@@ -135,11 +135,12 @@ MAME exe path:          ${settings.mameExePath}`
     const hashDir = devMode ? `${devInputsDir}/hash/` : liveHashDir
 
     if (settings.mameFilePaths) {
-      const paths = addMameFilePathsToSettings(mameEmuDir, settings.isItRetroArch, devMode)
-      settings.mameRoms = paths.mameRoms || ''
-      settings.mameChds = paths.mameChds || ''
-      settings.mameSoftwareListRoms = paths.mameSoftwareListRoms || ''
-      settings.mameSoftwareListChds = paths.mameSoftwareListChds || ''
+      //const paths = addMameFilePathsToSettings(mameEmuDir, settings.isItRetroArch, devMode)
+      //todo - remove this unnecessary indirection
+      settings.mameRoms = settings.mameRomPathTypeRomsPath || ''
+      settings.mameChds = settings.mameRomPathTypeChdsPath || ''
+      settings.mameSoftwareListRoms = settings.mameRomPathTypeSoftlistRomsPath || ''
+      settings.mameSoftwareListChds = settings.mameRomPathTypeSoftlistChdsPath || ''
       log.filePaths(`MAME roms path:         ${settings.mameRoms}`)
       log.filePaths(`MAME chds path:         ${settings.mameChds}`)
       log.filePaths(`MAME software list roms path: ${settings.mameSoftwareListRoms}`)
