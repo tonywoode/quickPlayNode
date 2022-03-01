@@ -23,7 +23,8 @@ const getMameIniRomPath = (mameIniPath, mameEmuDir) => {
     const mameIni = fs.readFileSync(mameIniPath, 'utf-8')
     const match = /^rompath\s+(.*)$/m.exec(mameIni)
     const quotesRemoved = match[1].replace(/^["'](.*)["']$/, '$1')
-    return quotesRemoved
+    const absoluteString = makeRomPathsAbs(quotesRemoved, mameEmuDir)
+    return absoluteString
   } catch {
     log.filePaths(`didnt manage to get any rompaths out of mame.in path: ${mameIniPath}`)
     const defaultRomsDir = path.win32.join(mameEmuDir, 'roms')
@@ -136,11 +137,22 @@ const fillRomPaths = romPathsAbs => {
   return paths
 }
 
+// If you have relative paths in your mame rom path, then your mame roms must be on the same path as your mame emu
+// Not sure that QuickPlay is rooted such that it'll cd to your mame emu dir when running a romdata line,
+// So instead, makle the paths in that array absolute before we hand it to QuickPlay
 // why win32? node will NOT test both for us, only the one on the OS this imp is running on, which is not helpful for running the tests or potentially dealing with win or nix mame inis
 const makeRomPathAbs = (filepath, mameEmuDir) =>
   path.win32.isAbsolute(filepath) || path.posix.isAbsolute(filepath)
     ? filepath
     : path.resolve(mameEmuDir, filepath)
+
+// romPathString -> romPathString
+//the trouble here is we need to reserialise the result, as we're passing quickplay a string
+const makeRomPathsAbs = (mameRomPath, mameEmuDir) => {
+  const romPaths = mameRomPath.split(';') 
+  const abs = romPaths.map(romPath => makeRomPathAbs(romPath, mameEmuDir))
+  return abs.join(';')
+}
 
 /** determine the location of the mame.ini, this is only for printing filepaths, we just print a default if anything goes wrong...
  * path -> bool -> bool -> Object
@@ -159,6 +171,10 @@ const addMameFilePathsToSettings = (mameEmuDir, isItRetroArch, devMode) => {
   // and array is returned of the 4 romtypes
   return fillRomPaths(romPathsAbs)
 }
+
+
+///////////////////////////////////////////////////////////////////////
+
 
 // utility fn returns the idxs of dupes in an array
 const idxsOfDupes = arr =>
