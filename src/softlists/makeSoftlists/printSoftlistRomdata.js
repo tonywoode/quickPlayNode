@@ -78,7 +78,7 @@ module.exports = (settings, softlistParams, softlist, list) => {
           const zipType = settings.mameZipType.toLowerCase() === '7z'.toLowerCase() ? `7z` : `zip`
           const romName = weHaveMergedRoms && obj.cloneof ? obj.cloneof : obj.call
           // atm the best we can do is ask if the first thing in the box is a cdrom'
-          if (obj.part[0] && obj.part[0].chdname && settings.mameSoftwareListChds) {
+          if (obj.part[0] && obj.part[0].chdname && settings.mameRomPathTypeSoftlistChdsPath) {
             if (obj.part[1]) {
               console.log(
                 `${obj.name} in ${
@@ -91,14 +91,14 @@ module.exports = (settings, softlistParams, softlist, list) => {
               )
             }
             return path.join(
-              settings.mameSoftwareListChds,
+              settings.mameRomPathTypeSoftlistChdsPath,
               softlistParams.name,
               romName,
               `${obj.part[0].chdname}.chd`
             )
-          } else if (settings.mameSoftwareListRoms) {
+          } else if (settings.mameRomPathTypeSoftlistRomsPath) {
             return path.join(
-              settings.mameSoftwareListRoms,
+              settings.mameRomPathTypeSoftlistRomsPath,
               softlistParams.name,
               `${romName}.${zipType}`
             )
