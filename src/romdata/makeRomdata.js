@@ -26,12 +26,14 @@ const makeRomdata = settings => mameJson => {
         // one day maybe it might help to be able to detect bioses and feature sets needed, i think romof tells you bios sets
         if ( weHaveMergedRoms && (obj.cloneof !== obj.romof) ) { console.log(`BIOS Reminder: ${obj.call} will also need ${obj.romof} to run`)}
 
+        // when doing the below, important to check we have a mameRoms path before using
         if (obj.chdname && settings.mameChds) {
+          const mameRomsPathToPrint = settings.mameRoms ?? 'Your mame Roms directory, when you have one...'
           if (obj.hasRom) { console.log(`MAMECHDs: ` + 
-            path.join(settings.mameRoms, `${romName}.${zipType}`) + 
+            path.join(mameRomsPathToPrint, `${romName}.${zipType}`) + 
             ` will need to exist before ${obj.chdname} will run`) }
           return path.join(settings.mameChds, romName, `${obj.chdname}.chd`)
-        } else if (!obj.chdname && obj.hasRom) {
+        } else if (!obj.chdname && obj.hasRom && settings.mameRoms) {
           return path.join(settings.mameRoms, `${romName}.${zipType}`)
         } else {
           return noPath
