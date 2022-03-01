@@ -2,6 +2,7 @@
 
 const path = require('path')
 const {
+  makeRomPathsAbs,
   addMameFilePathsToSettings,
   fillRomPaths,
   checkForDupes,
@@ -20,6 +21,20 @@ global.log = global.log || {
 
 describe('printPaths', () => {
   const isItRetroArch = false // TODO: if true, things start to equal undefined?
+
+describe.only( 'makeRomPathsAbs', () => {
+  it('inserts absolute path from 2nd param if paths are relative', () => {
+    const mameEmuDir = 'C:/Emulators/Mame'
+    const filepath =  'ROMS;CHDs;Software List ROMS;Software List CHDs'
+    const absoluteFilepath = makeRomPathsAbs(filepath, mameEmuDir)
+    //we can't do this, because path.resolve works like this:
+    // "If, after processing all given path segments, an absolute path has not yet been generated, the current working directory is used."
+    // meaning on nix you'll get your path to this script appended to the front
+    //const expected =   "C:/Emulators/Mame/ROMS;C:/Emulators/Mame/CHDs;C:/Emulators/Mame/Software List ROMS;C:/Emulators/Mame/Software List CHDs"
+    //best we can do is check that we have the windows absolute path included in the output
+    expect(absoluteFilepath).to.include(mameEmuDir)
+  })
+})
 
   describe('rompath splitting', () => {
     // internally, we later will get the foldername of this exe, that's why we pass in a nonexistent exe

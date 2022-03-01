@@ -187,6 +187,7 @@ const idxsOfDupes = arr =>
     .filter(e => e != null)
 
 module.exports = {
+  makeRomPathsAbs,
   addMameFilePathsToSettings,
   fillRomPaths,
   checkForDupes,
