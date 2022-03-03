@@ -79,33 +79,15 @@ module.exports = (settings, softlistParams, softlist, list) => {
           const romName = weHaveMergedRoms && obj.cloneof ? obj.cloneof : obj.call
           // atm the best we can do is ask if the first thing in the box is a cdrom'
           if (obj.part[0] && obj.part[0].chdname && settings.mameRomPathTypeSoftlistChdsPath) {
-            if (obj.part[1]) {
-              console.log(
-                `${obj.name} in ${
-                  softlistParams.name
-                } has other media, we're only printing the first chd: ${JSON.stringify(
-                  obj.part,
-                  null,
-                  2
-                )}`
-              )
-            }
-            return path.join(
-              settings.mameRomPathTypeSoftlistChdsPath,
-              softlistParams.name,
-              romName,
-              `${obj.part[0].chdname}.chd`
-            )
+            if (obj.part[1]) { console.log( `${obj.name} in ${ softlistParams.name } has other media, we're only printing the first chd: ${JSON.stringify( obj.part, null, 2)}`) }
+            return path.join( settings.mameRomPathTypeSoftlistChdsPath, softlistParams.name, romName, `${obj.part[0].chdname}.chd`)
           } else if (settings.mameRomPathTypeSoftlistRomsPath) {
-            return path.join(
-              settings.mameRomPathTypeSoftlistRomsPath,
-              softlistParams.name,
-              `${romName}.${zipType}`
-            )
+            return path.join( settings.mameRomPathTypeSoftlistRomsPath, softlistParams.name, `${romName}.${zipType}`)
           } else {
             return noPath
           }
         }
+        return noPath
       }
 
       const emuWithRegionSet = setRegionalEmu(
