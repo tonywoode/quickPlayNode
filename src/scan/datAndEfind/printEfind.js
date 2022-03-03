@@ -1,6 +1,7 @@
 'use strict'
 
 const fs             = require('fs')
+const path           = require('path')
 const R              = require('ramda')
 
 /*
@@ -14,7 +15,7 @@ module.exports = (efindOutPath, settings) =>  systems => {
 
   const mameEfindTemplate = ({topLine, systemType, callToMake, info}) =>
     (`[MAME ${topLine}]
-Exe Name=mame64.exe
+Exe Name=${path.basename(settings.mameExePath)}
 Config Name=mame
 System=${systemType} 
 HomePage=${info}
@@ -31,7 +32,7 @@ Compression=2E7A69703D2D310D0A2E7261723D300D0A2E6163653D300D0A2E377A3D2D310D0A
 
   const retroarchEfindTemplate = ({topLine, systemType, callToMake, info}) =>
     (`[Retroarch ${topLine} (MAME)]
-Exe Name=retroarch.exe
+Exe Name=${path.basename(settings.mameExePath)}
 Config Name=retroarch
 System=${systemType} 
 HomePage=${info}
