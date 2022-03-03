@@ -7,7 +7,7 @@ module.exports = (settings, hashDir, outputDir, emulator) => {
   
   const //I like forward slashes in system type. System doesn't...
       systemType              = emulator.systemType?
-          emulator.systemType.replace(/\//g, `-`) 
+          emulator.systemType.replace(/[/\\?%*:|"<>]/g, '-')
         : console.log(`TYPE PROBLEM: ${emulator.displayMachine} doesn't have a system type to use as a potential folder name`) 
       //I like forward slashes in system names. System doesn't...and bloody apple again
       //(The apple specifics are only needed if the machine name is in any way going to be part of the filepath, so a temporary mesaure)
