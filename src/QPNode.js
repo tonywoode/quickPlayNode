@@ -58,9 +58,14 @@ const muxLog = logType => (...args) => {
   logStream.write(`${new Date().toISOString()} ${text}`)
   process[logType].write(text)
 }
-
 console.log = muxLog('stdout')
 console.error = muxLog('stderr')
+
+// problem is though, this won't have time to get to the logfile
+process.on('uncaughtException', err => {
+  console.error('FATAL ERROR: uncaught exception:', err.stack)
+  process.exit(1)
+})
 
 // https://github.com/tj/commander.js/issues/944
 // TODO: need real nested subcommands, swith to yargs?
