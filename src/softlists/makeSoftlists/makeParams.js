@@ -5,7 +5,7 @@ const XmlStream = require('xml-stream')
 
 module.exports = (settings, hashDir, outputDir, emulator) => {
   
-  const //I like forward slashes in system type. System doesn't...
+  const //I like forward slashes in system type. System doesn't...actually windows system doesn't like ANY of these!
       systemType              = emulator.systemType?
           emulator.systemType.replace(/[/\\?%*:|"<>]/g, '-')
         : console.log(`TYPE PROBLEM: ${emulator.displayMachine} doesn't have a system type to use as a potential folder name`) 

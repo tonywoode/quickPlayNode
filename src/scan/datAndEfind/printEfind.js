@@ -8,6 +8,8 @@ const R              = require('ramda')
  * A subtltey here is that we want to print the munged COMPANY name (to avoid xx Computer Electronics Holding Ltd AB etc), but we want to largely keep 
  *   MESS' original system name to capture what makes each system different. However there are some considerations that also apply to system munging 
  *   that need re-application, along with some new concerns regarding the output format
+ * 
+ *   note use of win32 to get exename, otherwise on mac we'll print the whole exepath. Can be made cross-platform as and when
  */
 module.exports = (efindOutPath, settings) =>  systems => {
   const spaceIsSeparator = ` `
@@ -15,7 +17,7 @@ module.exports = (efindOutPath, settings) =>  systems => {
 
   const mameEfindTemplate = ({topLine, systemType, callToMake, info}) =>
     (`[MAME ${topLine}]
-Exe Name=${path.basename(settings.mameExePath)}
+Exe Name=${path.win32.basename(settings.mameExePath)}
 Config Name=mame
 System=${systemType} 
 HomePage=${info}
@@ -32,7 +34,7 @@ Compression=2E7A69703D2D310D0A2E7261723D300D0A2E6163653D300D0A2E377A3D2D310D0A
 
   const retroarchEfindTemplate = ({topLine, systemType, callToMake, info}) =>
     (`[Retroarch ${topLine} (MAME)]
-Exe Name=${path.basename(settings.mameExePath)}
+Exe Name=${path.win32.basename(settings.mameExePath)}
 Config Name=retroarch
 System=${systemType} 
 HomePage=${info}
