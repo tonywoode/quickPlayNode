@@ -103,8 +103,8 @@ program
     const jsonOutDir = devMode ? outputDir : `dats` // json will sit in the frontends config dir, or for dev in the passed-in dir
     const jsonOutName = `mame.json`
     const jsonOutPath = `${jsonOutDir}/${jsonOutName}`
-    const qpIni = devMode ? `./settings.ini` : `dats\\settings.ini` // settings from QP's ini file, or nix dev settings
     const devInputsDir = `inputs/current`
+    const qpIni = devMode ? `${devInputsDir}/settings.ini` : `dats\\settings.ini` // settings from QP's ini file, or nix dev settings
     const devMameInisOverridePath = devMode ? `${devInputsDir}/folders` : `` // on windows its specified in the settings.ini above
 
     devMode && console.log(`\t*** Mametool is in Dev mode ***\n`)
