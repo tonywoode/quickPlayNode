@@ -30,7 +30,7 @@ module.exports = (qpSettingsIniPath, mameInisOverridePath ) => {
     , mameRomPathTypeSoftlistChdsPath : s.MameRomPathTypeSoftlistChdsPath
     , mameExe           : s.MametoolMameExeName
     , mameExePath       : s.MametoolMameExePath
-    , iniDir            : mameInisOverridePath? mameInisOverridePath : `${s.MameExtrasPath}\\folders`
+    , iniDir            : `${s.MameExtrasPath}\\folders`
     , tickBios          : s.MameOptBios
     , tickCasino        : s.MameOptCasino
     , tickClones        : s.MameOptClones

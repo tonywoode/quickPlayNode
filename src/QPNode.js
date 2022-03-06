@@ -67,30 +67,29 @@ process.on('uncaughtException', err => {
   process.exit(1)
 })
 
-// https://github.com/tj/commander.js/issues/944
-// TODO: need real nested subcommands, swith to yargs?
+// https://github.com/tj/commander.js/issues/944 TODO: need real nested subcommands, swith to yargs?
 program
-  .command(`mametool`)
+  .command('mametool')
   .option('--output-dir [path]')
-  .option(`--scan`)
-  .option(`--dev`)
+  .option('--scan')
+  .option('--dev')
   // mameTool options
-  .option(`--arcade`)
-  .option(`--mfm`)
-  .option(`--testArcadeRun`)
+  .option('--arcade')
+  .option('--mfm')
+  .option('--testArcadeRun')
   // messTool options
-  .option(`--softlists [rompath]`) // todo, []=optional, <>=required, surely latter
-  .option(`--getRomPath <mameExeDir>`)
+  .option('--softlists [rompath]') // todo, []=optional, <>=required, surely latter
+  .option('--getRomPath <mameExeDir>')
   .action(mametoolObj => {
     if (mametoolObj.getRomPath) {
-      const mameIniFileName = `./mame.ini`
-      const messIniFileName = `./mess.ini`
-      const isItRetroArch = path.basename(mametoolObj.getRomPath).match(/retroarch/i) 
-      const mameEmuDir = path.dirname(mametoolObj.getRomPath) //or should I look this up from the settings? see belows mameEmuDir! is it important to have this saved in settings first, or more important to have this passed from Delphi? Ultimately we need a check for if no mame emu is selected in the mame options in Delphi, and if its not maybe default to all 'roms;?
+      const mameIniFileName = './mame.ini'
+      const messIniFileName = './mess.ini'
+      const isItRetroArch = path.basename(mametoolObj.getRomPath).match(/retroarch/i)
+      const mameEmuDir = path.dirname(mametoolObj.getRomPath) // or should I look this up from the settings? see belows mameEmuDir! is it important to have this saved in settings first, or more important to have this passed from Delphi? Ultimately we need a check for if no mame emu is selected in the mame options in Delphi, and if its not maybe default to all 'roms;?
       const mameIniPath = determinePathToMameIni(mameEmuDir, isItRetroArch, mameIniFileName, messIniFileName)
       const mameRomPaths = getMameIniRomPath(mameIniPath, mameEmuDir)
       console.log(mameRomPaths)
-      process.exit(1) //we want this call part of mametool, but its not part of the mametool flow
+      process.exit(1) // we want this call part of mametool, but its not part of the mametool flow
     }
     const outputDir = mametoolObj.outputDir
     !mametoolObj.scan &&
@@ -99,45 +98,46 @@ program
           `output directory ${outputDir} doesn't exist, so Mametool can't output any romdatas`
         ))
     const devMode = mametoolObj.dev
+    devMode && console.log('\t*** Mametool is in Dev mode ***\n')
     devMode && (log.efindProblems = yes)
-    const jsonOutDir = devMode ? outputDir : `dats` // json will sit in the frontends config dir, or for dev in the passed-in dir
-    const jsonOutName = `mame.json`
-    const jsonOutPath = `${jsonOutDir}/${jsonOutName}`
-    const devInputsDir = `inputs/current`
-    const qpIni = devMode ? `${devInputsDir}/settings.ini` : `dats\\settings.ini` // settings from QP's ini file, or nix dev settings
-    const devMameInisOverridePath = devMode ? `${devInputsDir}/folders` : `` // on windows its specified in the settings.ini above
-
-    devMode && console.log(`\t*** Mametool is in Dev mode ***\n`)
-    ;(mametoolObj.scan && !devMode) || console.log(`Output dir:             ${outputDir}`)
-    console.log(`MAME Json dir:          ${jsonOutDir}`)
-
+    const devInputsDir = 'inputs/current'
+    const qpIni = devMode ? `${devInputsDir}/settings.ini` : 'dats\\settings.ini' // settings from QP's ini file, or nix dev settings
     // read these from the ini
-    const settings = paths(qpIni, devMameInisOverridePath)
+    const settings = paths(qpIni)
     settings.devMode = devMode
+    // override the iniDir from that settings file if we're in dev mode...on windows its specified in the settings.ini, in dev its in inputs dir
+    devMode && (settings.iniDir = `${devInputsDir}/folders`)
     settings.isItRetroArch = path.basename(settings.mameExePath).match(/retroarch/i) // best bet is to limit ourselves to what the emu file is called for this
+    const efindOutName = settings.isItRetroArch ? 'Mess_Retroarch.ini' : 'Mess_Mame.ini'
+    const mameEmuDir = path.dirname(settings.mameExePath)
 
-    console.log(
-      `MAME extras dir:        ${settings.mameExtrasPath}
+    const devObj = {
+      jsonOutPath: `${outputDir}/mame.json`, // json will sit in the frontends config dir, or for dev in the passed-in dir
+      datInPath: `${devInputsDir}/systems.dat`, // determine that location of QuickPlays systems.dat, and where to write the amended version
+      datOutPath: `${outputDir}/systems.dat`,
+      efindOutPath: `${outputDir}/${efindOutName}`, // are we making a mess or retroarch efinder file? to make both the users has to go through the menu again and select the appropriate emu
+      hashDir: `${devInputsDir}/hash/`
+    }
+
+    const liveObj = {
+      jsonOutPath: 'dats\\mame.json',
+      datInPath: 'dats\\systems.dat',
+      datOutPath: 'dats\\systems.dat',
+      efindOutPath: `EFind\\${efindOutName}`,
+      // mess hash dir is determinable relative to mame exe dir (mame is distributed that way/retroarch users must place it here to work)
+      hashDir: settings.isItRetroArch ? `${mameEmuDir}\\system\\mame\\hash\\` : `${mameEmuDir}\\hash\\`
+    }
+
+    const { jsonOutPath, datInPath, datOutPath, efindOutPath, hashDir } = devMode ? devObj : liveObj
+    ;(mametoolObj.scan && !devMode) || console.log(`Output dir:             ${outputDir}`)
+
+    console.log(`MAME Json path:         ${jsonOutPath}
+MAME extras dir:        ${settings.mameExtrasPath}
 MAME icons dir:         ${settings.winIconDir} 
 MAME exe:               ${settings.mameExe}
-MAME exe path:          ${settings.mameExePath}`
+MAME exe path:          ${settings.mameExePath}
+EFind Ini output Path:  ${efindOutPath}`
     )
-
-    // determine that location of the systems.dat
-    const datInPath = devMode ? `${devInputsDir}/systems.dat` : `dats\\systems.dat`
-    const datOutPath = devMode ? `${outputDir}/systems.dat` : `dats\\systems.dat`
-    // are we making a mess or retroarch efinder file? to make both the users has to go through the menu again and select the appropriate emu
-    const efindOutName = settings.isItRetroArch ? `Mess_Retroarch.ini` : `Mess_Mame.ini`
-    const efindOutPath = devMode ? `${outputDir}/${efindOutName}` : `EFind\\${efindOutName}`
-    console.log(`EFind Ini output Path:  ${efindOutPath}`)
-
-    // softlist paths
-    const mameEmuDir = path.dirname(settings.mameExePath)
-    // mess hash dir is determinable relative to mame exe dir (mame is distributed that way/retroarch users must place it here to work)
-    const liveHashDir = settings.isItRetroArch
-      ? `${mameEmuDir}\\system\\mame\\hash\\`
-      : `${mameEmuDir}\\hash\\`
-    const hashDir = devMode ? `${devInputsDir}/hash/` : liveHashDir
 
     if (settings.mameFilePaths) {
       log.filePaths(`MAME roms path:         ${settings.mameRomPathTypeRomsPath}`)
@@ -155,10 +155,10 @@ MAME exe path:          ${settings.mameExePath}`
   })
 
 program
-  .command(`synctool`)
-  .option(`--sync [rompath]`)
-  .option(`--checkStatus`)
-  .option(`--folderFlip <startFolder>`)
+  .command('synctool')
+  .option('--sync [rompath]')
+  .option('--checkStatus')
+  .option('--folderFlip <startFolder>')
   .action(synctoolObj => {
     synctoolObj.sync && runSynctool(synctoolObj.sync, configFileName)
     synctoolObj.checkStatus && synctoolStatus()
