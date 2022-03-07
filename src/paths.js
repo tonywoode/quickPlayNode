@@ -18,7 +18,7 @@ module.exports = (qpSettingsIniPath, mameInisOverridePath ) => {
   return { 
       mameXMLInPath     : s.MameXMLPath
     , mfmTextFileInPath : s.MameFileManagerFilePath
-    , mameExtrasPath    : s.MameExtrasPath 
+    , mameExtrasPath    : s.MameExtrasPath
     , winIconDir        : `${s.MameExtrasPath}\\icons`
     , mameFilePaths     : parseInt(s.MameFilePaths)
     , mameZipType       : s.MameZipType
@@ -30,7 +30,6 @@ module.exports = (qpSettingsIniPath, mameInisOverridePath ) => {
     , mameRomPathTypeSoftlistChdsPath : s.MameRomPathTypeSoftlistChdsPath
     , mameExe           : s.MametoolMameExeName
     , mameExePath       : s.MametoolMameExePath
-    , iniDir            : `${s.MameExtrasPath}\\folders`
     , tickBios          : s.MameOptBios
     , tickCasino        : s.MameOptCasino
     , tickClones        : s.MameOptClones

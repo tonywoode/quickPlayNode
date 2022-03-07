@@ -106,13 +106,14 @@ program
     const settings = paths(qpIni)
     settings.devMode = devMode
     // override the iniDir from that settings file if we're in dev mode...on windows its specified in the settings.ini, in dev its in inputs dir
-    devMode && (settings.iniDir = `${devInputsDir}/folders`)
+    //devMode && (settings.iniDir = `${devInputsDir}/folders`)
     settings.isItRetroArch = path.basename(settings.mameExePath).match(/retroarch/i) // best bet is to limit ourselves to what the emu file is called for this
     const efindOutName = settings.isItRetroArch ? 'Mess_Retroarch.ini' : 'Mess_Mame.ini'
     const mameEmuDir = path.dirname(settings.mameExePath)
 
     const devObj = {
       jsonOutPath: `${outputDir}/mame.json`, // json will sit in the frontends config dir, or for dev in the passed-in dir
+      iniDir: `${devInputsDir}/folders`,
       datInPath: `${devInputsDir}/systems.dat`, // determine that location of QuickPlays systems.dat, and where to write the amended version
       datOutPath: `${outputDir}/systems.dat`,
       efindOutPath: `${outputDir}/${efindOutName}`, // are we making a mess or retroarch efinder file? to make both the users has to go through the menu again and select the appropriate emu
@@ -121,6 +122,7 @@ program
 
     const liveObj = {
       jsonOutPath: 'dats\\mame.json',
+      iniDir: `${settings.mameExtrasPath}\\folders`,
       datInPath: 'dats\\systems.dat',
       datOutPath: 'dats\\systems.dat',
       efindOutPath: `EFind\\${efindOutName}`,
@@ -128,7 +130,7 @@ program
       hashDir: settings.isItRetroArch ? `${mameEmuDir}\\system\\mame\\hash\\` : `${mameEmuDir}\\hash\\`
     }
 
-    const { jsonOutPath, datInPath, datOutPath, efindOutPath, hashDir } = devMode ? devObj : liveObj
+    const { jsonOutPath, iniDir, datInPath, datOutPath, efindOutPath, hashDir } = devMode ? devObj : liveObj
     ;(mametoolObj.scan && !devMode) || console.log(`Output dir:             ${outputDir}`)
 
     console.log(`MAME Json path:         ${jsonOutPath}
@@ -147,7 +149,7 @@ EFind Ini output Path:  ${efindOutPath}`
     }
 
     // TODO: promisify these so you can run combinations
-    mametoolObj.scan && scan(settings, jsonOutPath, qpIni, efindOutPath, datInPath, datOutPath)
+    mametoolObj.scan && scan(settings, iniDir, jsonOutPath, qpIni, efindOutPath, datInPath, datOutPath)
     mametoolObj.mfm && mfm(settings, readMameJson, jsonOutPath, generateRomdata, outputDir)
     mametoolObj.arcade && arcade(settings, jsonOutPath, outputDir, readMameJson, generateRomdata)
     mametoolObj.testArcadeRun && testArcadeRun(settings, readMameJson, jsonOutPath, outputDir)

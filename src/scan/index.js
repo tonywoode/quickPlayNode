@@ -19,12 +19,11 @@ const {mungeCompanyAndSystemNamesEmbedded, removeBoringSystemsEmbedded} = requir
 
 //scanning means parse, clean and filter a mame xml, 
 //  add inis to the json, print some additional files, then make a file of it
-module.exports = (settings, jsonOutPath, qpIni, efindOutPath, datInPath, datOutPath) => {
+module.exports = (settings, iniDir, jsonOutPath, qpIni, efindOutPath, datInPath, datOutPath) => {
   console.log(
 `MAME xml file:          ${settings.mameXMLInPath}  
-MAME ini dir:           ${settings.iniDir}`
+MAME ini dir:           ${iniDir}`
   )
-  const iniDir           = settings.iniDir
   settings.mameXMLInPath || _throw(`there's no MAME XML`)
   const mameXMLStream    = fs.createReadStream(settings.mameXMLInPath)
   const datInStream      = fs.createReadStream(datInPath)
