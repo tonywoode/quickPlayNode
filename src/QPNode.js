@@ -92,17 +92,19 @@ program
       console.log(mameRomPaths)
       process.exit(1) // we want this call part of mametool, but its not part of the mametool flow
     }
-    const outputDir = mametoolObj.outputDir
+    const devInputsDir = 'inputs/current'
+    const devOutputDir = mametoolObj.outputDir // in package.json since we want to wipe it sometimes
     !mametoolObj.scan &&
-      (fs.existsSync(outputDir) ||
+      (fs.existsSync(devOutputDir) ||
         _throw(
-          `output directory ${outputDir} doesn't exist, so Mametool can't output any romdatas`
+          `output directory ${devOutputDir} doesn't exist, so Mametool can't output any romdatas`
         ))
     const devMode = mametoolObj.dev
-    devMode && console.log('\t*** Mametool is in Dev mode ***\n')
-    devMode && (log.efindProblems = yes)
-    devMode && (log.printRomdata = yes) // TODO: consistency here, if you print these for arcade printing in dev, why not softlist printing?
-    const devInputsDir = 'inputs/current'
+    if (devMode) {
+      console.log('\t*** Mametool is in Dev mode ***\n')
+      log.efindProblems = yes
+      log.printRomdata = yes // TODO: consistency here, if you print these for arcade printing in dev, why not softlist printing?
+    }
     const qpIni = devMode ? `${devInputsDir}/settings.ini` : 'dats\\settings.ini' // settings from QP's ini file, or nix dev settings
     // read these from the ini
     const settings = paths(qpIni)
@@ -111,26 +113,26 @@ program
     const mameEmuDir = path.dirname(settings.mameExePath)
 
     const devObj = {
-      jsonOutPath: `${outputDir}/mame.json`, // json will sit in the frontends config dir, or for dev in the passed-in dir
       iniDir: `${devInputsDir}/folders`,
+      hashDir: `${devInputsDir}/hash/`,
       datInPath: `${devInputsDir}/systems.dat`, // determine that location of QuickPlays systems.dat, and where to write the amended version
-      datOutPath: `${outputDir}/systems.dat`,
-      efindOutPath: `${outputDir}/${efindOutName}`, // are we making a mess or retroarch efinder file? to make both the users has to go through the menu again and select the appropriate emu
-      hashDir: `${devInputsDir}/hash/`
+      datOutPath: `${devOutputDir}/systems.dat`,
+      jsonOutPath: `${devOutputDir}/mame.json`, // json will sit in the frontends config dir, or for dev in the passed-in dir
+      efindOutPath: `${devOutputDir}/${efindOutName}` // are we making a mess or retroarch efinder file? to make both the users has to go through the menu again and select the appropriate emu
     }
 
+    // for live, mess hash dir is determinable relative to mame exe dir (mame is distributed that way/retroarch users must place it here to work)
     const liveObj = {
-      jsonOutPath: 'dats\\mame.json',
       iniDir: `${settings.mameExtrasPath}\\folders`,
+      hashDir: settings.isItRetroArch ? `${mameEmuDir}\\system\\mame\\hash\\` : `${mameEmuDir}\\hash\\`,
       datInPath: 'dats\\systems.dat',
       datOutPath: 'dats\\systems.dat',
-      efindOutPath: `EFind\\${efindOutName}`,
-      // mess hash dir is determinable relative to mame exe dir (mame is distributed that way/retroarch users must place it here to work)
-      hashDir: settings.isItRetroArch ? `${mameEmuDir}\\system\\mame\\hash\\` : `${mameEmuDir}\\hash\\`
+      jsonOutPath: 'dats\\mame.json',
+      efindOutPath: `EFind\\${efindOutName}`
     }
 
     const { jsonOutPath, iniDir, datInPath, datOutPath, efindOutPath, hashDir } = devMode ? devObj : liveObj
-    ;(mametoolObj.scan && !devMode) || console.log(`Output dir:             ${outputDir}`)
+    ;(mametoolObj.scan && !devMode) || console.log(`Output dir:             ${devOutputDir}`)
 
     console.log(`MAME Json path:         ${jsonOutPath}
 MAME extras dir:        ${settings.mameExtrasPath}
@@ -149,10 +151,10 @@ EFind Ini output Path:  ${efindOutPath}`
 
     // TODO: promisify these so you can run combinations
     mametoolObj.scan && scan(settings, iniDir, jsonOutPath, qpIni, efindOutPath, datInPath, datOutPath)
-    mametoolObj.mfm && mfm(settings, readMameJson, jsonOutPath, generateRomdata, outputDir)
-    mametoolObj.arcade && arcade(settings, jsonOutPath, outputDir, readMameJson, generateRomdata)
-    mametoolObj.testArcadeRun && testArcadeRun(settings, readMameJson, jsonOutPath, outputDir)
-    mametoolObj.softlists && softlists(settings, jsonOutPath, hashDir, outputDir)
+    mametoolObj.mfm && mfm(settings, readMameJson, jsonOutPath, generateRomdata, devOutputDir)
+    mametoolObj.arcade && arcade(settings, jsonOutPath, devOutputDir, readMameJson, generateRomdata)
+    mametoolObj.testArcadeRun && testArcadeRun(settings, readMameJson, jsonOutPath, devOutputDir)
+    mametoolObj.softlists && softlists(settings, jsonOutPath, hashDir, devOutputDir)
   })
 
 program
