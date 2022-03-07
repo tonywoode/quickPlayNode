@@ -18,6 +18,7 @@ global.log = global.log || {
   fileProblems: yes, // as of mame 187, there is persistently one file missing in mame's hash: 'squale'
   filePaths: yes, // will also print helpful 'necessary to run this rom' file info
   // these probably shouldn't
+  printRomdata: no, // this printer is for arcade and mfm printing only, needs merging with softlist printing
   deviceProblems: no,
   otherSoftlists: no,
   otherGameNames: no,
@@ -100,13 +101,11 @@ program
     const devMode = mametoolObj.dev
     devMode && console.log('\t*** Mametool is in Dev mode ***\n')
     devMode && (log.efindProblems = yes)
+    devMode && (log.printRomdata = yes) // TODO: consistency here, if you print these for arcade printing in dev, why not softlist printing?
     const devInputsDir = 'inputs/current'
     const qpIni = devMode ? `${devInputsDir}/settings.ini` : 'dats\\settings.ini' // settings from QP's ini file, or nix dev settings
     // read these from the ini
     const settings = paths(qpIni)
-    settings.devMode = devMode
-    // override the iniDir from that settings file if we're in dev mode...on windows its specified in the settings.ini, in dev its in inputs dir
-    //devMode && (settings.iniDir = `${devInputsDir}/folders`)
     settings.isItRetroArch = path.basename(settings.mameExePath).match(/retroarch/i) // best bet is to limit ourselves to what the emu file is called for this
     const efindOutName = settings.isItRetroArch ? 'Mess_Retroarch.ini' : 'Mess_Mame.ini'
     const mameEmuDir = path.dirname(settings.mameExePath)
