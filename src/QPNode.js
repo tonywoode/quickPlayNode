@@ -145,12 +145,14 @@ EFind Ini output Path:  ${efindOutPath}`
       log.filePaths(`MAME software list chds path: ${settings.mameRomPathTypeSoftlistChdsPath}`)
     }
 
-    // TODO: promisify these so you can run combinations
-    mametoolObj.scan && scan(settings, iniDir, jsonOutPath, qpIni, efindOutPath, datInPath, datOutPath)
-    mametoolObj.mfm && mfm(settings, readMameJson, jsonOutPath, generateRomdata, devOutputDir)
-    mametoolObj.arcade && arcade(settings, jsonOutPath, devOutputDir, readMameJson, generateRomdata)
-    mametoolObj.testArcadeRun && testArcadeRun(settings, readMameJson, jsonOutPath, devOutputDir)
-    mametoolObj.softlists && softlists(settings, jsonOutPath, hashDir, devOutputDir)
+    // Now we can run combos - note top level await only available in esmodules. Scan is the only async operation
+    (async () => {
+      mametoolObj.scan && await scan(settings, iniDir, jsonOutPath, qpIni, efindOutPath, datInPath, datOutPath)
+      mametoolObj.mfm && mfm(settings, readMameJson, jsonOutPath, generateRomdata, devOutputDir)
+      mametoolObj.arcade && arcade(settings, jsonOutPath, devOutputDir, readMameJson, generateRomdata)
+      mametoolObj.testArcadeRun && testArcadeRun(settings, readMameJson, jsonOutPath, devOutputDir)
+      mametoolObj.softlists && softlists(settings, jsonOutPath, hashDir, devOutputDir)
+    })()
   })
 
 program
