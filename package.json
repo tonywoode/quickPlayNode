@@ -14,8 +14,8 @@
   },
   "scripts": {
     "start": "node src/QPNode.js mametool --output-dir $npm_package_directories_outputDir $npm_package_config_devFlags",
-    "mess-start": "npm run start -- --scan && npm run start -- --softlists",
-    "full": "trash $npm_package_directories_outputDir && mkdir $npm_package_directories_outputDir && npm run start -- --scan && npm run start -- --arcade && npm run start -- --softlists",
+    "mess-start": "npm run start -- --scan --softlists",
+    "full": "trash $npm_package_directories_outputDir && mkdir $npm_package_directories_outputDir && npm run start -- --scan --arcade --softlists",
     "basedebug": "node --inspect-brk src/QPNode.js",
     "debug": "npm run basedebug -- --output-dir $npm_package_directories_outputDir $npm_package_config_devFlags",
     "fulldebug": "trash $npm_package_directories_outputDir && npm run debug --",
