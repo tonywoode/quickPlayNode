@@ -211,14 +211,16 @@ const synctoolRomdataFlip = (startFolder, configFileName) => {
 
 program.parse(process.argv)
 
-if (!process.argv.slice(2).length) {
-  console.log(
-    `MAMETOOL TEST USAGE: 
+const IsWithoutNpmStartOption = process.argv[5] === '--dev' && !process.argv.slice(6).length // this used to read arg 2, but npm start sets lots of dev flags
+if (IsWithoutNpmStartOption) {
+  console.log(`
+MAMETOOL TEST USAGE: 
 'npm start -- --scan'          make a mame json output file, which is used by the arcade and mfm flags
 'npm start -- --arcade'        make an arcade set to the ini flags in settings.ini, and output to outputsDir in package.json
 'npm start -- --mfm'           make an arcade set to a flatfile list output of mame file manager, and output to outputsDir in package.json
 'npm start -- --testArcadeRun' makes a set of both Mame and RetroArch romdata and splits from a canned list
 'npm start -- --softlists'     makes a softlist set
+         *** YOU CAN RUN COMBINATIONS OF THE ABOVE ***
 'npm run full'                 deletes the outputs folder, scans, makes an arcade set, and softlists plus embedded (according to config settings)
 'npm run mess-start            doesn't delete output dir, just runs scan and softlist/embedded generation
 'npm run debug -- --arcade'    break on ln1 of making an arcade set to the ini flags in settings.ini, and output to outputsDir in package.json)
