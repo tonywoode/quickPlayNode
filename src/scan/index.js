@@ -32,7 +32,7 @@ MAME ini dir:           ${iniDir}`
   const sysObjPromise             = makeSystemsAsync(mameXMLStream)  
   const existingSystemsDatPromise = existingDatReaderAsync(datInStream)
 
-  Promise.all([sysObjPromise, existingSystemsDatPromise])
+  return Promise.all([sysObjPromise, existingSystemsDatPromise])
     .then( ([sysObj, existingSystemsDat]) => { 
       const {versionInfo, arcade, messSystems, embedded} = sysObj 
 

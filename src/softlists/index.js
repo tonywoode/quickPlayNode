@@ -73,7 +73,7 @@ const softlists = (settings, jsonOutPath, hashDir, outputDir) => {
   )(systems)
 
   // then the embedded systems when you're done with that
-  printEmbeddedRomdata(settings, outputDir)(embedded)
+  return printEmbeddedRomdata(settings, outputDir)(embedded)
 }
 
 module.exports = { softlists }

@@ -11,7 +11,7 @@ const mfm = (settings, readMameJson, jsonOutPath, generateRomdata, outputDir) =>
   console.log(`MAME file manager file: ${settings.mfmTextFileInPath}` )
   settings.mfmTextFileInPath || _throw(`there's no MFM File`) //TODO: recover?
   const  mfmTextFileStream = fs.createReadStream(settings.mfmTextFileInPath)
-  readMameJson(jsonOutPath)
+  return readMameJson(jsonOutPath)
     .then( sysObj => {
       const {arcade} = sysObj 
       mfmReaderAsync(mfmTextFileStream) 
