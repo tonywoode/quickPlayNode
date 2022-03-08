@@ -77,7 +77,7 @@ const generateRomdata = (romdataOutDir, settings, rootDir) => mameJson => {
     //for testing we must stub the exported fn https://stackoverflow.com/a/35754124/3536094
     const romdata = module.exports.printRomdataFolder(romdataOutDir, settings.winIconDir, emuIcon, rootDir)(mameRomdata)
     console.log(`printing romdata to ${romdataOutDir}`) 
-    if (log.printRomdata) console.log(romdata)
+    log.printRomdata(romdata)
     return romdata
 }
 

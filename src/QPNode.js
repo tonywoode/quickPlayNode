@@ -5,7 +5,7 @@ const yes = console.log
 // global goes first, else no modules will see it
 global.log = global.log || {
   // datAndEfind
-  efindProblems: no,
+  efindProblems: yes, // this is not program problems, its inconsistency with system hierarchy in the mame xml
   loaderCalls: yes,
   loaderCallsVerbose: no,
   // the data/efind/scan artifacts
@@ -100,11 +100,7 @@ program
           `output directory ${devOutputDir} doesn't exist, so Mametool can't output any romdatas`
         ))
     const devMode = mametoolObj.dev
-    if (devMode) {
-      console.log('\t*** Mametool is in Dev mode ***\n')
-      log.efindProblems = yes
-      log.printRomdata = yes // TODO: consistency here, if you print these for arcade printing in dev, why not softlist printing?
-    }
+    devMode && console.log('\t*** Mametool is in Dev mode ***\n')
     const qpIni = devMode ? `${devInputsDir}/settings.ini` : 'dats\\settings.ini' // settings from QP's ini file, or nix dev settings
     // read these from the ini
     const settings = paths(qpIni)
@@ -132,7 +128,7 @@ program
     }
 
     const { jsonOutPath, iniDir, datInPath, datOutPath, efindOutPath, hashDir } = devMode ? devObj : liveObj
-    ;(mametoolObj.scan && !devMode) || console.log(`Output dir:             ${devOutputDir}`)
+    if (mametoolObj.scan && devMode) console.log(`Output dir:             ${devOutputDir}`)
 
     console.log(`MAME Json path:         ${jsonOutPath}
 MAME extras dir:        ${settings.mameExtrasPath}
