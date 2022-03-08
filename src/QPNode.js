@@ -92,7 +92,7 @@ program
       console.log(mameRomPaths)
       process.exit(1) // we want this call part of mametool, but its not part of the mametool flow
     }
-    const devInputsDir = 'inputs/current'
+    const devInputsDir = './inputs/current'
     const devOutputDir = mametoolObj.outputDir // in package.json since we want to wipe it sometimes
     !mametoolObj.scan &&
       (fs.existsSync(devOutputDir) ||
@@ -101,8 +101,10 @@ program
         ))
     const devMode = mametoolObj.dev
     devMode && console.log('\t*** Mametool is in Dev mode ***\n')
+    mametoolObj.scan && devMode && console.log(`Dev Mode Output dir:          ${devOutputDir}`)
     const qpIni = devMode ? `${devInputsDir}/settings.ini` : 'dats\\settings.ini' // settings from QP's ini file, or nix dev settings
     // read these from the ini
+    console.log(`QP Settings file:             ${qpIni}`)
     const settings = paths(qpIni)
     settings.isItRetroArch = path.basename(settings.mameExePath).match(/retroarch/i) // best bet is to limit ourselves to what the emu file is called for this
     const efindOutName = settings.isItRetroArch ? 'Mess_Retroarch.ini' : 'Mess_Mame.ini'
@@ -127,23 +129,22 @@ program
       efindOutPath: `EFind\\${efindOutName}`
     }
 
-    const { jsonOutPath, iniDir, datInPath, datOutPath, efindOutPath, hashDir } = devMode ? devObj : liveObj
-    if (mametoolObj.scan && devMode) console.log(`Output dir:             ${devOutputDir}`)
+    const { iniDir, hashDir, datInPath, datOutPath, jsonOutPath, efindOutPath } = devMode ? devObj : liveObj
 
-    console.log(`MAME Json path:         ${jsonOutPath}
-MAME extras dir:        ${settings.mameExtrasPath}
-MAME icons dir:         ${settings.winIconDir} 
-MAME exe:               ${settings.mameExe}
-MAME exe path:          ${settings.mameExePath}
-EFind Ini output Path:  ${efindOutPath}`
-    )
-
-    if (settings.mameFilePaths) {
-      log.filePaths(`MAME roms path:         ${settings.mameRomPathTypeRomsPath}`)
-      log.filePaths(`MAME chds path:         ${settings.mameRomPathTypeChdsPath}`)
-      log.filePaths(`MAME software list roms path: ${settings.mameRomPathTypeSoftlistRomsPath}`)
-      log.filePaths(`MAME software list chds path: ${settings.mameRomPathTypeSoftlistChdsPath}`)
-    }
+    console.log(`QP Systems Dat read path:     ${datInPath}
+QP Systems Dat write path:    ${datOutPath}
+QP EFind Ini o/p path:        ${efindOutPath}
+QP MAME Json path:            ${jsonOutPath}
+MAME inis dir:                ${iniDir}
+MAME hash dir:                ${hashDir}
+MAME extras dir:              ${settings.mameExtrasPath}
+MAME icons dir:               ${settings.winIconDir} 
+MAME exe:                     ${settings.mameExe}
+MAME exe path:                ${settings.mameExePath}`)
+if (settings.mameFilePaths) { log.filePaths(`MAME roms path:               ${settings.mameRomPathTypeRomsPath}
+MAME chds path:               ${settings.mameRomPathTypeChdsPath}
+MAME software list roms path: ${settings.mameRomPathTypeSoftlistRomsPath}
+MAME software list chds path: ${settings.mameRomPathTypeSoftlistChdsPath}`)}
 
     // Now we can run combos - note top level await only available in esmodules. Scan is the only async operation
     (async () => {

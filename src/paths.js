@@ -6,13 +6,12 @@ const {readFileSync, existsSync} = require('fs')
 const ini      = require('ini')
 const _throw   = m => { throw new Error(m) }
 
-module.exports = (qpSettingsIniPath, mameInisOverridePath ) => {
+module.exports = qpSettingsIniPath => {
 
   existsSync(qpSettingsIniPath) || _throw(`the setttings file doesn't exist at ${qpSettingsIniPath}`)
   const qpSettings  = ini.parse(readFileSync(qpSettingsIniPath, 'utf-8'))
   const s           = qpSettings.MAME
   //console.log(s) 
-  console.log(`Settings file:          ${qpSettingsIniPath}`)  
 
   //TODO: see the parseInt below, it should also be in all the 'tick' settings, don't parseInt in the callsites, do it here!
   return { 

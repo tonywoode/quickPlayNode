@@ -21,8 +21,8 @@ const {mungeCompanyAndSystemNamesEmbedded, removeBoringSystemsEmbedded} = requir
 //  add inis to the json, print some additional files, then make a file of it
 module.exports = (settings, iniDir, jsonOutPath, qpIni, efindOutPath, datInPath, datOutPath) => {
   console.log(
-`MAME xml file:          ${settings.mameXMLInPath}  
-MAME ini dir:           ${iniDir}`
+`MAME xml file:                ${settings.mameXMLInPath}  
+MAME ini dir:                 ${iniDir}`
   )
   settings.mameXMLInPath || _throw(`there's no MAME XML`)
   const mameXMLStream    = fs.createReadStream(settings.mameXMLInPath)
