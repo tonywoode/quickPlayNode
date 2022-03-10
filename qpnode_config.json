@@ -3,7 +3,7 @@
  "localRoot" : "./specs/synctool/integration/localRoot",
  "remoteRoot": "./specs/synctool/integration/remoteRoot",
  "timeout": 10000,
- "timeTolerance": 1000,
+ "timeTolerance": 3000,
  "globalEnable": false,
  "enableOnHostName": ["SMLONMLP141", "POND"],
  "useCopyOrCopyStream": "copy"

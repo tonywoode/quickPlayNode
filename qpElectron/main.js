@@ -15,7 +15,7 @@ function makeConfigFile () {
     localRoot: '',
     remoteRoot: '',
     timeout: 10000,
-    timeTolerance: 1000,
+    timeTolerance: 3000,
     globalEnable: false,
     enableOnHostName: [],
     useCopyOrCopyStream: 'copy'

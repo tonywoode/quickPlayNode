@@ -99,7 +99,7 @@ const copyFileAndPath = (remotePath, localPath, remoteStat, config) => {
 // Path -> Path -> Path ->  Task Error _
 // modified times are often only very slightly different, i'm not entirely sure why, tolerance required
 const copyIfNotEqual = (remotePath, localPath, remoteStat, localStat, config) => {
-  const timeTolerance = config.timeTolerance ? config.timeTolerance : 1000
+  const timeTolerance = config.timeTolerance ? config.timeTolerance : 3000
   console.log('remote stat is ' + JSON.stringify(remoteStat, null, 2))
   console.log('local stat is ' + JSON.stringify(localStat, null, 2))
   const min = localStat.mtimeMs - timeTolerance
